@@ -1,0 +1,1731 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PRD 분석 · 피드백 · 한국디지털미디어고등학교</title>
+<style>
+:root{
+  --bg:#f4f5f9; --panel:#ffffff; --ink:#1a1d29; --ink-2:#4a5065; --ink-3:#8188a0;
+  --line:#e3e6ef; --line-2:#d2d7e6;
+  --accent:#4f46e5; --accent-soft:#eef0fe; --accent-ink:#3730a3;
+  --ok:#0f9d76; --ok-soft:#e6f7f1; --ok-line:#b9e8d8; --ok-ink:#0b7a5c;
+  --warn:#d97706; --warn-soft:#fff6ea; --warn-line:#f5d9ae; --warn-ink:#96590a;
+  --danger:#dc2626; --danger-soft:#fff5f5; --danger-line:#f3c0c0;
+  --shadow:0 1px 2px rgba(20,24,40,.05), 0 8px 24px rgba(20,24,40,.07);
+  --shadow-lg:0 12px 32px rgba(20,24,40,.16), 0 2px 8px rgba(20,24,40,.10);
+  --mono:'D2Coding',ui-monospace,SFMono-Regular,Menlo,Consolas,'Courier New',monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--bg); color:var(--ink);
+  font-family:'Pretendard','Pretendard Variable',-apple-system,BlinkMacSystemFont,'Segoe UI','Malgun Gothic','Apple SD Gothic Neo',system-ui,sans-serif;
+  font-size:15px; line-height:1.65; -webkit-font-smoothing:antialiased;
+}
+button,input,textarea,select{font-family:inherit}
+[hidden]{display:none !important}
+
+/* ---------- 상단 ---------- */
+.top{position:sticky;top:0;z-index:60;background:rgba(244,245,249,.92);backdrop-filter:saturate(180%) blur(12px);border-bottom:1px solid var(--line)}
+.top-inner{max-width:1180px;margin:0 auto;padding:13px 22px 12px;display:flex;align-items:flex-start;gap:16px}
+.brand{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;align-items:flex-start;gap:1px}
+.brand .school{font-size:11px;font-weight:700;letter-spacing:.45px;line-height:1.5;color:var(--accent)}
+.brand h1{font-size:20px;font-weight:800;margin:0;letter-spacing:-.5px;line-height:1.35;color:var(--ink)}
+.brand .tag{font-size:12.5px;line-height:1.5;color:var(--ink-3)}
+.top-actions{flex:0 0 auto;display:flex;align-items:center;gap:8px;padding-top:4px}
+
+/* ---------- 공통 ---------- */
+.wrap{max-width:1180px;margin:0 auto;padding:22px 22px 90px}
+.card-box{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:20px 22px;box-shadow:var(--shadow)}
+.sec{margin-bottom:16px}
+.sec-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 12px}
+.sec-head h2{margin:0;font-size:15.5px;font-weight:800;letter-spacing:-.3px}
+.sec-head .sub{font-size:12.5px;color:var(--ink-3);text-align:right}
+.muted{color:var(--ink-3)}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:10px 18px;border-radius:11px;border:1px solid transparent;font-size:14px;font-weight:600;cursor:pointer;transition:.15s;white-space:nowrap}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-primary:hover:not(:disabled){background:#4338ca}
+.btn-primary:disabled{background:#c9cbe0;cursor:not-allowed}
+.btn-ghost{background:#fff;border-color:var(--line-2);color:var(--ink-2)}
+.btn-ghost:hover{border-color:var(--ink-3);color:var(--ink)}
+.btn-soft{background:var(--accent-soft);border-color:#d6dafc;color:var(--accent-ink)}
+.btn-soft:hover{background:#e4e7fd;border-color:#b9bcf0}
+.btn-danger{background:#fff;border-color:var(--danger-line);color:var(--danger)}
+.btn-danger:hover{background:var(--danger-soft);border-color:var(--danger)}
+.btn-sm{padding:7px 13px;font-size:13px;border-radius:9px}
+.btn-xs{padding:5px 10px;font-size:12.5px;border-radius:8px;font-weight:600}
+
+.banner{display:flex;gap:10px;align-items:flex-start;border-radius:13px;padding:12px 15px;font-size:13.5px;line-height:1.6;margin-bottom:14px;border:1px solid}
+.banner.warn{background:var(--warn-soft);border-color:var(--warn-line);color:var(--warn-ink)}
+.banner b{font-weight:700}
+
+/* ---------- 업로드 ---------- */
+.dropzone{position:relative;background:var(--panel);border:2px dashed var(--line-2);border-radius:20px;padding:44px 24px;text-align:center;transition:.16s;box-shadow:var(--shadow)}
+.dropzone.over{border-color:var(--accent);border-style:solid;background:var(--accent-soft);box-shadow:0 0 0 4px rgba(79,70,229,.15),var(--shadow)}
+/* 드래그 중 안내 오버레이.
+   pointer-events:none 이라 hit-test 대상이 바뀌지 않는다 → dragenter/dragleave 가 흔들리지 않는다 */
+.dz-drop-msg{display:none;position:absolute;top:0;left:0;right:0;bottom:0;flex-direction:column;align-items:center;justify-content:center;gap:7px;border-radius:inherit;background:var(--accent-soft);color:var(--accent-ink);pointer-events:none}
+.dropzone.over .dz-drop-msg{display:flex}
+.dz-drop-msg .ic{font-size:26px;line-height:1}
+.dz-drop-msg .tx{font-size:17px;font-weight:800;letter-spacing:-.4px}
+.dropzone.compact .dz-drop-msg{flex-direction:row;gap:10px}
+.dropzone.compact .dz-drop-msg .ic{font-size:18px}
+.dropzone.compact .dz-drop-msg .tx{font-size:15px}
+/* 학생이 등록된 뒤에도 계속 드롭 영역이다.
+   너무 얇으면 파일을 조준하기 어려우므로 높이를 넉넉히 남겨 둔다. */
+.dropzone.compact{padding:22px 22px;display:flex;align-items:center;gap:14px;text-align:left;flex-wrap:wrap;min-height:92px}
+.dz-title{font-size:19px;font-weight:800;letter-spacing:-.4px;margin:0 0 8px}
+.dropzone.compact .dz-title{font-size:15px;margin:0;flex:0 0 auto}
+.dz-sub{font-size:14px;color:var(--ink-2);margin:0 0 18px;line-height:1.7}
+.dropzone.compact .dz-sub{display:block;margin:0;flex:0 0 100%;order:3;font-size:12.5px;color:var(--ink-3)}
+.dropzone.compact .dz-sub br{display:none}
+.dz-note{font-size:12.5px;color:var(--ink-3);margin:14px 0 0}
+.dropzone.compact .dz-note{margin:0;flex:1 1 auto}
+.dropzone.compact .btn{flex:0 0 auto}
+.privacy{font-size:12px;color:var(--ink-3);text-align:center;margin:10px 0 0;line-height:1.6}
+.dropzone.compact + .privacy{text-align:left;padding-left:4px}
+
+/* ---------- 현황 ---------- */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.stat{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px 16px}
+.stat .k{font-size:12px;font-weight:700;color:var(--ink-3);letter-spacing:.2px}
+.stat .v{font-size:26px;font-weight:800;letter-spacing:-1px;line-height:1.25;margin-top:2px}
+.stat .v small{font-size:13px;font-weight:700;color:var(--ink-3);margin-left:2px;letter-spacing:0}
+.stat.accent .v{color:var(--accent)}
+.stat.ok .v{color:var(--ok-ink)}
+.stat.warn .v{color:var(--warn)}
+.struct-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;align-items:center}
+.pill{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:700;padding:5px 12px;border-radius:99px;border:1px solid var(--line);background:#fff;color:var(--ink-2)}
+.pill.ok{background:var(--ok-soft);border-color:var(--ok-line);color:var(--ok-ink)}
+.pill.warn{background:var(--warn-soft);border-color:var(--warn-line);color:var(--warn-ink)}
+.pill.plain{font-weight:500;color:var(--ink-3);border-style:dashed}
+
+/* ---------- 공통 문제 ---------- */
+.issue-list{display:flex;flex-direction:column;gap:9px}
+.issue{display:flex;align-items:center;gap:12px}
+.issue .nm{flex:0 0 auto;font-size:13.5px;font-weight:600;width:220px;color:var(--ink-2)}
+.issue .track{flex:1 1 auto;height:9px;border-radius:99px;background:var(--line);overflow:hidden;min-width:60px}
+.issue .track span{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,#f0b354,#d97706)}
+.issue .ct{flex:0 0 auto;font-size:13px;font-weight:700;color:var(--warn-ink);width:52px;text-align:right}
+.issue-empty{font-size:13.5px;color:var(--ink-3)}
+
+/* ---------- 툴바 ---------- */
+.toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:14px}
+.search-wrap{flex:1 1 240px;min-width:190px;position:relative}
+.search-wrap input{width:100%;padding:10px 13px 10px 36px;border:1px solid var(--line-2);border-radius:11px;font-size:14px;background:#fff;color:var(--ink);transition:.15s}
+.search-wrap input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(79,70,229,.14)}
+.search-wrap .ico{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--ink-3);pointer-events:none;display:block}
+.filters{display:flex;gap:6px;flex-wrap:wrap}
+.fchip{font-size:12.5px;font-weight:600;padding:7px 13px;border-radius:99px;border:1px solid var(--line-2);background:#fff;color:var(--ink-2);cursor:pointer;transition:.15s}
+.fchip:hover{border-color:var(--accent);color:var(--accent)}
+.fchip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
+.fchip .n{opacity:.8;margin-left:3px;font-weight:700}
+select.sortsel{padding:8px 11px;border:1px solid var(--line-2);border-radius:10px;background:#fff;font-size:13px;color:var(--ink-2);cursor:pointer}
+select.sortsel:focus{outline:none;border-color:var(--accent)}
+
+/* ---------- 학생 그리드 ---------- */
+.student-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:13px;align-items:start}
+.student{background:var(--panel);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);overflow:hidden;transition:border-color .15s,box-shadow .15s}
+.student.open{grid-column:1/-1;border-color:#c8ccf5;box-shadow:var(--shadow-lg)}
+.s-head{display:flex;align-items:center;gap:12px;padding:14px 16px;cursor:pointer;user-select:none}
+.s-head:hover{background:#fbfbfe}
+.s-num{flex:0 0 auto;width:34px;height:34px;border-radius:10px;background:var(--accent-soft);color:var(--accent-ink);font-size:13px;font-weight:800;display:flex;align-items:center;justify-content:center;letter-spacing:-.3px}
+.s-id{flex:1 1 auto;min-width:0}
+.s-name{font-size:15px;font-weight:800;letter-spacing:-.3px;line-height:1.35;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.s-proj{font-size:12.5px;color:var(--ink-3);line-height:1.45;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.s-badges{flex:0 0 auto;display:flex;flex-direction:column;align-items:flex-end;gap:4px}
+.badge{font-size:11.5px;font-weight:700;padding:3px 9px;border-radius:99px;border:1px solid var(--line);background:#f7f8fc;color:var(--ink-2);white-space:nowrap}
+.badge.ok{background:var(--ok-soft);border-color:var(--ok-line);color:var(--ok-ink)}
+.badge.warn{background:var(--warn-soft);border-color:var(--warn-line);color:var(--warn-ink)}
+.badge.done{background:var(--accent-soft);border-color:#cdd2fb;color:var(--accent-ink)}
+.badge.wait{background:#f7f8fc;border-color:var(--line-2);color:var(--ink-3)}
+.s-caret{flex:0 0 auto;color:var(--ink-3);font-size:11px;transition:transform .2s;margin-left:2px}
+.student.open .s-caret{transform:rotate(180deg)}
+.s-body{border-top:1px solid var(--line);padding:16px;display:flex;flex-direction:column;gap:13px;background:#fcfcfe}
+
+.panel{background:#fff;border:1px solid var(--line);border-radius:13px;padding:14px 16px}
+.panel > h4{margin:0 0 10px;font-size:11.5px;font-weight:800;letter-spacing:.6px;color:var(--ink-3)}
+.panel .note{font-size:12.5px;color:var(--ink-3);line-height:1.65;margin:10px 0 0}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:13px;align-items:start}
+
+/* 8개 영역 */
+.areas{display:flex;flex-direction:column}
+.area{display:flex;gap:11px;padding:9px 0;border-bottom:1px dashed var(--line)}
+.area:last-child{border-bottom:0;padding-bottom:0}
+.area:first-child{padding-top:0}
+.area .mark{flex:0 0 auto;width:20px;height:20px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;margin-top:2px}
+.area .mark.ok{background:var(--ok-soft);color:var(--ok-ink)}
+.area .mark.warn{background:var(--warn-soft);color:var(--warn-ink)}
+.area .txt{flex:1 1 auto;min-width:0}
+.area .nm{font-size:13.5px;font-weight:700;line-height:1.5}
+.area .fact{font-size:12.5px;color:var(--ink-2);line-height:1.6}
+.area .q{font-size:12px;color:var(--ink-3);line-height:1.6;margin-top:2px}
+.area .hint{font-size:12.5px;color:var(--warn-ink);line-height:1.6;margin-top:3px}
+
+/* 구조 10항목 */
+.checks{display:flex;flex-wrap:wrap;gap:6px}
+.check{display:inline-flex;align-items:center;gap:5px;font-size:12.5px;font-weight:600;padding:5px 11px;border-radius:99px;border:1px solid}
+.check.ok{background:var(--ok-soft);border-color:var(--ok-line);color:var(--ok-ink)}
+.check.warn{background:var(--warn-soft);border-color:var(--warn-line);color:var(--warn-ink)}
+
+/* 원문 */
+.md-raw{margin:0;font-family:var(--mono);font-size:12.5px;line-height:1.85;white-space:pre-wrap;word-break:break-word;color:#dfe3f5;background:#1e2130;border-radius:12px;padding:16px 18px;max-height:340px;overflow:auto}
+.row-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+
+/* 피드백 입력 */
+textarea.fb{width:100%;min-height:130px;padding:12px 14px;border:1px solid var(--line-2);border-radius:11px;font-size:13.5px;line-height:1.75;color:var(--ink);background:#fff;resize:vertical;transition:.15s}
+textarea.fb:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(79,70,229,.14)}
+textarea.fb::placeholder{color:#b3b9cc}
+
+/* 최종 피드백 카드 */
+.fb-card{border:1px solid var(--line);border-radius:13px;overflow:hidden;background:#fff}
+.fb-block{padding:12px 16px;border-bottom:1px solid var(--line)}
+.fb-block:last-child{border-bottom:0}
+.fb-block h5{margin:0 0 7px;font-size:12.5px;font-weight:800;letter-spacing:.2px}
+.fb-block ul{margin:0;padding-left:18px}
+.fb-block ol{margin:0;padding-left:20px}
+.fb-block li{font-size:13.5px;line-height:1.75;color:var(--ink-2);margin-bottom:2px}
+.fb-block p{margin:0;font-size:13.5px;line-height:1.75;color:var(--ink-2);white-space:pre-wrap}
+.fb-block.good{background:#f6fdfa} .fb-block.good h5{color:var(--ok-ink)}
+.fb-block.fix{background:#fffaf3} .fb-block.fix h5{color:var(--warn-ink)}
+.fb-block.miss{background:#fff8f8} .fb-block.miss h5{color:#b91c1c}
+.fb-block.decide{background:#f8f9ff} .fb-block.decide h5{color:var(--accent-ink)}
+.fb-block.top3{background:var(--accent-soft)} .fb-block.top3 h5{color:var(--accent-ink)}
+.fb-block.sum{background:#fafbfd} .fb-block.sum h5{color:var(--ink-2)}
+
+/* 빈 상태 */
+.empty{text-align:center;padding:46px 20px;color:var(--ink-3);font-size:14px;line-height:1.8}
+
+/* 모달 */
+.modal{position:fixed;inset:0;z-index:100;display:flex;align-items:center;justify-content:center;padding:24px;background:rgba(20,24,40,.42)}
+.modal-card{background:#fff;border-radius:18px;box-shadow:var(--shadow-lg);width:100%;max-width:860px;max-height:88vh;display:flex;flex-direction:column;overflow:hidden}
+.modal-card.sm{max-width:430px}
+.modal-head{display:flex;align-items:flex-start;gap:12px;padding:18px 22px 14px;border-bottom:1px solid var(--line)}
+.modal-head .t{flex:1 1 auto;min-width:0}
+.modal-head h3{margin:0;font-size:16px;font-weight:800;letter-spacing:-.3px}
+.modal-head .s{font-size:12.5px;color:var(--ink-3);margin-top:1px}
+.modal-body{padding:18px 22px;overflow:auto;flex:1 1 auto}
+.modal-body .md-raw{max-height:none}
+.modal-body p.msg{margin:0;font-size:14.5px;line-height:1.75;color:var(--ink-2)}
+.modal-foot{padding:14px 22px;border-top:1px solid var(--line);display:flex;gap:8px;justify-content:flex-end;background:#fbfbfe}
+
+/* 토스트 */
+.toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(14px);z-index:200;background:#1e2130;color:#fff;font-size:13.5px;font-weight:600;padding:11px 20px;border-radius:99px;box-shadow:var(--shadow-lg);opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;max-width:calc(100vw - 40px);text-align:center;line-height:1.6}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast.warn{background:#96590a}
+
+@media (max-width:1000px){
+  .stats{grid-template-columns:repeat(2,1fr)}
+  .two-col{grid-template-columns:1fr}
+}
+@media (max-width:640px){
+  .wrap{padding:18px 14px 70px}
+  .top-inner{padding:12px 14px}
+  .student-grid{grid-template-columns:1fr}
+  .issue .nm{width:135px;font-size:12.5px}
+  .dropzone{padding:32px 16px}
+}
+</style>
+</head>
+<body>
+<!-- LECTURE-BACK-LINK:START (tools/sync-prd.py 가 자동 생성) -->
+<style>
+.lecture-back-bar{
+  background:#eef0fe;border-bottom:1px solid #d7daf5;
+}
+.lecture-back-bar .inner{
+  max-width:940px;margin:0 auto;padding:9px 20px;
+}
+.lecture-back-link{
+  display:inline-flex;align-items:center;gap:7px;
+  font-family:'Pretendard','Pretendard Variable',-apple-system,BlinkMacSystemFont,
+              'Segoe UI','Malgun Gothic','Apple SD Gothic Neo',system-ui,sans-serif;
+  font-size:13.5px;font-weight:700;line-height:1;
+  color:#3730a3;text-decoration:none;
+  padding:9px 14px;border-radius:9px;border:1px solid #c7cbf2;background:#fff;
+  min-height:38px;transition:background .15s,border-color .15s,color .15s;
+}
+.lecture-back-link:hover{background:#4f46e5;border-color:#4f46e5;color:#fff}
+.lecture-back-link:focus-visible{outline:3px solid #4f46e5;outline-offset:2px}
+@media (max-width:520px){
+  .lecture-back-bar .inner{padding:8px 16px}
+  .lecture-back-link{font-size:13px;width:100%;justify-content:center}
+}
+</style>
+<div class="lecture-back-bar">
+  <div class="inner">
+    <a class="lecture-back-link" href="../../index.html#/lesson-02">
+      <span aria-hidden="true">&#8592;</span> 강의 홈페이지로 돌아가기
+    </a>
+  </div>
+</div>
+<!-- LECTURE-BACK-LINK:END -->
+
+<header class="top">
+  <div class="top-inner">
+    <div class="brand">
+      <div class="school">한국디지털미디어고등학교 · CLAUDE VIBE CODING</div>
+      <h1>PRD 분석 · 피드백</h1>
+      <div class="tag">학생이 작성한 PRD를 확인하고 더 좋은 기획으로 발전시켜 보세요.</div>
+    </div>
+    <div class="top-actions">
+      <button class="btn btn-danger btn-sm" id="btn-reset" type="button">전체 초기화</button>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <div class="banner warn" id="storage-warn" hidden>
+    <span>!</span>
+    <span><b>브라우저 저장 공간이 부족합니다.</b><br>화면에서는 그대로 사용할 수 있지만, 새로고침하면 최근 변경 내용이 사라질 수 있습니다. 학생 수를 줄이거나 일부 학생을 삭제한 뒤 다시 시도해 보세요.</span>
+  </div>
+
+  <!-- 1단계 · 업로드 -->
+  <section class="sec" id="sec-upload">
+    <div class="dropzone" id="dropzone">
+      <div class="dz-title">학생 PRD.md 파일 업로드</div>
+      <p class="dz-sub">파일을 이곳에 드래그앤드롭하거나 <br>파일을 직접 선택하세요</p>
+      <button class="btn btn-primary" id="btn-pick" type="button">파일 선택</button>
+      <p class="dz-note" id="dz-note">최대 30개 파일 업로드 가능 · .md / .txt 지원</p>
+      <input type="file" id="file-input" multiple accept=".md,.markdown,.txt,text/markdown,text/plain" hidden>
+      <div class="dz-drop-msg" aria-hidden="true">
+        <span class="ic">📄</span>
+        <span class="tx" id="dz-drop-tx">여기에 파일을 놓으세요</span>
+      </div>
+    </div>
+    <p class="privacy">업로드한 파일은 이 브라우저에서만 처리되며<br>별도의 서버로 자동 전송되지 않습니다.</p>
+  </section>
+
+  <!-- 8단계 · 전체 현황 -->
+  <section class="sec" id="sec-dash" hidden>
+    <div class="card-box">
+      <div class="sec-head">
+        <h2>PRD 분석 현황</h2>
+        <span class="sub" id="dash-sub"></span>
+      </div>
+      <div class="stats">
+        <div class="stat"><div class="k">전체 학생</div><div class="v" id="st-total">0<small>명</small></div></div>
+        <div class="stat accent"><div class="k">PRD 업로드</div><div class="v" id="st-upload">0<small>명</small></div></div>
+        <div class="stat ok"><div class="k">구조 양호</div><div class="v" id="st-good">0<small>명</small></div></div>
+        <div class="stat warn"><div class="k">보완 필요</div><div class="v" id="st-improve">0<small>명</small></div></div>
+      </div>
+      <div class="struct-row">
+        <span class="pill warn" id="pill-check" hidden>확인 필요 0명</span>
+        <span class="pill plain">자동 피드백은 PRD의 구조와 작성 내용을 기준으로 제공되는 1차 점검입니다.</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- 9단계 · 공통 문제 -->
+  <section class="sec" id="sec-issues" hidden>
+    <div class="card-box">
+      <div class="sec-head">
+        <h2>전체 PRD에서 자주 발견된 항목</h2>
+        <span class="sub">자동으로 확인 가능한 항목만 집계합니다</span>
+      </div>
+      <div class="issue-list" id="issue-list"></div>
+    </div>
+  </section>
+
+  <!-- 2 · 5단계 · 학생 목록 -->
+  <section class="sec" id="sec-students" hidden>
+    <div class="toolbar">
+      <div class="search-wrap">
+        <svg class="ico" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><line x1="16.5" y1="16.5" x2="21" y2="21"></line></svg>
+        <input type="text" id="search" placeholder="학생 이름 또는 프로젝트명 검색" autocomplete="off">
+      </div>
+      <div class="filters" id="filters">
+        <button class="fchip" type="button" data-filter="all" aria-pressed="true">전체 <span class="n" data-count="all">0</span></button>
+        <button class="fchip" type="button" data-filter="good" aria-pressed="false">구조 양호 <span class="n" data-count="good">0</span></button>
+        <button class="fchip" type="button" data-filter="improve" aria-pressed="false">보완 필요 <span class="n" data-count="improve">0</span></button>
+        <button class="fchip" type="button" data-filter="check" aria-pressed="false" hidden>확인 필요 <span class="n" data-count="check">0</span></button>
+      </div>
+      <select class="sortsel" id="sort">
+        <option value="order">번호 · 파일 순서</option>
+        <option value="name">학생 이름순</option>
+        <option value="status">보완 필요 먼저</option>
+      </select>
+      <button class="btn btn-ghost btn-sm" id="btn-collapse" type="button">모두 접기</button>
+    </div>
+    <div class="student-grid" id="student-grid"></div>
+    <div class="empty" id="empty-result" hidden>검색 조건에 맞는 학생이 없습니다.</div>
+  </section>
+
+</main>
+
+<div class="modal" id="modal" hidden>
+  <div class="modal-card" id="modal-card" role="dialog" aria-modal="true">
+    <div class="modal-head">
+      <div class="t"><h3 id="modal-title"></h3><div class="s" id="modal-sub"></div></div>
+      <button class="btn btn-ghost btn-xs" id="modal-x" type="button">닫기</button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+    <div class="modal-foot" id="modal-foot"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============================================================
+   한국디지털미디어고등학교 · CLAUDE VIBE CODING
+   PRD 분석 · 피드백  (교사용)
+
+   - 업로드한 파일은 브라우저 안에서만 처리한다. 서버 전송 없음.
+   - 의미 분석은 절대 자동 생성하지 않는다.
+     브라우저가 셀 수 있는 것(항목 존재 / 개수)만 자동으로 확인하고,
+     의미 판단은 Claude 분석용 프롬프트로 넘긴다.
+   ============================================================ */
+
+/* ==== CORE_START ==== 순수 로직 (DOM 사용 금지 · 테스트 대상) ==== */
+
+var MAX_FILES = 30;
+
+/* PRD 기본 구조 10항목. 위쪽에 있을수록 더 구체적인 이름이라
+   같은 글자를 포함하는 제목끼리 충돌하지 않도록 '가장 긴 별칭'으로 매칭한다. */
+var SECTION_DEFS = [
+  { key:'now',      label:'이번에 만들 기능',      aliases:['이번에만들기능','이번에만들','이번버전기능','지금만들기능','우선구현기능','핵심기능이번'] },
+  { key:'later',    label:'나중에 만들 기능',      aliases:['나중에만들기능','나중에만들','다음버전기능','추후기능','확장기능'] },
+  { key:'overview', label:'프로젝트 개요',         aliases:['프로젝트개요','프로젝트소개','서비스개요','projectoverview','overview','개요'] },
+  { key:'problem',  label:'해결하려는 문제',       aliases:['해결하려는문제','해결할문제','문제정의','문제상황','problem','문제'] },
+  { key:'user',     label:'주요 사용자',           aliases:['주요사용자','핵심사용자','타겟사용자','사용자정의','targetuser','users','user','사용자'] },
+  { key:'flow',     label:'User Flow',             aliases:['userflow','유저플로우','사용자흐름','사용흐름','사용자플로우','userjourney','flow','흐름'] },
+  { key:'mvp',      label:'MVP',                   aliases:['minimumviableproduct','최소기능제품','mvp범위','mvp'] },
+  { key:'ui',       label:'UI 구성',               aliases:['ui구성','화면구성','화면구조','인터페이스구성','ui설계','ui요소','ui'] },
+  { key:'ac',       label:'Acceptance Criteria',   aliases:['acceptancecriteria','완성기준','완료기준','인수기준','인수조건','수용기준','합격기준','ac'] },
+  { key:'revision', label:'수정 기록',             aliases:['수정기록','변경기록','수정내역','변경내역','revisionhistory','changelog','revision','업데이트기록'] }
+];
+
+/* 화면에 보여줄 순서 (PRD 문서 순서) */
+var SECTION_ORDER = ['overview','problem','user','flow','mvp','now','later','ui','ac','revision'];
+
+/* 학생이 아직 안 쓴 자리를 채우는 문구들 */
+var PLACEHOLDER_HEAD = /^\(?\s*(?:아직|없음|없다|미작성|미입력|해당\s*없음|todo|tbd|추후\s*작성|작성\s*중)/i;
+
+/* 학생 도구가 만든 파일 맨 앞에는 UTF-8 BOM 이 붙어 있다.
+   지우지 않으면 첫 줄 '# 프로젝트명' 을 제목으로 읽지 못한다. */
+function stripBom(t){ return String(t == null ? '' : t).replace(/^\uFEFF/, ''); }
+
+function normalizeText(t){
+  return stripBom(t)
+    .replace(/\r\n?/g, '\n')     /* 윈도우 줄바꿈 */
+    .replace(/\u00a0/g, ' ');    /* 붙여넣기로 섞여 들어온 특수 공백 */
+}
+
+/* 제목을 비교하기 좋은 형태로 (번호 · 기호 · 공백 제거) */
+function normHead(s){
+  return String(s == null ? '' : s)
+    .replace(/^#+\s*/, '')
+    .replace(/[*_`~]/g, '')
+    .replace(/^\s*\d+\s*[.)\-]?\s*/, '')
+    .replace(/[\s·:：/\\(),.\[\]{}'"!?\-_]/g, '')
+    .toLowerCase();
+}
+
+function matchSectionKey(normTitle){
+  if(!normTitle) return null;
+  var best = null, bestLen = 0, i, j, a;
+  for(i = 0; i < SECTION_DEFS.length; i++){
+    for(j = 0; j < SECTION_DEFS[i].aliases.length; j++){
+      a = SECTION_DEFS[i].aliases[j];
+      if(normTitle.indexOf(a) !== -1 && a.length > bestLen){
+        best = SECTION_DEFS[i].key;
+        bestLen = a.length;
+      }
+    }
+  }
+  return best;
+}
+
+function sectionLabel(key){
+  for(var i = 0; i < SECTION_DEFS.length; i++){ if(SECTION_DEFS[i].key === key) return SECTION_DEFS[i].label; }
+  return key;
+}
+
+/* 내용이 비었거나 자리표시 문구인지 */
+function isPlaceholder(s){
+  var t = String(s == null ? '' : s).trim();
+  if(!t) return true;
+  if(t === '-' || t === '—' || t === '.') return true;
+  if(PLACEHOLDER_HEAD.test(t)) return true;
+  if(/^\(.*\)$/.test(t) && /(아직|없습니다|없음|미작성|입력하지|고르지)/.test(t)) return true;
+  return false;
+}
+
+/* 한 줄에서 실제 내용만 뽑는다. 내용이 없으면 빈 문자열 */
+function cleanItemText(line){
+  var s = String(line == null ? '' : line).replace(/^\s*(?:[-*+]|\d+[.)])\s+/, '').trim();
+  s = s.replace(/^\*\*(.+?)\*\*$/, '$1').trim();
+  if(isPlaceholder(s)) return '';
+  /* "사용자: 고등학생" 처럼 키:값 형태면 값이 비었는지 확인한다 */
+  var c1 = s.indexOf(':'), c2 = s.indexOf('：'), c = c1;
+  if(c2 !== -1 && (c1 === -1 || c2 < c1)) c = c2;
+  if(c > 0 && c <= 24){
+    var v = s.slice(c + 1).trim();
+    if(isPlaceholder(v)) return '';
+  }
+  return s;
+}
+
+function isFence(line){ return /^\s*(?:```|~~~)/.test(line); }
+
+/* 마크다운을 제목 단위로 쪼갠다 */
+function splitSections(md){
+  var lines = normalizeText(md).split('\n');
+  var heads = [], inFence = false, i, m, b;
+  for(i = 0; i < lines.length; i++){
+    if(isFence(lines[i])){ inFence = !inFence; continue; }
+    if(inFence) continue;
+    m = lines[i].match(/^(#{1,6})\s+(.+?)\s*#*\s*$/);
+    if(m){ heads.push({ level: m[1].length, title: m[2].trim(), line: i }); continue; }
+    /* 학생이 ## 대신 **굵은 글씨** 로만 쓴 경우도 제목으로 인정한다 */
+    b = lines[i].match(/^\s*\*\*(.{1,40}?)\*\*\s*[:：]?\s*$/);
+    if(b){ heads.push({ level: 6, title: b[1].trim(), line: i }); }
+  }
+  for(i = 0; i < heads.length; i++){
+    var end = lines.length;
+    for(var n = i + 1; n < heads.length; n++){
+      if(heads[n].level <= heads[i].level){ end = heads[n].line; break; }
+    }
+    heads[i].body = lines.slice(heads[i].line + 1, end).join('\n');
+    heads[i].key = matchSectionKey(normHead(heads[i].title));
+  }
+  return { lines: lines, heads: heads };
+}
+
+/* 목록 항목만 세기 */
+function listItems(body){
+  var lines = String(body == null ? '' : body).split('\n');
+  var out = [], inFence = false, i, t;
+  for(i = 0; i < lines.length; i++){
+    if(isFence(lines[i])){ inFence = !inFence; continue; }
+    if(inFence) continue;
+    if(/^\s*(?:[-*+]|\d+[.)])\s+/.test(lines[i])){
+      t = cleanItemText(lines[i]);
+      if(t) out.push(t);
+    }
+  }
+  return out;
+}
+
+/* 목록이든 문단이든 내용이 있는 줄 전부 */
+function bodyText(body){
+  var lines = String(body == null ? '' : body).split('\n');
+  var out = [], inFence = false, i, t;
+  for(i = 0; i < lines.length; i++){
+    if(isFence(lines[i])){ inFence = !inFence; continue; }
+    if(inFence) continue;
+    if(/^\s*#{1,6}\s/.test(lines[i])) continue;
+    if(/^\s*\*\*(.{1,40}?)\*\*\s*[:：]?\s*$/.test(lines[i])) continue;
+    if(/^\s*[-=]{3,}\s*$/.test(lines[i])) continue;
+    t = cleanItemText(lines[i]);
+    if(t) out.push(t);
+  }
+  return out;
+}
+
+/* MVP 아래 소제목(### 이번에 만들 기능)이 나오기 전까지의 본문 */
+function ownBody(body){
+  var lines = String(body == null ? '' : body).split('\n');
+  var out = [];
+  for(var i = 0; i < lines.length; i++){
+    if(/^\s*#{1,6}\s/.test(lines[i])) break;
+    out.push(lines[i]);
+  }
+  return out.join('\n');
+}
+
+/* 파일명에서 번호와 이름을 뽑는다. 예: 01_김민수_PRD.md */
+function parseFileName(fileName){
+  var base = String(fileName == null ? '' : fileName).replace(/\.[^.]+$/, '').trim();
+  var tokens = base.split(/[\s_\-.]+/).filter(function(t){ return t !== ''; });
+  var order = '', parts = [], i, t;
+
+  for(i = 0; i < tokens.length; i++){
+    t = tokens[i];
+    if(/^prd$/i.test(t)) continue;
+    if(/^(최종|수정본?|final|v\d+|ver\d*)$/i.test(t)) continue;
+    if(!order && /^\d{1,3}$/.test(t) && parts.length === 0){ order = t; continue; }
+    parts.push(t);
+  }
+  var name = parts.join(' ').trim();
+  if(!name) name = base || '이름 없는 파일';
+  return { order: order, name: name, base: base };
+}
+
+/* 마크다운에서 프로젝트명 (맨 위 # 제목) */
+function extractProject(md, doc){
+  var d = doc || splitSections(md);
+  var i, bt;
+  for(i = 0; i < d.heads.length; i++){
+    if(d.heads[i].level === 1){
+      var t = d.heads[i].title.trim();
+      if(t && !isPlaceholder(t) && !/^prd$/i.test(t)) return t;
+    }
+  }
+  for(i = 0; i < d.heads.length; i++){
+    if(d.heads[i].key === 'overview'){
+      bt = bodyText(d.heads[i].body);
+      if(bt.length) return bt[0].length > 40 ? bt[0].slice(0, 40) + '…' : bt[0];
+    }
+  }
+  bt = bodyText(normalizeText(md));
+  if(bt.length) return bt[0].length > 40 ? bt[0].slice(0, 40) + '…' : bt[0];
+  return '(프로젝트명 없음)';
+}
+
+/* 8개 분석 영역 · 확인 질문은 수업 기준 그대로 */
+/* 완성 기준에 자주 나오는 추상적인 표현.
+   긴 표현이 먼저 걸리도록 긴 것부터 적는다. */
+var VAGUE_PHRASES = [
+  '사용하기 쉽다','사용하기 편하다','쓰기 편하다','쓰기 쉽다','문제없이 된다','문제 없이 된다',
+  '제대로 작동한다','잘 작동한다','정상 작동한다','보기 좋다','잘 나온다','잘 보인다',
+  '문제없다','문제 없다','잘 작동','잘 된다','잘된다','예쁘다','이쁘다','깔끔하다',
+  '편리하다','편하다','간편하다','자연스럽다','좋다'
+];
+
+/* UI 구성에서 찾는 화면 요소 낱말 */
+var UI_KEYWORDS = [
+  '버튼','입력창','입력 창','입력란','목록','리스트','카드','체크박스','체크 박스',
+  '날짜','달력','검색','메뉴','화면','내비게이션','네비게이션','이미지','사진','텍스트',
+  '폼','탭','팝업','모달','아이콘','알림','헤더','푸터','토글','슬라이더','드롭다운',
+  '선택','표','차트','그래프','타이머','지도'
+];
+
+/* 이것만 적혀 있으면 사용자가 너무 넓다 */
+var BROAD_USERS = ['사람','누구나','모두','전부','학생','유저','사용자','아무나','다들','우리'];
+
+/* 공통 보완사항 집계 이름 (여러 세부 항목을 한 줄로 묶는다) */
+var ISSUE_DEFS = [
+  { key:'ac',        label:'Acceptance Criteria 부족' },
+  { key:'ac_vague',  label:'추상적인 완성 기준' },
+  { key:'flow',      label:'User Flow 부족' },
+  { key:'mvp_many',  label:'MVP 기능 과다' },
+  { key:'mvp_none',  label:'MVP 기능 미작성' },
+  { key:'user',      label:'사용자 정의 부족' },
+  { key:'ui',        label:'UI 구성 부족' },
+  { key:'problem',   label:'문제 정의 구체화 필요' },
+  { key:'later',     label:'나중에 만들 기능 미구분' },
+  { key:'unreadable',label:'PRD 구조 인식 어려움' }
+];
+
+/* 문제 설명이 이 정도(공백 제외 글자 수)는 되어야 상황이 보인다.
+   "공부가 불편하다"(7자) 같은 한 마디는 걸러 내고,
+   한 문장이라도 상황이 담긴 설명은 통과시키는 선. */
+var PROBLEM_MIN_LEN = 20;
+
+/* PRD 안에 학생 이름이 적혀 있으면 찾아 쓴다. 예) 작성자: 김민수 */
+function extractStudentName(md){
+  var lines = normalizeText(md).split('\n');
+  var max = Math.min(lines.length, 30), i, m;
+  for(i = 0; i < max; i++){
+    m = lines[i].match(/^\s*(?:[-*+]\s*)?(?:\*\*)?\s*(?:작성자|이름|학생\s*이름|제작자|만든\s*사람)\s*(?:\*\*)?\s*[:：]\s*(.+?)\s*$/);
+    if(m){
+      var v = m[1].replace(/[*_`]/g, '').trim();
+      if(v && !isPlaceholder(v) && v.length <= 20) return v;
+    }
+  }
+  return '';
+}
+
+/* 문자열 안에서 가장 먼저(그리고 가장 길게) 걸리는 추상 표현 */
+function findVaguePhrase(text){
+  var flat = String(text == null ? '' : text).replace(/\s/g, '');
+  for(var i = 0; i < VAGUE_PHRASES.length; i++){
+    if(flat.indexOf(VAGUE_PHRASES[i].replace(/\s/g, '')) !== -1) return VAGUE_PHRASES[i];
+  }
+  return '';
+}
+
+/* "- 사용자: 고등학생" 같은 줄에서 값만 뽑는다 */
+function valueOf(item){
+  var s = String(item == null ? '' : item);
+  var c1 = s.indexOf(':'), c2 = s.indexOf('：'), c = c1;
+  if(c2 !== -1 && (c1 === -1 || c2 < c1)) c = c2;
+  if(c > -1 && c <= 24) return s.slice(c + 1).trim();
+  return s.trim();
+}
+
+/* PRD 한 편을 자동 분석한다.
+   여기서는 셀 수 있는 사실만 모은다. 문장으로 바꾸는 일은 generateFeedback 이 한다. */
+function analyzePRD(rawMd){
+  var md = normalizeText(rawMd);
+  var doc = splitSections(md);
+  var sec = {}, i, k;
+
+  for(i = 0; i < doc.heads.length; i++){
+    k = doc.heads[i].key;
+    if(k && !sec[k]) sec[k] = doc.heads[i];
+  }
+
+  var has = function(key){ return !!(sec[key] && bodyText(sec[key].body).length > 0); };
+
+  var overviewText = sec.overview ? bodyText(ownBody(sec.overview.body)).join(' ') : '';
+  var problemText  = sec.problem  ? bodyText(sec.problem.body).join(' ')  : '';
+  var userItems    = sec.user     ? bodyText(sec.user.body)     : [];
+  var flowItems    = sec.flow     ? listItems(sec.flow.body)    : [];
+  if(sec.flow && !flowItems.length) flowItems = bodyText(sec.flow.body);
+
+  var nowItems   = sec.now   ? listItems(sec.now.body)   : [];
+  var laterItems = sec.later ? listItems(sec.later.body) : [];
+  /* '이번에 만들 기능' 소제목 없이 MVP 아래에 바로 나열한 경우 */
+  if(!sec.now && sec.mvp) nowItems = listItems(ownBody(sec.mvp.body));
+
+  var uiItems  = sec.ui ? listItems(sec.ui.body) : [];
+  if(sec.ui && !uiItems.length) uiItems = bodyText(sec.ui.body);
+  var acItems  = sec.ac ? listItems(sec.ac.body) : [];
+  if(sec.ac && !acItems.length) acItems = bodyText(sec.ac.body);
+  var revItems = sec.revision ? listItems(sec.revision.body) : [];
+  if(sec.revision && !revItems.length) revItems = bodyText(sec.revision.body);
+
+  var problemLen     = problemText.replace(/\s/g, '').length;
+  var problemWritten = problemLen > 0;
+  var userWritten    = userItems.length > 0;
+  var uiWritten      = uiItems.length > 0;
+  var mvpWritten     = nowItems.length > 0 || has('mvp');
+
+  /* --- 주요 사용자가 너무 넓은지 --- */
+  var userWho = '';
+  for(i = 0; i < userItems.length; i++){
+    if(/사용자|이용자|대상/.test(userItems[i]) && userItems[i].indexOf(':') > -1){ userWho = valueOf(userItems[i]); break; }
+  }
+  if(!userWho && userItems.length) userWho = valueOf(userItems[0]);
+  var userFlat = userWho.replace(/\s/g, '');
+  var userBroad = false;
+  for(i = 0; i < BROAD_USERS.length; i++){
+    if(userFlat === BROAD_USERS[i]){ userBroad = true; break; }
+  }
+
+  /* --- UI 요소 낱말 --- */
+  var uiText = sec.ui ? bodyText(sec.ui.body).join(' ') : '';
+  var uiWords = [];
+  for(i = 0; i < UI_KEYWORDS.length; i++){
+    if(uiText.indexOf(UI_KEYWORDS[i]) !== -1) uiWords.push(UI_KEYWORDS[i]);
+  }
+
+  /* --- 추상적인 완성 기준 --- */
+  var acVague = [];
+  for(i = 0; i < acItems.length; i++){
+    var ph = findVaguePhrase(acItems[i]);
+    if(ph) acVague.push({ text: acItems[i], phrase: ph });
+  }
+
+  /* --- 구조 10항목 --- */
+  var structure = [], recognized = 0;
+  for(i = 0; i < SECTION_ORDER.length; i++){
+    k = SECTION_ORDER[i];
+    var found = !!sec[k];
+    var filled = has(k);
+    if(k === 'mvp')  filled = filled || nowItems.length > 0;
+    if(k === 'now')  { found = found || (!!sec.mvp && nowItems.length > 0); filled = nowItems.length > 0; }
+    if(k === 'ui')   filled = uiWritten;
+    if(k === 'ac')   filled = acItems.length > 0;
+    if(k === 'user') filled = userWritten;
+    if(found) recognized++;
+    structure.push({
+      key: k,
+      label: sectionLabel(k),
+      ok: filled,
+      reason: filled ? '' : (found ? '항목은 있지만 내용이 비어 있습니다' : '항목을 찾지 못했습니다')
+    });
+  }
+  var structureOk = 0;
+  for(i = 0; i < structure.length; i++){ if(structure[i].ok) structureOk++; }
+
+  /* PRD 형식으로 읽히지 않는 파일.
+     알아본 항목이 2개도 안 되고 내용도 거의 없으면 구조를 인식하지 못한 것으로 본다. */
+  var readable = recognized >= 2 || structureOk >= 1;
+
+  return {
+    readable: readable,
+    recognized: recognized,
+    structure: structure,
+    structureOk: structureOk,
+    structureTotal: structure.length,
+    counts: {
+      flow: flowItems.length, now: nowItems.length, later: laterItems.length,
+      ui: uiItems.length, ac: acItems.length, revision: revItems.length,
+      user: userItems.length, problemLen: problemLen, uiWords: uiWords.length
+    },
+    written: {
+      problem: problemWritten, user: userWritten, ui: uiWritten,
+      mvp: mvpWritten, overview: overviewText.length > 0
+    },
+    userWho: userWho,
+    userBroad: userBroad,
+    uiWords: uiWords,
+    acVague: acVague
+  };
+}
+
+/* 이전 이름 (기존 코드·테스트 호환) */
+var analyze = analyzePRD;
+
+/* 분석 결과를 학생이 읽을 문장으로 바꾼다.
+   여기서 하는 일은 '구조와 구체성 점검'이지 기획 내용의 의미 평가가 아니다. */
+function generateFeedback(a){
+  var good = [], improve = [], issues = {}, c = a.counts;
+
+  function add(key, issue, text, action){
+    improve.push({ key: key, text: text, action: action });
+    if(issue) issues[issue] = true;
+  }
+
+  /* PRD 구조 자체를 못 읽은 경우 */
+  if(!a.readable){
+    return {
+      status: 'unreadable',
+      statusLabel: '확인 필요',
+      good: [],
+      improve: [{ key:'unreadable', text:'PRD 구조를 정확하게 인식하기 어렵습니다. 원문을 확인해주세요.', action:'PRD 원문 확인하기' }],
+      first: ['PRD 원문 확인하기'],
+      summary: '',
+      issues: ['unreadable']
+    };
+  }
+
+  /* ① 문제 정의 */
+  if(!a.written.problem){
+    add('problem', 'problem',
+      '해결하려는 문제가 작성되어 있지 않습니다. 어떤 상황에서 어떤 불편을 해결하려는지 작성해보세요.',
+      '해결하려는 문제 작성하기');
+  } else if(c.problemLen < PROBLEM_MIN_LEN){
+    add('problem', 'problem',
+      '어떤 상황에서 어떤 불편을 해결하려는지 조금 더 구체적으로 작성해보세요.',
+      '문제 상황을 구체적으로 쓰기');
+  } else {
+    good.push('해결하려는 문제가 작성되어 있습니다.');
+  }
+
+  /* ② 주요 사용자 */
+  if(!a.written.user){
+    add('user', 'user',
+      '이 웹앱을 가장 먼저 사용할 사람이 누구인지 작성해보세요.',
+      '주요 사용자 작성하기');
+  } else if(a.userBroad){
+    add('user', 'user',
+      '주요 사용자가 ‘' + a.userWho + '’ 으로 넓게 적혀 있습니다. 주요 사용자를 조금 더 구체적으로 정해보세요. 예: 여러 과목의 수행평가를 관리해야 하는 고등학생',
+      '주요 사용자를 구체적으로 정하기');
+  } else {
+    good.push('주요 사용자가 정의되어 있습니다.' + (a.userWho ? ' (' + a.userWho + ')' : ''));
+  }
+
+  /* ③ User Flow */
+  if(c.flow >= 3){
+    good.push('User Flow가 ' + c.flow + '단계로 작성되어 있습니다.');
+  } else {
+    add('flow', 'flow',
+      '사용자가 웹앱을 시작해서 목적을 완료하기까지의 과정을 3단계 이상 작성해보세요.' +
+        (c.flow > 0 ? ' (현재 ' + c.flow + '단계)' : ''),
+      'User Flow를 3단계 이상으로 늘리기');
+  }
+
+  /* ④ MVP 범위 */
+  if(c.now === 0){
+    add('mvp', 'mvp_none',
+      '이번에 만들 기능이 작성되어 있지 않습니다. 첫 번째 버전에서 꼭 만들 기능을 정해보세요.',
+      '이번에 만들 기능 정하기');
+  } else if(c.now > 5){
+    add('mvp', 'mvp_many',
+      'MVP 기능이 조금 많습니다. 핵심 문제를 해결하는 기능을 중심으로 5개 이하로 줄여보세요. (현재 ' + c.now + '개)',
+      'MVP 기능을 5개 이하로 줄이기');
+  } else {
+    good.push('MVP 기능이 ' + c.now + '개로 구성되어 있습니다. 첫 번째 버전에서 만들 기능의 범위가 적절합니다.');
+  }
+
+  /* ⑤ 나중에 만들 기능
+     기능 수가 적어 지금 MVP 만으로 충분한 경우에는 문제 삼지 않는다. */
+  if(c.later > 0){
+    good.push('나중에 만들 기능을 ' + c.later + '개 따로 구분해 두었습니다.');
+  } else if(c.now >= 4){
+    add('later', 'later',
+      '첫 버전에 모든 기능을 넣기보다 꼭 필요한 기능과 나중에 추가할 기능을 구분해보세요.',
+      '나중에 만들 기능 구분하기');
+  }
+
+  /* ⑥ UI 구성 */
+  if(!a.written.ui){
+    add('ui', 'ui',
+      '첫 화면에서 사용자가 보게 될 UI 요소를 조금 더 구체적으로 작성해보세요.',
+      '첫 화면 UI 요소 추가하기');
+  } else if(c.ui < 3 && c.uiWords < 3){
+    add('ui', 'ui',
+      'UI 구성이 조금 단순합니다. 첫 화면에서 사용자가 보게 될 UI 요소를 조금 더 구체적으로 작성해보세요.',
+      '첫 화면 UI 요소 추가하기');
+  } else {
+    good.push('UI 구성이 ' + c.ui + '개 항목으로 작성되어 있습니다.');
+  }
+
+  /* ⑦ Acceptance Criteria 개수 */
+  if(c.ac >= 5){
+    good.push('Acceptance Criteria가 ' + c.ac + '개 작성되어 있습니다.');
+  } else {
+    add('ac', 'ac',
+      '완성 여부를 확인할 수 있도록 Acceptance Criteria를 5개 이상 작성해보세요.' +
+        (c.ac > 0 ? ' (현재 ' + c.ac + '개)' : ' (현재 작성되지 않았습니다)'),
+      '완성 기준을 5개 이상으로 늘리기');
+  }
+
+  /* ⑧ 추상적인 완성 기준 */
+  if(a.acVague.length){
+    var v = a.acVague[0];
+    add('ac_vague', 'ac_vague',
+      '‘' + v.text + '’ 은(는) 확인하기 어려운 기준입니다. ' +
+        '‘일정을 등록하면 목록에 바로 표시된다’처럼 실제로 테스트할 수 있는 행동으로 작성해보세요.' +
+        (a.acVague.length > 1 ? ' 이런 기준이 ' + a.acVague.length + '개 있습니다.' : ''),
+      '추상적인 완성 기준 수정하기');
+  }
+
+  /* 수정 기록은 잘된 점으로만 다룬다 (없다고 문제 삼지 않는다) */
+  if(c.revision > 0) good.push('수정 기록이 ' + c.revision + '개 남아 있습니다.');
+
+  var first = [];
+  for(var i = 0; i < improve.length && first.length < 3; i++) first.push(improve[i].action);
+
+  var issueKeys = [];
+  for(var key in issues){ if(issues.hasOwnProperty(key)) issueKeys.push(key); }
+
+  return {
+    status: improve.length ? 'improve' : 'good',
+    statusLabel: improve.length ? '보완 필요' : '구조 양호',
+    good: good,
+    improve: improve,
+    first: first,
+    summary: improve.length ? '' : '전체적인 PRD 구조가 잘 정리되어 있습니다. 현재 기획을 바탕으로 개발 단계로 넘어가도 좋습니다.',
+    issues: issueKeys
+  };
+}
+
+/* 업로드 직후 한 번에 처리한다. 파일 하나가 이상해도 여기서 막고 넘어간다. */
+function reviewPRD(rawMd){
+  var analysis, feedback;
+  try{
+    analysis = analyzePRD(rawMd);
+    feedback = generateFeedback(analysis);
+  }catch(err){
+    analysis = {
+      readable: false, recognized: 0, structure: [], structureOk: 0, structureTotal: 10,
+      counts: { flow:0, now:0, later:0, ui:0, ac:0, revision:0, user:0, problemLen:0, uiWords:0 },
+      written: { problem:false, user:false, ui:false, mvp:false, overview:false },
+      userWho:'', userBroad:false, uiWords:[], acVague:[]
+    };
+    feedback = {
+      status:'unreadable', statusLabel:'확인 필요', good:[],
+      improve:[{ key:'unreadable', text:'PRD 구조를 정확하게 인식하기 어렵습니다. 원문을 확인해주세요.', action:'PRD 원문 확인하기' }],
+      first:['PRD 원문 확인하기'], summary:'', issues:['unreadable']
+    };
+  }
+  return { analysis: analysis, feedback: feedback };
+}
+
+/* 파일 확장자 확인 */
+function isSupportedFile(name){
+  return /\.(md|markdown|txt)$/i.test(String(name == null ? '' : name));
+}
+
+/* ==== CORE_END ==== */
+
+
+/* ============================================================
+   상태 관리 · 저장
+   ============================================================ */
+var STORE_KEY = 'kdmhs.prd.reviewer.v1';
+
+/* 이 자동 피드백이 Claude 의미 분석과 혼동되지 않도록 늘 함께 보여 준다 */
+var AUTO_NOTE = '자동 피드백은 PRD의 구조와 작성 내용을 기준으로 제공되는 1차 점검입니다.';
+
+var state = {
+  students: [],
+  filter: 'all',
+  query: '',
+  sort: 'order'
+};
+var openIds = {};       /* 펼쳐 놓은 카드 (새로고침하면 초기화) */
+var storageFailed = false;
+var seq = 0;
+
+function $(id){ return document.getElementById(id); }
+
+function esc(s){
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+function newId(){
+  seq++;
+  return 'stu_' + Date.now().toString(36) + '_' + seq.toString(36) + '_' + Math.random().toString(36).slice(2, 7);
+}
+
+function save(){
+  var payload = {
+    v: 1,
+    students: state.students.map(function(s){
+      return {
+        id: s.id, fileName: s.fileName, order: s.order, name: s.name,
+        project: s.project, raw: s.raw, uploadedAt: s.uploadedAt
+      };
+    })
+  };
+  try{
+    localStorage.setItem(STORE_KEY, JSON.stringify(payload));
+    if(storageFailed){ storageFailed = false; $('storage-warn').hidden = true; }
+    return true;
+  }catch(e){
+    storageFailed = true;
+    $('storage-warn').hidden = false;
+    return false;
+  }
+}
+
+function load(){
+  var txt;
+  try{ txt = localStorage.getItem(STORE_KEY); }catch(e){ return; }
+  if(!txt) return;
+  var data;
+  try{ data = JSON.parse(txt); }catch(e){ return; }
+  if(!data || !data.students || !data.students.length) return;
+
+  state.students = data.students.map(function(s){
+    var st = {
+      id: s.id || newId(),
+      fileName: s.fileName || '',
+      order: s.order || '',
+      name: s.name || s.fileName || '이름 없음',
+      project: s.project || '',
+      raw: s.raw || '',
+      uploadedAt: s.uploadedAt || Date.now()
+    };
+    /* 저장된 데이터에 자동 피드백이 없으면 (예전 버전) 원문으로 다시 분석한다 */
+    return refreshStudent(st);
+  });
+}
+
+/* ============================================================
+   업로드
+   ============================================================ */
+/* 학생 한 명의 레코드를 만든다.
+   파일을 읽은 직후 여기서 바로 분석 + 자동 피드백까지 끝낸다.
+   따로 [분석하기] 버튼을 누를 필요가 없다. */
+function makeStudent(fileName, raw){
+  var meta = parseFileName(fileName);
+  var project, name;
+
+  try{
+    project = extractProject(raw);
+  }catch(err){
+    project = '(프로젝트명 없음)';
+  }
+
+  name = meta.name;
+  /* PRD 안에 "작성자: 김민수" 처럼 이름이 적혀 있으면 그 이름을 우선 쓴다 */
+  var inside = '';
+  try{ inside = extractStudentName(raw); }catch(err){ inside = ''; }
+  var flat = function(t){ return String(t).replace(/[\s_\-]/g, '').toLowerCase(); };
+  if(inside) name = inside;
+  /* 학생 도구는 기본적으로 "프로젝트명_PRD.txt" 로 저장한다.
+     이때 파일명에 학생 이름이 없으므로 이름 자리에 파일명을 그대로 보여 준다.
+     (그냥 두면 이름과 프로젝트명이 똑같이 두 번 나온다) */
+  else if(flat(name) === flat(project)) name = meta.base;
+
+  /* reviewPRD 안에서 예외를 잡는다. 파일 하나가 이상해도 다른 학생 분석은 계속된다. */
+  var r = reviewPRD(raw);
+
+  return {
+    id: newId(),
+    fileName: fileName,
+    order: meta.order,
+    name: name,
+    project: project,
+    raw: raw,
+    uploadedAt: Date.now(),
+    analysis: r.analysis,
+    feedback: r.feedback
+  };
+}
+
+/* 저장해 둔 학생을 다시 분석한다 (예전 버전에서 저장한 데이터 호환용) */
+function refreshStudent(st){
+  var r = reviewPRD(st.raw);
+  st.analysis = r.analysis;
+  st.feedback = r.feedback;
+  return st;
+}
+
+function statusOf(s){ return (s.feedback && s.feedback.status) || 'unreadable'; }
+
+function addFiles(fileList){
+  var files = [], i;
+  for(i = 0; i < fileList.length; i++) files.push(fileList[i]);
+
+  var unsupported = files.filter(function(f){ return !isSupportedFile(f.name); });
+  files = files.filter(function(f){ return isSupportedFile(f.name); });
+
+  if(!files.length){
+    if(unsupported.length) toast('.md 또는 .txt 파일만 업로드할 수 있습니다.', true);
+    return;
+  }
+
+  var room = MAX_FILES - state.students.length;
+  var overflow = 0;
+  if(files.length > room){
+    overflow = files.length - Math.max(room, 0);
+    files = files.slice(0, Math.max(room, 0));
+  }
+
+  if(!files.length){
+    showAlert('업로드 개수 초과', '한 번에 최대 30개의 PRD를 분석할 수 있습니다.',
+      '이미 30명의 PRD가 등록되어 있습니다. 일부 학생을 삭제하거나 전체 초기화 후 다시 업로드해 주세요.');
+    return;
+  }
+
+  var pending = files.length, added = 0, dup = 0, failed = 0;
+
+  files.forEach(function(file){
+    var reader = new FileReader();
+    reader.onload = function(){
+      /* 파일 하나가 잘못돼도 나머지 학생 처리는 계속되어야 한다 */
+      try{
+        var raw = normalizeText(reader.result);
+        /* 완전히 같은 파일을 실수로 두 번 넣은 경우만 건너뛴다.
+           파일명이 같아도 내용이 다르면 서로 다른 학생으로 등록한다. */
+        var isDup = state.students.some(function(s){ return s.fileName === file.name && s.raw === raw; });
+        if(isDup){ dup++; }
+        else{
+          state.students.push(makeStudent(file.name, raw));
+          added++;
+        }
+      }catch(err){
+        failed++;
+      }
+      done();
+    };
+    reader.onerror = function(){ failed++; done(); };
+    try{
+      reader.readAsText(file, 'utf-8');
+    }catch(err){
+      failed++; done();
+    }
+  });
+
+  function done(){
+    pending--;
+    if(pending > 0) return;
+    save();
+    render();
+    var msg = added + '명의 PRD를 읽고 자동 피드백을 만들었습니다.';
+    var warn = false;
+    if(dup) { msg += ' 동일한 파일 ' + dup + '개는 건너뛰었습니다.'; }
+    if(failed) { msg += ' ' + failed + '개는 읽지 못했습니다.'; warn = true; }
+    if(unsupported.length) { msg += ' .md/.txt가 아닌 파일 ' + unsupported.length + '개는 제외했습니다.'; warn = true; }
+    if(overflow > 0){
+      showAlert('업로드 개수 초과', '한 번에 최대 30개의 PRD를 분석할 수 있습니다.',
+        added + '개만 등록하고 나머지 ' + overflow + '개는 등록하지 않았습니다.');
+    } else {
+      toast(msg, warn);
+    }
+  }
+}
+
+/* 드롭된 항목에서 파일 목록을 얻는다.
+
+   반드시 drop 핸들러 안에서 동기적으로 호출해야 한다.
+   dataTransfer.files 와 dataTransfer.items 는 핸들러가 끝나면 비워지기 때문이다.
+
+   1) dataTransfer.files 를 그 자리에서 배열로 복사해 둔다  ← 일반 파일 드롭의 정답
+   2) 폴더가 섞여 있을 때만 entries API 로 내부를 훑는다
+   3) entries 탐색이 실패하거나 응답이 없으면 1) 의 결과로 되돌아간다
+
+   이전 구현은 dt.items 가 있으면 무조건 entries API 로 넘어갔다.
+   그런데 entry.file() 은 file:// 로 열었을 때 등 조용히 실패하는 경우가 있어서
+   결과가 빈 배열이 되거나 콜백 자체가 오지 않았고, 그래서 드롭이 아무 반응도 없었다. */
+function filesFromDataTransfer(dt, cb){
+  var direct = [], i;
+  if(dt && dt.files){
+    for(i = 0; i < dt.files.length; i++) direct.push(dt.files[i]);
+  }
+
+  /* 폴더가 포함되어 있는지 동기적으로 확인한다 */
+  var entries = [], hasDir = false, items = dt && dt.items, e;
+  if(items && items.length && items[0] && items[0].webkitGetAsEntry){
+    for(i = 0; i < items.length; i++){
+      e = null;
+      try{ e = items[i].webkitGetAsEntry(); }catch(err){ e = null; }
+      if(e){ entries.push(e); if(e.isDirectory) hasDir = true; }
+    }
+  }
+
+  /* 폴더가 없으면 복사해 둔 파일 목록을 그대로 쓴다 (가장 확실한 경로) */
+  if(!hasDir || !entries.length){ cb(direct); return; }
+
+  var out = [], pending = 1, guard = 0, settled = false;
+  function done(){
+    if(settled) return;
+    settled = true;
+    cb(out.length ? out : direct);
+  }
+  function finish(){ pending--; if(pending === 0) done(); }
+  function walk(entry, depth){
+    if(guard++ > 400 || depth > 4){ return; }
+    if(entry.isFile){
+      pending++;
+      entry.file(function(f){ out.push(f); finish(); }, function(){ finish(); });
+    } else if(entry.isDirectory){
+      pending++;
+      var rd = entry.createReader();
+      /* readEntries 는 한 번에 최대 100개까지만 돌려주므로 빌 때까지 반복해 읽는다 */
+      (function readMore(){
+        rd.readEntries(function(list){
+          if(!list.length){ finish(); return; }
+          for(var j = 0; j < list.length; j++) walk(list[j], depth + 1);
+          readMore();
+        }, function(){ finish(); });
+      })();
+    }
+  }
+  for(i = 0; i < entries.length; i++) walk(entries[i], 0);
+  finish();
+  /* 콜백이 끝내 오지 않는 경우를 대비한 안전장치 */
+  setTimeout(done, 3000);
+}
+
+/* ============================================================
+   화면 그리기
+   ============================================================ */
+function visibleStudents(){
+  var q = state.query.trim().toLowerCase();
+  var list = state.students.filter(function(s){
+    var st = statusOf(s);
+    if(state.filter === 'good' && st !== 'good') return false;
+    if(state.filter === 'improve' && st !== 'improve') return false;
+    if(state.filter === 'check' && st !== 'unreadable') return false;
+    if(!q) return true;
+    return (s.name + ' ' + s.project + ' ' + s.fileName + ' ' + s.order).toLowerCase().indexOf(q) !== -1;
+  });
+
+  var idx = {};
+  state.students.forEach(function(s, i){ idx[s.id] = i; });
+
+  var rank = { unreadable: 0, improve: 1, good: 2 };
+
+  list.sort(function(a, b){
+    if(state.sort === 'name') return a.name.localeCompare(b.name, 'ko') || idx[a.id] - idx[b.id];
+    if(state.sort === 'status') return rank[statusOf(a)] - rank[statusOf(b)] || idx[a.id] - idx[b.id];
+    var ao = a.order ? parseInt(a.order, 10) : 9999;
+    var bo = b.order ? parseInt(b.order, 10) : 9999;
+    return ao - bo || idx[a.id] - idx[b.id];
+  });
+  return list;
+}
+
+function byId(id){
+  for(var i = 0; i < state.students.length; i++){ if(state.students[i].id === id) return state.students[i]; }
+  return null;
+}
+
+function render(){
+  var n = state.students.length;
+  var hasAny = n > 0;
+
+  $('sec-dash').hidden = !hasAny;
+  $('sec-issues').hidden = !hasAny;
+  $('sec-students').hidden = !hasAny;
+
+  var dz = $('dropzone');
+  if(hasAny) dz.classList.add('compact'); else dz.classList.remove('compact');
+  $('dz-note').textContent = hasAny
+    ? (n + '명 등록됨 · ' + (MAX_FILES - n) + '명 더 추가할 수 있습니다 (.md / .txt)')
+    : '최대 30개 파일 업로드 가능 · .md / .txt 지원';
+  $('btn-pick').textContent = hasAny ? '파일 추가' : '파일 선택';
+  $('dz-drop-tx').textContent = hasAny ? '여기에 추가 학생 PRD를 놓으세요' : '여기에 파일을 놓으세요';
+
+  if(!hasAny){
+    $('student-grid').innerHTML = '';
+    $('empty-result').hidden = true;
+    return;
+  }
+
+  renderDash();
+  renderIssues();
+  renderCounts();
+  renderStudents();
+}
+
+function renderDash(){
+  var list = state.students;
+  var good = 0, improve = 0, check = 0;
+  list.forEach(function(s){
+    var st = statusOf(s);
+    if(st === 'good') good++;
+    else if(st === 'improve') improve++;
+    else check++;
+  });
+  $('st-total').innerHTML = list.length + '<small>명</small>';
+  $('st-upload').innerHTML = list.length + '<small>명</small>';
+  $('st-good').innerHTML = good + '<small>명</small>';
+  $('st-improve').innerHTML = improve + '<small>명</small>';
+
+  $('pill-check').textContent = '확인 필요 ' + check + '명';
+  $('pill-check').hidden = check === 0;
+  $('dash-sub').textContent = '파일을 올리면 자동으로 분석합니다';
+}
+
+function renderIssues(){
+  var total = state.students.length;
+  var counts = {};
+  state.students.forEach(function(s){
+    var iss = (s.feedback && s.feedback.issues) || [];
+    iss.forEach(function(k){ counts[k] = (counts[k] || 0) + 1; });
+  });
+  var rows = ISSUE_DEFS
+    .map(function(d){ return { label: d.label, n: counts[d.key] || 0 }; })
+    .filter(function(r){ return r.n > 0; })
+    .sort(function(a, b){ return b.n - a.n; });
+
+  var el = $('issue-list');
+  if(!rows.length){
+    el.innerHTML = '<div class="issue-empty">공통적으로 보완이 필요한 항목이 없습니다.</div>';
+    return;
+  }
+  el.innerHTML = rows.map(function(r){
+    var pct = Math.round(r.n / total * 100);
+    return '<div class="issue">' +
+      '<div class="nm">' + esc(r.label) + '</div>' +
+      '<div class="track"><span style="width:' + pct + '%"></span></div>' +
+      '<div class="ct">' + r.n + '명</div>' +
+    '</div>';
+  }).join('');
+}
+
+function renderCounts(){
+  var list = state.students;
+  var good = 0, improve = 0, check = 0;
+  list.forEach(function(s){
+    var st = statusOf(s);
+    if(st === 'good') good++;
+    else if(st === 'improve') improve++;
+    else check++;
+  });
+  var map = { all: list.length, good: good, improve: improve, check: check };
+  var nodes = document.querySelectorAll('[data-count]');
+  for(var i = 0; i < nodes.length; i++){
+    nodes[i].textContent = map[nodes[i].getAttribute('data-count')];
+  }
+  var chk = document.querySelector('.fchip[data-filter="check"]');
+  if(chk) chk.hidden = check === 0;
+}
+
+function renderStudents(){
+  var list = visibleStudents();
+  var grid = $('student-grid');
+  $('empty-result').hidden = list.length > 0;
+  grid.innerHTML = list.map(cardHtml).join('');
+}
+
+function cardHtml(s){
+  var a = s.analysis, fb = s.feedback;
+  var open = !!openIds[s.id];
+  var st = statusOf(s);
+  var num = s.order || String(state.students.indexOf(s) + 1);
+  var badgeCls = st === 'good' ? 'ok' : (st === 'improve' ? 'warn' : 'wait');
+
+  var head =
+    '<div class="s-head" data-act="toggle" data-id="' + s.id + '">' +
+      '<div class="s-num">' + esc(num) + '</div>' +
+      '<div class="s-id">' +
+        '<div class="s-name">' + esc(s.name) + '</div>' +
+        '<div class="s-proj">' + esc(s.project) + '</div>' +
+      '</div>' +
+      '<div class="s-badges">' +
+        '<span class="badge ' + badgeCls + '">' + esc(fb.statusLabel) + '</span>' +
+        (st === 'improve'
+          ? '<span class="badge wait">보완 ' + fb.improve.length + '건</span>'
+          : (st === 'good' ? '<span class="badge done">잘된 점 ' + fb.good.length + '건</span>' : '')) +
+      '</div>' +
+      '<div class="s-caret">▼</div>' +
+    '</div>';
+
+  if(!open) return '<article class="student" data-id="' + s.id + '">' + head + '</article>';
+
+  return '<article class="student open" data-id="' + s.id + '">' + head +
+    '<div class="s-body">' +
+      '<div class="two-col">' + autoFeedbackHtml(s) + structHtml(s) + '</div>' +
+      rawHtml(s) +
+    '</div>' +
+  '</article>';
+}
+
+/* PRD 자동 피드백 (업로드 즉시 생성된다) */
+function autoFeedbackHtml(s){
+  var fb = s.feedback;
+  var html = '<div class="panel">' + '<h4>PRD 자동 피드백</h4>';
+
+  if(fb.status === 'unreadable'){
+    html += '<div class="fb-card"><div class="fb-block miss">' +
+      '<h5>확인 필요</h5><ul><li>' + esc(fb.improve[0].text) + '</li></ul>' +
+    '</div></div>';
+    html += '<p class="note">' + AUTO_NOTE + '</p></div>';
+    return html;
+  }
+
+  html += '<div class="fb-card">';
+
+  if(fb.good.length){
+    html += '<div class="fb-block good"><h5>잘된 점</h5><ul>' +
+      fb.good.map(function(t){ return '<li>' + esc(t) + '</li>'; }).join('') +
+    '</ul></div>';
+  }
+
+  if(fb.improve.length){
+    html += '<div class="fb-block fix"><h5>보완할 점</h5><ul>' +
+      fb.improve.map(function(x){ return '<li>' + esc(x.text) + '</li>'; }).join('') +
+    '</ul></div>';
+    html += '<div class="fb-block top3"><h5>먼저 수정해 볼 것</h5><ol>' +
+      fb.first.map(function(t){ return '<li>' + esc(t) + '</li>'; }).join('') +
+    '</ol></div>';
+  } else {
+    html += '<div class="fb-block sum"><h5>종합</h5><p>' + esc(fb.summary) + '</p></div>';
+  }
+
+  html += '</div>';
+  html += '<p class="note">' + AUTO_NOTE + '</p>';
+  html += '</div>';
+  return html;
+}
+
+function structHtml(s){
+  var a = s.analysis;
+  var chips = a.structure.map(function(x){
+    return '<span class="check ' + (x.ok ? 'ok' : 'warn') + '" title="' + esc(x.reason || '작성됨') + '">' +
+      (x.ok ? '✓' : '!') + ' ' + esc(x.label) + '</span>';
+  }).join('');
+  var c = a.counts;
+  var lines = [
+    ['User Flow', c.flow + '단계'],
+    ['이번에 만들 기능', c.now + '개'],
+    ['나중에 만들 기능', c.later + '개'],
+    ['UI 항목', c.ui + '개'],
+    ['Acceptance Criteria', c.ac + '개'],
+    ['수정 기록', c.revision + '개']
+  ].map(function(p){
+    return '<div class="area" style="padding:6px 0"><div class="txt" style="display:flex;justify-content:space-between;gap:10px">' +
+      '<span class="fact">' + esc(p[0]) + '</span><b class="fact" style="color:var(--ink)">' + esc(p[1]) + '</b></div></div>';
+  }).join('');
+
+  return '<div class="panel">' +
+    '<h4>PRD 기본 구조 ' + a.structureOk + ' / ' + a.structureTotal + ' 항목 작성</h4>' +
+    '<div class="checks">' + chips + '</div>' +
+    '<h4 style="margin-top:14px">자동 집계</h4>' +
+    '<div class="areas">' + lines + '</div>' +
+    '<p class="note">파일: ' + esc(s.fileName) + '</p>' +
+  '</div>';
+}
+
+function rawHtml(s){
+  var openRaw = !!openIds[s.id + ':raw'];
+  return '<div class="panel">' +
+    '<h4>PRD 원문</h4>' +
+    '<div class="row-actions">' +
+      '<button class="btn btn-ghost btn-sm" data-act="raw" data-id="' + s.id + '" type="button">' +
+        (openRaw ? '접기' : 'PRD 원문 보기') + '</button>' +
+      '<button class="btn btn-ghost btn-sm" data-act="modal" data-id="' + s.id + '" type="button">크게 보기</button>' +
+      '<button class="btn btn-ghost btn-sm" data-act="copyraw" data-id="' + s.id + '" type="button">원문 복사</button>' +
+      '<button class="btn btn-danger btn-sm" data-act="remove" data-id="' + s.id + '" type="button" style="margin-left:auto">이 학생 삭제</button>' +
+    '</div>' +
+    (openRaw ? '<pre class="md-raw" style="margin-top:12px">' + esc(s.raw) + '</pre>' : '') +
+  '</div>';
+}
+
+/* ============================================================
+   토스트 · 모달
+   ============================================================ */
+var toastTimer = null;
+function toast(msg, isWarn){
+  var el = $('toast');
+  el.textContent = msg;
+  el.className = 'toast show' + (isWarn ? ' warn' : '');
+  if(toastTimer) clearTimeout(toastTimer);
+  toastTimer = setTimeout(function(){ el.className = 'toast'; }, 3200);
+}
+
+var modalOnClose = null;
+function openModal(opts){
+  $('modal-title').textContent = opts.title || '';
+  $('modal-sub').textContent = opts.sub || '';
+  $('modal-body').innerHTML = opts.bodyHtml || '';
+  $('modal-foot').innerHTML = '';
+  $('modal-card').className = 'modal-card' + (opts.small ? ' sm' : '');
+  (opts.buttons || []).forEach(function(b){
+    var el = document.createElement('button');
+    el.type = 'button';
+    el.className = 'btn btn-sm ' + (b.cls || 'btn-ghost');
+    el.textContent = b.label;
+    el.addEventListener('click', function(){
+      if(b.close !== false) closeModal();
+      if(b.onClick) b.onClick();
+    });
+    $('modal-foot').appendChild(el);
+  });
+  $('modal').hidden = false;
+  modalOnClose = opts.onClose || null;
+}
+
+function closeModal(){
+  $('modal').hidden = true;
+  $('modal-body').innerHTML = '';
+  if(modalOnClose){ var f = modalOnClose; modalOnClose = null; f(); }
+}
+
+function showAlert(title, message, sub){
+  openModal({
+    title: title, sub: sub || '', small: true,
+    bodyHtml: '<p class="msg">' + esc(message) + '</p>',
+    buttons: [{ label: '확인', cls: 'btn-primary' }]
+  });
+}
+
+function showConfirm(title, message, onYes, yesLabel){
+  openModal({
+    title: title, small: true,
+    bodyHtml: '<p class="msg">' + esc(message) + '</p>',
+    buttons: [
+      { label: '취소', cls: 'btn-ghost' },
+      { label: yesLabel || '삭제', cls: 'btn-danger', onClick: onYes }
+    ]
+  });
+}
+
+/* ============================================================
+   복사
+   ============================================================ */
+function copyText(text){
+  return new Promise(function(resolve){
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).then(
+        function(){ resolve(true); },
+        function(){ resolve(legacyCopy(text)); }
+      );
+    } else {
+      resolve(legacyCopy(text));
+    }
+  });
+}
+
+function legacyCopy(text){
+  try{
+    var ta = document.createElement('textarea');
+    ta.value = text;
+    ta.setAttribute('readonly', '');
+    ta.style.position = 'fixed';
+    ta.style.top = '-1000px';
+    document.body.appendChild(ta);
+    ta.select();
+    var ok = document.execCommand('copy');
+    document.body.removeChild(ta);
+    return ok;
+  }catch(e){ return false; }
+}
+
+/* ============================================================
+   이벤트
+   ============================================================ */
+function onCardClick(e){
+  var btn = e.target.closest('[data-act]');
+  if(!btn) return;
+  var act = btn.getAttribute('data-act');
+  var id = btn.getAttribute('data-id');
+  var s = byId(id);
+  if(!s) return;
+
+  if(act !== 'toggle') e.stopPropagation();
+
+  if(act === 'toggle'){
+    if(openIds[id]){ delete openIds[id]; delete openIds[id + ':raw']; }
+    else openIds[id] = true;
+    renderStudents();
+    return;
+  }
+  if(act === 'raw'){
+    if(openIds[id + ':raw']) delete openIds[id + ':raw']; else openIds[id + ':raw'] = true;
+    renderStudents();
+    return;
+  }
+  if(act === 'modal'){
+    openModal({
+      title: (s.order ? s.order + ' ' : '') + s.name,
+      sub: s.project + ' · ' + s.fileName,
+      bodyHtml: '<pre class="md-raw">' + esc(s.raw) + '</pre>',
+      buttons: [
+        { label: '원문 복사', cls: 'btn-ghost', close: false, onClick: function(){
+            copyText(s.raw).then(function(ok){ toast(ok ? '원문을 복사했습니다.' : '복사하지 못했습니다.', !ok); });
+        } },
+        { label: '닫기', cls: 'btn-primary' }
+      ]
+    });
+    return;
+  }
+  if(act === 'copyraw'){
+    copyText(s.raw).then(function(ok){ toast(ok ? s.name + ' 학생의 PRD 원문을 복사했습니다.' : '복사하지 못했습니다.', !ok); });
+    return;
+  }
+  if(act === 'remove'){
+    showConfirm('학생 삭제', s.name + ' 학생의 PRD와 피드백을 삭제할까요?', function(){
+        state.students = state.students.filter(function(x){ return x.id !== id; });
+      delete openIds[id]; delete openIds[id + ':raw'];
+      save(); render();
+      toast('삭제했습니다.');
+    });
+    return;
+  }
+}
+
+function bind(){
+  /* 업로드 */
+  $('btn-pick').addEventListener('click', function(e){ e.stopPropagation(); $('file-input').click(); });
+  $('file-input').addEventListener('change', function(){
+    if(this.files && this.files.length) addFiles(this.files);
+    this.value = '';
+  });
+
+  /* ---------- 드래그앤드롭 ----------
+     점선 박스 전체가 드롭 영역이다. 자식 요소(제목·버튼·안내문) 위에 놓아도
+     이벤트가 박스로 올라오므로 가장자리든 가운데든 똑같이 동작한다.
+
+     dragenter/dragleave 는 자식 위를 지날 때마다 번갈아 발생한다.
+     (부모 → 자식 이동 시 자식 dragenter + 부모 dragleave 가 같이 올라온다)
+     그래서 단순히 dragleave 에서 해제하면 깜빡인다. 깊이를 세어서
+     진짜로 박스를 벗어났을 때만 강조를 푼다. */
+  var dz = $('dropzone');
+  var dragDepth = 0;
+
+  function dragHasFiles(e){
+    var dt = e.dataTransfer;
+    if(!dt || !dt.types) return true;          /* 판단할 수 없으면 막지 않는다 */
+    var t = dt.types;
+    if(t.contains) return t.contains('Files');            /* DOMStringList */
+    if(t.indexOf) return t.indexOf('Files') > -1;         /* Array */
+    for(var i = 0; i < t.length; i++) if(t[i] === 'Files') return true;
+    return false;
+  }
+  function setOver(on){
+    if(on) dz.classList.add('over');
+    else dz.classList.remove('over');
+  }
+  function clearOver(){ dragDepth = 0; setOver(false); }
+
+  dz.addEventListener('click', function(e){ if(e.target === dz || e.target.closest('.dz-title,.dz-sub,.dz-note')) $('file-input').click(); });
+
+  dz.addEventListener('dragenter', function(e){
+    e.preventDefault(); e.stopPropagation();
+    if(!dragHasFiles(e)) return;
+    dragDepth++;
+    setOver(true);
+  });
+  dz.addEventListener('dragover', function(e){
+    /* 여기서 preventDefault 가 빠지면 drop 이 아예 발생하지 않는다 */
+    e.preventDefault(); e.stopPropagation();
+    if(!dragHasFiles(e)) return;
+    try{ e.dataTransfer.dropEffect = 'copy'; }catch(err){}
+    if(dragDepth === 0) dragDepth = 1;       /* dragenter 를 놓친 경우 보정 */
+    setOver(true);
+  });
+  dz.addEventListener('dragleave', function(e){
+    e.preventDefault(); e.stopPropagation();
+    dragDepth--;
+    if(dragDepth <= 0) clearOver();
+  });
+  dz.addEventListener('dragend', function(e){
+    e.preventDefault(); e.stopPropagation();
+    clearOver();
+  });
+  dz.addEventListener('drop', function(e){
+    e.preventDefault(); e.stopPropagation();
+    clearOver();
+    if(!e.dataTransfer) return;
+    /* 파일 선택 버튼과 완전히 같은 addFiles() 로 넘긴다.
+       형식 검사(.md/.txt)와 최대 30개 제한은 addFiles() 안에서 처리된다. */
+    filesFromDataTransfer(e.dataTransfer, function(files){
+      if(files && files.length) addFiles(files);
+      else toast('드롭한 파일을 읽지 못했습니다. 파일 선택 버튼을 사용해 주세요.', true);
+    });
+  });
+
+  /* 페이지의 다른 곳에 파일을 놓았을 때 브라우저가 그 파일을 새 페이지로 열어 버리지 않도록 막는다.
+     여기서는 기본 동작만 막고, 실제 파일 처리는 위 드롭존의 drop 에서만 한다. */
+  ['dragenter', 'dragover'].forEach(function(ev){
+    window.addEventListener(ev, function(e){ e.preventDefault(); });
+  });
+  window.addEventListener('drop', function(e){ e.preventDefault(); clearOver(); });
+  /* 창 밖으로 완전히 빠져나가면 강조를 해제한다 */
+  window.addEventListener('dragleave', function(e){ if(!e.relatedTarget) clearOver(); });
+
+  /* 검색 · 필터 · 정렬 */
+  $('search').addEventListener('input', function(){
+    state.query = this.value;
+    renderStudents();
+  });
+  $('filters').addEventListener('click', function(e){
+    var b = e.target.closest('.fchip');
+    if(!b) return;
+    state.filter = b.getAttribute('data-filter');
+    var chips = this.querySelectorAll('.fchip');
+    for(var i = 0; i < chips.length; i++){
+      chips[i].setAttribute('aria-pressed', chips[i] === b ? 'true' : 'false');
+    }
+    renderStudents();
+  });
+  $('sort').addEventListener('change', function(){
+    state.sort = this.value;
+    renderStudents();
+  });
+  $('btn-collapse').addEventListener('click', function(){
+    openIds = {};
+    renderStudents();
+    toast('모든 카드를 접었습니다.');
+  });
+
+  /* 학생 카드 */
+  $('student-grid').addEventListener('click', onCardClick);
+
+  /* 전체 초기화 */
+  $('btn-reset').addEventListener('click', function(){
+    if(!state.students.length){ toast('삭제할 데이터가 없습니다.'); return; }
+    showConfirm('전체 초기화', '현재 업로드한 학생 PRD와 피드백을 모두 삭제할까요?', function(){
+      state.students = [];
+      openIds = {};
+      state.query = ''; state.filter = 'all'; state.sort = 'order';
+      var sel = $('sort'); if(sel) sel.value = 'order';
+      $('search').value = '';
+      var chips = $('filters').querySelectorAll('.fchip');
+      for(var i = 0; i < chips.length; i++){
+        chips[i].setAttribute('aria-pressed', chips[i].getAttribute('data-filter') === 'all' ? 'true' : 'false');
+      }
+      try{ localStorage.removeItem(STORE_KEY); }catch(e){}
+      storageFailed = false;
+      $('storage-warn').hidden = true;
+      render();
+      toast('모든 데이터를 삭제했습니다.');
+    }, '모두 삭제');
+  });
+
+  /* 모달 */
+  $('modal-x').addEventListener('click', closeModal);
+  $('modal').addEventListener('click', function(e){ if(e.target === this) closeModal(); });
+  document.addEventListener('keydown', function(e){
+    if(e.key === 'Escape' && !$('modal').hidden) closeModal();
+  });
+
+  /* 페이지를 닫을 때 따로 저장하지 않는다.
+     업로드 · 삭제 · 초기화에서 이미 그때그때 save() 를 부르고 있고,
+     닫을 때 한 번 더 덮어쓰면 다른 탭이 저장해 둔 내용을 지울 수 있다. */
+}
+
+load();
+bind();
+render();
+</script>
+</body>
+</html>
