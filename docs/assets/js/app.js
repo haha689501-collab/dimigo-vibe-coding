@@ -31,19 +31,20 @@
   /* ================================================================
    *  홈 화면
    * ================================================================ */
-  function renderHome() {
+  function renderHome(tab) {
     var pct = Math.round((openCount / COURSE.totalSessions) * 100);
 
     var hero = '' +
       '<section class="hero">' +
         '<div class="wrap hero-inner">' +
           '<div>' +
-            '<p class="eyebrow">' + esc(COURSE.school) + '</p>' +
-            '<h1>AI <span class="hero-x">×</span> BUILD' +
-              '<span class="hero-course">Claude Vibe Coding</span>' +
-            '</h1>' +
-            '<p class="hero-tagline">' + esc(COURSE.tagline) + '</p>' +
-            '<p class="hero-lead">' + esc(COURSE.lead) + '</p>' +
+            '<p class="eyebrow">' + esc(COURSE.school) + ' · ' + esc(COURSE.className) + '</p>' +
+            '<h1 class="hero-title">' + esc(COURSE.heroTitle) + '</h1>' +
+            '<p class="hero-subtitle">' + esc(COURSE.heroSub) + '</p>' +
+            '<p class="hero-brand">AI <span class="hero-x">×</span> BUILD · ' +
+              '<span class="hero-sub">' + esc(COURSE.subtitle) + '</span></p>' +
+            '<p class="hero-lead">' + COURSE.leadLines.map(esc).join('<br>') + '</p>' +
+            '<p class="hero-note">' + esc(COURSE.note) + '</p>' +
             '<div class="hero-actions">' +
               '<a class="btn btn-primary" href="#lessons">강의자료 보기</a>' +
               '<a class="btn btn-ghost" href="#curriculum">전체 커리큘럼</a>' +
@@ -57,7 +58,8 @@
             '<div class="progress-bar">' +
               '<div class="progress-fill" style="width:' + pct + '%"></div>' +
             '</div>' +
-            '<p class="progress-note">1~3회기 자료 공개 · 4~10회기 준비 중</p>' +
+            '<p class="progress-note">' + (openCount ? '1~' + openCount + '회기 자료 공개' : '자료 준비 중') +
+              (openCount < COURSE.totalSessions ? ' · ' + (openCount + 1) + '~' + COURSE.totalSessions + '회기 준비 중' : '') + '</p>' +
           '</div>' +
         '</div>' +
       '</section>';
@@ -93,15 +95,47 @@
         '</article>';
     }).join('');
 
+    /* --- 실습 도구 카드 --- */
+    var toolCards = TOOLS.map(function (t) {
+      return '' +
+        '<article class="lesson-card is-open tool-item">' +
+          '<div class="card-top">' +
+            '<span class="tool-label">실습 도구</span>' +
+            (t.lesson ? '<span class="badge badge-phase">' + t.lesson + '회기</span>' : '') +
+          '</div>' +
+          '<h3 class="card-title">' + esc(t.title) + '</h3>' +
+          '<p class="card-summary">' + esc(t.note || '') + '</p>' +
+          '<div class="card-foot">' +
+            '<a class="btn btn-primary card-link" href="' + esc(t.href) + '">' +
+              esc(t.label) + '<span aria-hidden="true">→</span></a>' +
+          '</div>' +
+        '</article>';
+    }).join('');
+
+    var onTools = tab === 'tools';
+    function tabBtn(key, label) {
+      var on = (key === 'tools') === onTools;
+      return '<a class="tab' + (on ? ' is-on' : '') + '" role="tab" id="tab-' + key + '" ' +
+        'href="#/' + key + '" aria-selected="' + on + '" aria-controls="panel-' + key + '">' + label + '</a>';
+    }
+
     var lessonsSection = '' +
       '<section class="section" id="lessons">' +
         '<div class="wrap">' +
           '<div class="section-head">' +
             '<p class="eyebrow">강의자료</p>' +
-            '<h2>회기별 강의자료</h2>' +
-            '<p>카드를 클릭하면 해당 회기의 PPT 슬라이드를 웹에서 바로 볼 수 있습니다.</p>' +
+            '<h2>' + (onTools ? '실습도구' : '회기별 강의자료') + '</h2>' +
+            '<p>' + (onTools
+              ? '수업 중 직접 해 보는 실습 도구입니다. 버튼을 누르면 바로 시작합니다.'
+              : '카드를 클릭하면 해당 회기의 PPT 슬라이드를 웹에서 바로 볼 수 있습니다.') + '</p>' +
           '</div>' +
-          '<div class="lesson-grid">' + cards + '</div>' +
+          '<div class="tabs" role="tablist" aria-label="강의자료 보기 방식">' +
+            tabBtn('lessons', '강의자료 보기') + tabBtn('tools', '실습도구') +
+          '</div>' +
+          '<div role="tabpanel" id="panel-' + (onTools ? 'tools' : 'lessons') + '" ' +
+            'aria-labelledby="tab-' + (onTools ? 'tools' : 'lessons') + '">' +
+            '<div class="lesson-grid">' + (onTools ? toolCards : cards) + '</div>' +
+          '</div>' +
         '</div>' +
       '</section>';
 
@@ -125,7 +159,7 @@
           '<div class="section-head">' +
             '<p class="eyebrow">전체 커리큘럼</p>' +
             '<h2>10회기 한눈에 보기</h2>' +
-            '<p>기획(1~2회기) → Claude Code로 만들기(3~8회기) → 나만의 프로젝트(9~10회기)로 이어집니다.</p>' +
+            '<p>기초(1~3회기) → 개인 작품 구현과 배포(4~5회기) → 조 작품 완성(6~7회기) → 사용자 검증과 UI 완성(8회기) → 안정화와 공개(9~10회기)로 이어집니다.</p>' +
           '</div>' +
           '<div class="table-scroll">' +
             '<table class="curriculum-table">' +
@@ -163,7 +197,7 @@
           '<div class="section-head">' +
             '<p class="eyebrow">프로젝트 과정</p>' +
             '<h2>IDEA → SPEC → BUILD → TEST → RELEASE</h2>' +
-            '<p>10회기 전체가 하나의 프로젝트로 이어집니다. 아이디어를 설계하고, AI와 함께 만들고, 직접 검증하여 배포합니다.</p>' +
+            '<p>1~3회기에 기초를 익히고, 4~5회기에 각자 Claude Code로 만들어 배포합니다. 6회기부터 조 작품 하나를 골라 한 바퀴 완성하고, 사용자 검증과 UI 완성을 거쳐 배포와 작품 쇼케이스로 마칩니다.</p>' +
           '</div>' +
           '<ul class="rail">' + railItems + '</ul>' +
         '</div>' +
@@ -202,34 +236,6 @@
 
     var goals = lesson.goals.map(function (g) { return '<li>' + esc(g) + '</li>'; }).join('');
 
-    // 이 회기에서 사용하는 실습 도구 (lessons.js 의 tools 배열)
-    var toolsHTML = '';
-    if (lesson.tools && lesson.tools.length) {
-      toolsHTML = '<div class="lesson-tools">' + lesson.tools.map(function (t) {
-        return '' +
-          '<div class="tool-card">' +
-            '<span class="tool-label">실습 도구</span>' +
-            '<a class="btn btn-primary tool-btn" href="' + esc(t.href) + '">' +
-              esc(t.label) + '<span aria-hidden="true">→</span>' +
-            '</a>' +
-            '<span class="tool-note">' + esc(t.note || '') + '</span>' +
-          '</div>';
-      }).join('') + '</div>';
-    }
-
-    // 교안은 PDF 로만 내려받습니다. (PDF 가 없으면 버튼을 아예 만들지 않습니다)
-    var downloads = '';
-    if (lesson.pdfFile) {
-      downloads = '<div class="downloads">' +
-        '<a class="btn btn-ghost" href="' + esc(lesson.pdfFile) + '" ' +
-          'download="' + esc(lesson.pdfName || (lesson.slug + '.pdf')) + '" ' +
-          'aria-label="' + lesson.id + '회기 강의자료 PDF 다운로드 (' + lesson.slideCount + '쪽)">' +
-          '<span aria-hidden="true">↓</span> 강의자료 PDF 다운로드' +
-        '</a>' +
-        '<span class="dl-note">' + lesson.slideCount + '쪽 · PDF</span>' +
-      '</div>';
-    }
-
     var thumbs = '';
     for (var i = 1; i <= lesson.slideCount; i++) {
       thumbs += '<button class="thumb" type="button" data-index="' + (i - 1) + '" ' +
@@ -263,7 +269,6 @@
           '</div>' +
           '<div class="lesson-side">' +
             '<div class="lesson-nav">' + navBtn(prev, 'prev') + navBtn(next, 'next') + '</div>' +
-            toolsHTML +
           '</div>' +
         '</div>' +
 
@@ -295,7 +300,6 @@
           '</div>' +
           '<div class="thumbs" id="thumbs">' + thumbs + '</div>' +
 
-          downloads +
         '</div>' +
       '</div>';
 
@@ -566,8 +570,10 @@
       return;
     }
 
-    // 홈 + 섹션 이동
-    renderHome();
+    // 홈 + 섹션 이동  (#/tools 는 강의자료 섹션의 실습도구 탭)
+    var tools = head === 'tools';
+    renderHome(tools ? 'tools' : 'lessons');
+    if (tools) head = 'lessons';
     if (SECTIONS.indexOf(head) !== -1) {
       var el = document.getElementById(head);
       if (el) el.scrollIntoView({ behavior: 'auto', block: 'start' });
@@ -602,6 +608,13 @@
       navToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
     });
   }
+
+  // 강의자료는 보기 전용 — 슬라이드 이미지 우클릭 저장 · 끌어서 저장을 막습니다.
+  ['contextmenu', 'dragstart'].forEach(function (type) {
+    document.addEventListener(type, function (e) {
+      if (e.target.closest && e.target.closest('.stage, .thumbs')) e.preventDefault();
+    });
+  });
 
   window.addEventListener('hashchange', route);
   route();

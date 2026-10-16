@@ -1,0 +1,2431 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MVP 비교·검증 도우미 · 바이브코딩 3회기</title>
+<style>
+/* MVP 비교·검증 도우미 — 2회기 PRD 기획 도구와 같은 디자인 토큰을 씁니다. */
+:root{
+  --bg:#f4f5f9; --panel:#ffffff; --ink:#1a1d29; --ink-2:#4a5065; --ink-3:#6b7289;
+  --line:#e3e6ef; --line-2:#d2d7e6;
+  --accent:#4f46e5; --accent-soft:#eef0fe; --accent-ink:#3730a3;
+  --ok:#0f9d76; --ok-soft:#e6f7f1; --ok-ink:#0b7a5c;
+  --warn:#b45309; --warn-soft:#fff4e5;
+  --danger:#dc2626; --danger-soft:#fff1f1;
+  --shadow:0 1px 2px rgba(20,24,40,.05), 0 8px 24px rgba(20,24,40,.07);
+  --shadow-lg:0 12px 32px rgba(20,24,40,.16), 0 2px 8px rgba(20,24,40,.10);
+  --mono:'D2Coding',ui-monospace,SFMono-Regular,Menlo,Consolas,'Courier New',monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--bg); color:var(--ink);
+  font-family:'Pretendard','Pretendard Variable',-apple-system,BlinkMacSystemFont,'Segoe UI','Malgun Gothic','Apple SD Gothic Neo',system-ui,sans-serif;
+  font-size:15px; line-height:1.65; -webkit-font-smoothing:antialiased; word-break:keep-all; overflow-wrap:anywhere;
+}
+button,input,textarea,select{font-family:inherit}
+[hidden]{display:none!important}
+
+/* ---------- 상단 ---------- */
+.top{position:sticky;top:0;z-index:50;background:rgba(244,245,249,.92);backdrop-filter:saturate(180%) blur(12px);border-bottom:1px solid var(--line)}
+.top-inner{max-width:1080px;margin:0 auto;padding:12px 20px 11px}
+.brand{display:flex;flex-direction:column;gap:1px}
+.brand .school{font-size:11px;font-weight:700;letter-spacing:.45px;line-height:1.5;color:var(--accent)}
+.brand h1{font-size:20px;font-weight:800;margin:0;letter-spacing:-.5px;line-height:1.35}
+.brand .tag{font-size:12.5px;line-height:1.5;color:var(--ink-3)}
+.back-home{align-self:flex-start;display:inline-flex;align-items:center;gap:4px;margin-bottom:4px;font-size:12.5px;font-weight:700;color:var(--ink-3);text-decoration:none;padding:3px 10px 3px 8px;border:1px solid var(--line-2);border-radius:99px;background:#fff;transition:.15s}
+.back-home:hover{color:var(--accent);border-color:var(--accent)}
+.bar{height:5px;background:var(--line);border-radius:99px;margin:10px 0 9px;overflow:hidden}
+.bar span{display:block;height:100%;width:0;background:linear-gradient(90deg,#6366f1,#4f46e5);border-radius:99px;transition:width .32s cubic-bezier(.4,0,.2,1)}
+.chips{display:flex;gap:5px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:0 0 auto;font-size:11.5px;font-weight:600;padding:4px 10px;border-radius:99px;border:1px solid var(--line);background:#fff;color:var(--ink-3);white-space:nowrap;cursor:pointer;transition:.16s}
+.chip:hover{border-color:var(--line-2);color:var(--ink-2)}
+.chip.done{background:var(--ok-soft);border-color:#b9e8d8;color:var(--ok-ink)}
+.chip.now{background:var(--accent);border-color:var(--accent);color:#fff}
+
+/* ---------- 본문 ---------- */
+.wrap{max-width:1080px;margin:0 auto;padding:26px 20px 90px}
+.step{display:none}
+.step.active{display:block;animation:in .28s ease}
+@keyframes in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.eyebrow{font-size:11.5px;font-weight:700;letter-spacing:1.4px;color:var(--accent);margin:0 0 7px}
+h2.title{font-size:26px;line-height:1.35;margin:0 0 8px;letter-spacing:-.6px}
+p.lead{margin:0 0 20px;color:var(--ink-2);font-size:14.5px}
+.slide-ref{display:inline-block;margin-left:6px;padding:1px 8px;border-radius:99px;background:#fff;border:1px solid var(--line);font-size:11px;font-weight:600;color:var(--ink-3);letter-spacing:0;vertical-align:2px}
+.card-box{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:22px;box-shadow:var(--shadow)}
+.card-box + .card-box,.card-box + .grid-2,.grid-2 + .card-box,.prompt-box + .card-box,.card-box + .prompt-box,.grid-2 + .prompt-box,.prompt-box + .grid-2,.explain + .card-box,.viewer + .card-box{margin-top:16px}
+.card-box h3{margin:0 0 4px;font-size:16.5px;letter-spacing:-.3px}
+.card-box .sub{margin:0 0 14px;font-size:13px;color:var(--ink-3)}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.field{margin-bottom:16px}
+.field:last-child{margin-bottom:0}
+label.lbl,.lbl{display:block;font-size:13px;font-weight:700;margin-bottom:7px;color:var(--ink)}
+.hint{font-size:12.5px;color:var(--ink-3);margin:6px 0 0}
+input[type=text],textarea{width:100%;padding:10px 12px;border:1px solid var(--line-2);border-radius:10px;font-size:14.5px;color:var(--ink);background:#fff;transition:border-color .15s,box-shadow .15s}
+textarea{resize:vertical;min-height:120px;line-height:1.65}
+textarea.code{font-family:var(--mono);font-size:12.5px;min-height:160px}
+input[type=text]:focus,textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(79,70,229,.14)}
+input::placeholder,textarea::placeholder{color:#a9afc3}
+
+/* ---------- 버튼 ---------- */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:10px 18px;border-radius:11px;border:1px solid transparent;font-size:14px;font-weight:600;line-height:1.3;cursor:pointer;transition:.15s;text-decoration:none}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-primary:hover{background:#4338ca}
+.btn-ghost{background:#fff;border-color:var(--line-2);color:var(--ink-2)}
+.btn-ghost:hover{border-color:var(--ink-3);color:var(--ink)}
+.btn-soft{background:var(--accent-soft);color:var(--accent-ink);border-color:#d9dcfa}
+.btn-soft:hover{background:#e2e5fd}
+.btn-add{background:var(--accent-soft);color:var(--accent-ink);border:1px dashed #b9bcf0;width:100%;padding:9px}
+.btn-add:hover{background:#e4e7fd;border-style:solid}
+.btn-danger{background:#fff;border-color:#f3c0c0;color:var(--danger)}
+.btn-danger:hover{background:var(--danger-soft);border-color:var(--danger)}
+.btn-sm{padding:7px 12px;font-size:13px;border-radius:9px}
+.btn:focus-visible,.seg button:focus-visible,.chip:focus-visible{outline:3px solid rgba(79,70,229,.45);outline-offset:2px}
+.actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.nav{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:22px}
+.spacer{flex:1 1 auto}
+
+/* ---------- 목록 입력 ---------- */
+.rows{display:flex;flex-direction:column;gap:8px;margin-bottom:10px}
+.row-item{display:flex;align-items:center;gap:8px}
+.row-num{flex:0 0 26px;height:26px;border-radius:8px;background:var(--accent-soft);color:var(--accent-ink);font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.row-item input{flex:1 1 auto;min-width:0}
+.icon-btn{flex:0 0 auto;width:32px;height:32px;border-radius:9px;border:1px solid var(--line-2);background:#fff;color:var(--ink-3);font-size:17px;line-height:1;cursor:pointer;transition:.15s}
+.icon-btn:hover{border-color:#f0b4b4;color:var(--danger);background:var(--danger-soft)}
+.list-block + .list-block{margin-top:18px}
+
+/* ---------- 체크리스트 ---------- */
+.checks{display:flex;flex-direction:column;gap:6px;margin:0;padding:0;list-style:none}
+.check{display:flex;align-items:flex-start;gap:10px;padding:9px 12px;border:1px solid var(--line);border-radius:11px;background:#fbfbfe;cursor:pointer;font-size:14px;transition:.15s}
+.check:hover{border-color:var(--line-2)}
+.check input{margin:4px 0 0;width:17px;height:17px;accent-color:var(--accent);flex:0 0 auto}
+.check.on{background:var(--ok-soft);border-color:#b9e8d8}
+.check b{font-weight:700}
+.check.retry{background:var(--warn-soft);border-color:#f6d7a8}
+
+/* ---------- 세그먼트 ---------- */
+.seg{display:inline-flex;flex-wrap:wrap;gap:4px;padding:3px;border-radius:11px;background:#eef0f6;border:1px solid var(--line)}
+.seg button{border:0;background:transparent;border-radius:8px;padding:6px 11px;font-size:13px;font-weight:600;color:var(--ink-2);cursor:pointer;line-height:1.3;white-space:nowrap}
+.seg button:hover{color:var(--ink)}
+.seg button[aria-pressed="true"]{background:#fff;color:var(--accent-ink);box-shadow:0 1px 3px rgba(20,24,40,.12)}
+.seg button[data-v="ok"][aria-pressed="true"],.seg button[data-v="pass"][aria-pressed="true"]{background:var(--ok);color:#fff}
+.seg button[data-v="part"][aria-pressed="true"]{background:#f59e0b;color:#fff}
+.seg button[data-v="no"][aria-pressed="true"],.seg button[data-v="fail"][aria-pressed="true"]{background:var(--danger);color:#fff}
+.seg button[data-v="violation"][aria-pressed="true"]{background:var(--danger);color:#fff}
+.seg button[data-v="blank"][aria-pressed="true"]{background:var(--accent);color:#fff}
+.seg button[data-v="both"][aria-pressed="true"]{background:#7c3aed;color:#fff}
+
+/* ---------- 요청문 / 코드 상자 ---------- */
+.prompt-box{background:#1e2130;border-radius:16px;padding:18px 20px}
+.prompt-head{display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap}
+.prompt-head h4{margin:0;font-size:12.5px;font-weight:700;color:#aab0d0;letter-spacing:.4px}
+.prompt-box pre{margin:0;font-family:var(--mono);font-size:12.5px;line-height:1.8;white-space:pre-wrap;word-break:break-word;color:#dfe3f5;max-height:420px;overflow:auto}
+.prompt-box .note{margin:12px 0 0;font-size:12.5px;color:#aab0d0;line-height:1.7}
+.btn-copy{background:#353a52;color:#fff;border-color:#4a5070}
+.btn-copy:hover{background:#4f46e5;border-color:#4f46e5}
+.example{background:#f8f9fc;border:1px solid var(--line);border-radius:12px;padding:13px 15px;font-size:13px;color:var(--ink-2)}
+.example h4{margin:0 0 6px;font-size:12px;font-weight:700;color:var(--ink-3);letter-spacing:.3px}
+.example p{margin:0}
+.example + .example{margin-top:10px}
+.good{color:var(--ok-ink);font-weight:700}
+.bad{color:var(--danger);font-weight:700}
+
+/* ---------- PRD 불러오기 ---------- */
+.drop{border:2px dashed var(--line-2);border-radius:14px;padding:18px;text-align:center;background:#fcfcfe;transition:.15s}
+.drop.over{border-color:var(--accent);background:var(--accent-soft)}
+.drop p{margin:0 0 12px;color:var(--ink-3);font-size:13.5px}
+.drop .actions{justify-content:center}
+.status{display:flex;align-items:center;gap:8px;margin-top:12px;padding:10px 13px;border-radius:11px;font-size:13.5px;background:#f6f7fb;color:var(--ink-2);border:1px solid var(--line)}
+.status.ok{background:var(--ok-soft);border-color:#b9e8d8;color:var(--ok-ink)}
+.status.warn{background:var(--warn-soft);border-color:#f6d7a8;color:var(--warn)}
+
+/* ---------- 파일 슬롯 ---------- */
+.slot{border:1px solid var(--line);border-radius:14px;padding:13px;background:#fbfbfe;margin-top:12px}
+.slot-top{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.slot-badge{display:inline-flex;align-items:center;justify-content:center;min-width:30px;height:30px;padding:0 8px;border-radius:9px;background:var(--accent);color:#fff;font-weight:800;font-size:14px}
+.slot-badge.c{background:#7c3aed}
+.slot-badge.f{background:var(--ok)}
+.slot-info{font-size:13px;color:var(--ink-3);flex:1 1 160px;min-width:0}
+.slot-info b{color:var(--ink)}
+.slot-paste{margin-top:10px}
+
+/* ---------- 나란히 보기 ---------- */
+.viewer{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:14px;box-shadow:var(--shadow)}
+.viewer-bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.viewer-bar .lbl{margin:0;font-size:12.5px;color:var(--ink-3)}
+.panes{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.panes.stack,.panes.single{grid-template-columns:1fr}
+.pane{border:1px solid var(--line);border-radius:14px;overflow:hidden;background:#f6f7fb;min-width:0}
+.pane-head{display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:8px 10px;background:#fff;border-bottom:1px solid var(--line)}
+.pane-name{font-size:12.5px;color:var(--ink-3);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1 1 90px}
+.mini{border:1px solid var(--line-2);background:#fff;border-radius:8px;padding:5px 9px;font-size:12px;font-weight:600;color:var(--ink-2);cursor:pointer;white-space:nowrap}
+.mini:hover{border-color:var(--accent);color:var(--accent-ink)}
+.frame-box{position:relative;overflow:hidden;margin:10px auto;background:#fff;box-shadow:0 0 0 1px var(--line)}
+.frame-box iframe{position:absolute;left:0;top:0;border:0;transform-origin:0 0;background:#fff}
+.pane-empty{padding:40px 16px;text-align:center;color:var(--ink-3);font-size:13.5px}
+.pane-empty p{margin:0 0 12px}
+.pane-errors{margin:0 10px 10px;padding:8px 11px;border-radius:9px;background:var(--danger-soft);border:1px solid #f6c9c9;color:#9b1c1c;font-size:12.5px;font-family:var(--mono);white-space:pre-wrap}
+.pane-foot{padding:0 10px 10px;font-size:12px;color:var(--ink-3)}
+
+/* ---------- 점검표 ---------- */
+.mtable{display:flex;flex-direction:column;gap:8px}
+.mrow{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:10px;align-items:center;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:#fbfbfe}
+.mrow .what{font-size:14px;font-weight:600;min-width:0}
+.mrow .what small{display:block;font-weight:400;color:var(--ink-3);font-size:12.5px}
+.mcell{display:flex;align-items:center;gap:6px}
+.mcell .who{font-size:12px;font-weight:800;color:var(--accent-ink);width:14px;text-align:center}
+.mhead{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:10px;padding:0 12px;font-size:12px;color:var(--ink-3);font-weight:700}
+.empty-line{padding:14px;border:1px dashed var(--line-2);border-radius:12px;color:var(--ink-3);font-size:13.5px;text-align:center}
+.task-hint{margin-top:10px}
+.tag-chips{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 10px}
+.tag-chips button{border:1px solid var(--line-2);background:#fff;border-radius:99px;padding:4px 10px;font-size:12.5px;color:var(--ink-2);cursor:pointer}
+.tag-chips button:hover{border-color:var(--accent);color:var(--accent-ink)}
+
+/* ---------- 위반 / 빈칸 ---------- */
+.explain{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.explain > div{border-radius:14px;padding:14px 16px;border:1px solid var(--line);background:#fff}
+.explain h4{margin:0 0 4px;font-size:15px}
+.explain p{margin:0;font-size:13.5px;color:var(--ink-2)}
+.explain .v{border-top:4px solid var(--danger)}
+.explain .b{border-top:4px solid var(--accent)}
+.counts{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0}
+.count{padding:5px 12px;border-radius:99px;font-size:13px;font-weight:700;background:#fff;border:1px solid var(--line);color:var(--ink-2)}
+.count.v{color:var(--danger);border-color:#f6c9c9;background:var(--danger-soft)}
+.count.b{color:var(--accent-ink);border-color:#d9dcfa;background:var(--accent-soft)}
+.count.p{color:var(--ok-ink);border-color:#b9e8d8;background:var(--ok-soft)}
+.jcards{display:flex;flex-direction:column;gap:12px}
+.jcard{background:#fff;border:1px solid var(--line);border-radius:16px;padding:15px 16px;box-shadow:var(--shadow)}
+.jcard.violation{border-left:5px solid var(--danger)}
+.jcard.blank{border-left:5px solid var(--accent)}
+.jcard.both{border-left:5px solid #7c3aed}
+.jtop{display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap;margin-bottom:10px}
+.jtext{flex:1 1 260px;min-width:0;font-size:14.5px;font-weight:600}
+.jsrc{display:inline-block;margin-right:6px;padding:1px 8px;border-radius:99px;background:#f0f1f7;color:var(--ink-3);font-size:11.5px;font-weight:700;vertical-align:1px}
+.jq{font-size:12.5px;color:var(--ink-3);margin:0 0 8px}
+.jfields{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+.jfields .full{grid-column:1 / -1}
+.jfields label{display:block;font-size:12.5px;font-weight:700;margin-bottom:4px;color:var(--ink-2)}
+.jfields .prompt-box{padding:13px 15px}
+.jfields .prompt-box pre{font-size:12px}
+select{width:100%;padding:9px 10px;border:1px solid var(--line-2);border-radius:10px;font-size:13.5px;background:#fff;color:var(--ink)}
+
+/* ---------- 완료 기준 선택 / 확인 ---------- */
+.pick{display:flex;flex-direction:column;gap:6px}
+.vrows{display:flex;flex-direction:column;gap:12px}
+.vrow{background:#fff;border:1px solid var(--line);border-radius:16px;padding:14px 16px;box-shadow:var(--shadow)}
+.vrow.pass{border-left:5px solid var(--ok)}
+.vrow.fail{border-left:5px solid var(--danger)}
+.vtop{display:flex;align-items:flex-start;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+.vtitle{flex:1 1 260px;font-weight:700;font-size:14.5px;min-width:0}
+.vgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.vgrid label{display:block;font-size:12.5px;font-weight:700;margin-bottom:4px;color:var(--ink-2)}
+.vgrid .full{grid-column:1 / -1}
+
+/* ---------- 결과 ---------- */
+.md-preview{background:#1e2130;border-radius:14px;padding:18px 20px;max-height:460px;overflow:auto}
+.md-preview pre{margin:0;font-family:var(--mono);font-size:12.5px;line-height:1.8;white-space:pre-wrap;word-break:break-word;color:#dfe3f5}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
+.stat{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px;text-align:center;box-shadow:var(--shadow)}
+.stat .n{font-size:26px;font-weight:800;color:var(--accent);line-height:1.15;letter-spacing:-1px}
+.stat .l{font-size:12px;color:var(--ink-3);margin-top:3px}
+.final-hero{background:linear-gradient(135deg,#4f46e5,#7c3aed);color:#fff;border-radius:18px;padding:24px;margin-bottom:16px;box-shadow:var(--shadow)}
+.final-hero h2{margin:0 0 6px;font-size:24px;letter-spacing:-.6px}
+.final-hero p{margin:0;opacity:.9;font-size:14px}
+.downloads{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:14px}
+.downloads .btn{flex-direction:column;gap:2px;padding:12px 10px}
+.downloads .btn small{font-weight:500;font-size:11.5px;opacity:.8}
+
+/* ---------- 소개 ---------- */
+.intro{display:none}
+body.intro-mode .intro{display:block;animation:in .3s ease}
+body.intro-mode .step,body.intro-mode .bar,body.intro-mode .chips{display:none}
+.intro-hero{position:relative;overflow:hidden;background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:26px 28px 22px;box-shadow:var(--shadow);text-align:center}
+.intro-hero::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,#6366f1,#7c3aed,#4f46e5)}
+.intro-q{font-size:27px;font-weight:800;letter-spacing:-.7px;line-height:1.3;margin:0 0 10px}
+.intro-def{margin:0 0 10px;font-size:15.5px;color:var(--ink-2)}
+.intro-def b{color:var(--ink)}
+.intro-simple{margin:0;font-size:14px;color:var(--ink-3)}
+.intro-simple .q{display:inline-block;margin:4px 2px 0;padding:6px 16px;border-radius:99px;background:var(--accent-soft);color:var(--accent-ink);font-size:15.5px;font-weight:700}
+.intro-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:11px;margin-top:12px}
+.intro-card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:15px 16px;box-shadow:var(--shadow);text-align:center}
+.intro-card .ic{display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;margin-bottom:8px;border-radius:12px;background:var(--accent-soft);font-size:19px}
+.intro-card h3{margin:0 0 4px;font-size:15px}
+.intro-card p{margin:0;font-size:12.5px;line-height:1.55;color:var(--ink-3)}
+.intro-flow-box{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:12px 16px;margin-top:12px;box-shadow:var(--shadow);text-align:center}
+.intro-flow-box h4{margin:0 0 8px;font-size:11.5px;font-weight:700;letter-spacing:.6px;color:var(--ink-3)}
+.intro-flow{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:7px}
+.intro-flow li{display:flex;align-items:center;gap:7px}
+.intro-flow li span{padding:5px 12px;border-radius:99px;border:1px solid var(--line);background:#f7f8fc;font-size:13px;font-weight:600;color:var(--ink-2);white-space:nowrap}
+.intro-flow li::after{content:'→';color:#b5bbcf;font-size:13px}
+.intro-flow li:last-child::after{display:none}
+.intro-flow li:last-child span{background:var(--accent);border-color:var(--accent);color:#fff}
+.intro-files{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;margin:10px 0 0}
+.intro-files code{font-family:var(--mono);font-size:12.5px;padding:3px 9px;border-radius:7px;background:#1e2130;color:#dfe3f5}
+.intro-cta{text-align:center;margin-top:18px}
+.intro-cta > p{margin:0 0 11px;font-size:16.5px;font-weight:700;letter-spacing:-.4px}
+.btn-lg{padding:13px 38px;font-size:16px;border-radius:13px;box-shadow:0 8px 20px rgba(79,70,229,.26)}
+.intro-cta > p.intro-note{margin:9px 0 0;font-size:12.5px;font-weight:400;letter-spacing:0;color:var(--ink-3)}
+
+/* ---------- 알림 ---------- */
+.toast{position:fixed;left:50%;bottom:30px;transform:translate(-50%,18px);background:#1e2130;color:#fff;padding:12px 20px;border-radius:12px;font-size:14px;font-weight:500;box-shadow:var(--shadow-lg);opacity:0;pointer-events:none;transition:.24s cubic-bezier(.4,0,.2,1);z-index:9999;max-width:calc(100vw - 40px);text-align:center}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.toast.warn{background:#b45309}
+.toast.ok{background:#0f766e}
+
+/* ---------- 반응형 ---------- */
+@media (max-width:860px){
+  .panes{grid-template-columns:1fr}
+  .downloads{grid-template-columns:repeat(2,1fr)}
+}
+@media (max-width:760px){
+  .grid-2,.explain,.jfields,.vgrid{grid-template-columns:1fr}
+  .intro-cards{grid-template-columns:1fr}
+  .stats{grid-template-columns:repeat(2,1fr)}
+  h2.title{font-size:22px}
+  .wrap{padding:20px 16px 80px}
+  .top-inner{padding-left:16px;padding-right:16px}
+  .card-box{padding:17px}
+  .brand h1{font-size:17px}
+  .intro-hero{padding:24px 18px 20px}
+  .intro-q{font-size:22px}
+  .btn-lg{width:100%}
+  .mrow,.mhead{grid-template-columns:1fr}
+  .mhead{display:none}
+  .mcell{flex-wrap:wrap}
+}
+@media (max-width:420px){
+  .downloads{grid-template-columns:1fr}
+  .seg button{padding:6px 9px}
+}
+</style>
+</head>
+<body class="intro-mode">
+
+<header class="top">
+  <div class="top-inner">
+    <div class="brand">
+      <a class="back-home" href="../index.html#/tools"><span aria-hidden="true">←</span> 실습도구로 돌아가기</a>
+      <span class="school">한국디지털미디어고등학교 · CLAUDE VIBE CODING · 3회기</span>
+      <h1>MVP 비교·검증 도우미</h1>
+      <span class="tag">같은 PRD, 다른 결과. 차이에서 설계의 빈칸을 찾습니다.</span>
+    </div>
+    <div class="bar"><span id="progress-fill"></span></div>
+    <div class="chips" id="chips"></div>
+  </div>
+</header>
+
+<main class="wrap">
+
+<!-- ================= 소개 ================= -->
+<section class="intro" id="intro" aria-labelledby="intro-q">
+  <div class="intro-hero">
+    <p class="eyebrow">START HERE</p>
+    <h2 class="intro-q" id="intro-q">같은 PRD로 두 번 만들면, 결과도 같을까요?</h2>
+    <p class="intro-def">같은 PRD와 같은 요청문으로 <b>Version A</b>와 <b>Version B</b>를 만들고,<br>달라진 부분에서 <b>PRD의 빈칸</b>을 찾아 채웁니다.</p>
+    <p class="intro-simple">오늘 할 일을 한 줄로 말하면<br><span class="q">“만들고, 비교하고, 고르고, 검증하기”</span></p>
+  </div>
+
+  <div class="intro-cards">
+    <div class="intro-card"><span class="ic" aria-hidden="true">🧪</span><h3>조건은 똑같이</h3><p>새 대화 · 같은 PRD · 같은 요청문으로 두 번 만듭니다.</p></div>
+    <div class="intro-card"><span class="ic" aria-hidden="true">🔍</span><h3>차이는 둘로 나눠서</h3><p>AI가 기준을 어긴 <b>위반</b>인지, 정하지 않은 <b>빈칸</b>인지 판단합니다.</p></div>
+    <div class="intro-card"><span class="ic" aria-hidden="true">✅</span><h3>기준으로 검증</h3><p>완료 기준으로 통과·실패를 직접 확인하고 기록합니다.</p></div>
+  </div>
+
+  <div class="intro-flow-box">
+    <h4>이런 순서로 진행합니다</h4>
+    <ol class="intro-flow">
+      <li><span>PRD</span></li><li><span>A·B 만들기</span></li><li><span>나란히 보기</span></li><li><span>비교 기록</span></li>
+      <li><span>위반·빈칸</span></li><li><span>최종 선택</span></li><li><span>완료 확인</span></li><li><span>HANDOFF</span></li>
+    </ol>
+    <div class="intro-files"><code>version-a.html</code><code>version-b.html</code><code>index.html</code><code>HANDOFF.md</code></div>
+  </div>
+
+  <div class="intro-cta">
+    <p>지난 시간에 만든 PRD를 준비해 주세요.</p>
+    <button class="btn btn-primary btn-lg" id="btn-start" type="button">시작하기 →</button>
+    <p class="intro-note">적은 내용과 불러온 파일은 이 브라우저에만 자동으로 저장됩니다.</p>
+  </div>
+</section>
+
+<!-- ================= STEP 1 · PRD ================= -->
+<section class="step" data-step="1">
+  <p class="eyebrow">STEP 1 · PRD <span class="slide-ref">슬라이드 2–6</span></p>
+  <h2 class="title">오늘의 기준, PRD를 불러오세요</h2>
+  <p class="lead">PRD.md를 불러오면 꼭 만들 기능과 완료 기준을 찾아서 채워 줍니다. 못 찾은 항목은 직접 적어도 됩니다.</p>
+
+  <div class="card-box">
+    <div class="drop" id="prd-drop">
+      <p>PRD.md 파일을 여기에 끌어다 놓거나, 아래 버튼을 누르세요.</p>
+      <div class="actions">
+        <button class="btn btn-primary" type="button" id="prd-open">PRD.md 파일 열기</button>
+        <button class="btn btn-ghost" type="button" id="prd-paste-toggle">내용 붙여넣기</button>
+        <button class="btn btn-soft" type="button" id="prd-example">PRD가 없어요 · 예시 쓰기</button>
+      </div>
+      <input type="file" id="prd-file" accept=".md,.txt,.markdown,text/markdown,text/plain" hidden>
+    </div>
+    <div id="prd-paste" hidden>
+      <div class="field" style="margin-top:14px">
+        <label class="lbl" for="prd-paste-text">PRD 내용 붙여넣기</label>
+        <textarea id="prd-paste-text" placeholder="# 프로젝트 이름&#10;&#10;## 5. MVP&#10;### 이번에 만들 기능&#10;- ..."></textarea>
+      </div>
+      <button class="btn btn-primary btn-sm" type="button" id="prd-paste-apply">이 내용으로 불러오기</button>
+    </div>
+    <div class="status" id="prd-status">아직 PRD를 불러오지 않았습니다.</div>
+    <div class="actions" id="prd-example-actions" style="margin-top:10px" hidden>
+      <button class="btn btn-ghost btn-sm" type="button" data-dl="examplePrd">예시 PRD.md 내려받기</button>
+      <span class="hint" style="margin:0">Claude에 첨부할 PRD 파일이 필요하면 내려받으세요.</span>
+    </div>
+  </div>
+
+  <div class="card-box">
+    <h3>PRD에서 찾은 기준</h3>
+    <p class="sub">오늘은 이 내용이 판단의 근거가 됩니다. 비어 있다면 PRD를 보고 직접 적어 주세요.</p>
+    <div class="field">
+      <label class="lbl" for="f-name">작품 이름</label>
+      <input type="text" id="f-name" data-bind="prd.name" placeholder="예) 우리 반 익명 게시판">
+    </div>
+    <div class="grid-2">
+      <div>
+        <div class="list-block">
+          <span class="lbl">꼭 만들 기능 · MUST</span>
+          <div class="rows" data-list="prd.must" data-ph="예) 익명으로 글쓰기"></div>
+          <button class="btn btn-add" type="button" data-add="prd.must">+ 기능 추가</button>
+        </div>
+        <div class="list-block">
+          <span class="lbl">나중에 만들 기능 · 제외 기능 · LATER / NON-GOAL</span>
+          <div class="rows" data-list="prd.later" data-ph="예) 댓글, 로그인"></div>
+          <button class="btn btn-add" type="button" data-add="prd.later">+ 추가</button>
+        </div>
+      </div>
+      <div>
+        <div class="list-block">
+          <span class="lbl">사용자 흐름 · User Flow</span>
+          <div class="rows" data-list="prd.flow" data-ph="예) 제목과 내용을 입력한다"></div>
+          <button class="btn btn-add" type="button" data-add="prd.flow">+ 흐름 추가</button>
+        </div>
+        <div class="list-block">
+          <span class="lbl">완료 기준 · Acceptance Criteria</span>
+          <div class="rows" data-list="prd.criteria" data-ph="예) 빈 제목은 등록되지 않고 안내가 보인다"></div>
+          <button class="btn btn-add" type="button" data-add="prd.criteria">+ 기준 추가</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="nav"><span></span><button class="btn btn-primary" type="button" data-next="1">다음: A·B 만들기 →</button></div>
+</section>
+
+<!-- ================= STEP 2 · BUILD ================= -->
+<section class="step" data-step="2">
+  <p class="eyebrow">STEP 2 · BUILD <span class="slide-ref">슬라이드 7–9 · 실습 ①</span></p>
+  <h2 class="title">같은 조건으로 두 번 만드세요</h2>
+  <p class="lead">조건을 똑같이 맞춰야, 결과가 달라졌을 때 그 이유를 알 수 있습니다.</p>
+
+  <div class="prompt-box">
+    <div class="prompt-head"><h4>생성 요청문 · A와 B에 똑같이</h4><span class="spacer"></span><button class="btn btn-sm btn-copy" type="button" data-copy="prompt-generate">요청문 복사</button></div>
+    <pre id="prompt-generate"></pre>
+    <p class="note">PRD.md를 첨부하거나 PRD 전체 내용을 함께 붙여 넣으세요. 이 문장을 썼다고 AI가 꼭 지키는 것은 아니므로, 결과를 반드시 확인합니다.</p>
+  </div>
+
+  <div class="grid-2">
+    <div class="card-box">
+      <h3>Version A</h3>
+      <p class="sub">마음에 들지 않아도 아직 고치지 않습니다. 비교할 원본입니다.</p>
+      <ul class="checks" data-checks="build.a"></ul>
+      <div class="slot" data-slot="a"></div>
+    </div>
+    <div class="card-box">
+      <h3>Version B</h3>
+      <p class="sub">A의 화면·코드·수정 내용을 B 대화에 보여 주지 않습니다.</p>
+      <ul class="checks" data-checks="build.b"></ul>
+      <div class="slot" data-slot="b"></div>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div class="prompt-box">
+      <div class="prompt-head"><h4>실행이 안 될 때만 · 딱 1회</h4><span class="spacer"></span><button class="btn btn-sm btn-copy" type="button" data-copy="prompt-retry">복사</button></div>
+      <pre id="prompt-retry">브라우저에서 실행하면 [어떤 화면 / 어떤 부분]이 나오지 않습니다.
+기능과 디자인은 바꾸지 말고, 브라우저에서 실행되도록만 고쳐서 전체 코드를 다시 주세요.</pre>
+      <p class="note">요청했다면 위 카드에서 “실행이 안 돼서 1회 요청했다”에 체크해 기록을 남깁니다.</p>
+    </div>
+    <div class="card-box">
+      <h3>파일로 저장하는 방법</h3>
+      <p class="sub">가장 쉬운 방법은 위의 <b>코드 붙여넣기 → 파일로 저장</b>입니다.</p>
+      <div class="example"><h4>메모장으로 저장할 때</h4><p>다른 이름으로 저장 → 파일 형식 <b>모든 파일</b> → 이름 <b>version-a.html</b> → 인코딩 <b>UTF-8</b></p></div>
+      <div class="example"><h4>이런 사고가 가장 많아요</h4><p>이름 끝에 <b>.txt</b>가 붙으면 브라우저가 아니라 메모장으로 열립니다. 코드가 <code>&lt;/html&gt;</code>로 끝나는지도 확인하세요.</p></div>
+      <div class="slot" data-slot="c"></div>
+      <p class="hint">세 번째 결과(C)는 심화 분석(D)을 고른 사람만 만듭니다.</p>
+    </div>
+  </div>
+  <div class="nav"><button class="btn btn-ghost" type="button" data-prev="2">← 이전</button><button class="btn btn-primary" type="button" data-next="2">다음: 나란히 보기 →</button></div>
+</section>
+
+<!-- ================= STEP 3 · COMPARE ================= -->
+<section class="step" data-step="3">
+  <p class="eyebrow">STEP 3 · COMPARE <span class="slide-ref">슬라이드 10 · 11 · 18</span></p>
+  <h2 class="title">A와 B를 나란히 놓고 보세요</h2>
+  <p class="lead">예쁜 화면보다 <b>PRD의 흐름과 범위에 맞는지</b> 먼저 봅니다. 빈 입력, 여러 번 누르기, 아주 긴 글도 직접 넣어 보세요.</p>
+
+  <div class="card-box">
+    <h3>오늘 나의 집중 과제</h3>
+    <p class="sub">목표는 모두 같습니다. 어디에 더 집중할지만 고르세요. 중간에 바꿔도 됩니다.</p>
+    <div class="seg" data-seg="task">
+      <button type="button" data-v="A">A 기본 확인</button>
+      <button type="button" data-v="B">B 디자인 점검</button>
+      <button type="button" data-v="C">C 기능 점검</button>
+      <button type="button" data-v="D">D 심화 분석</button>
+    </div>
+    <div class="example task-hint" id="task-hint"><p>과제를 고르면 무엇을 확인할지 알려 드립니다.</p></div>
+  </div>
+
+  <div class="viewer" id="viewer-compare">
+    <div class="viewer-bar">
+      <span class="lbl">화면 크기</span>
+      <div class="seg" data-seg="view.mode"><button type="button" data-v="pc">PC</button><button type="button" data-v="mobile">휴대폰</button></div>
+      <span class="lbl">배치</span>
+      <div class="seg" data-seg="view.layout"><button type="button" data-v="side">나란히</button><button type="button" data-v="stack">크게 위아래</button></div>
+    </div>
+    <div class="panes" id="panes-compare"></div>
+    <p class="hint">휴대폰 크기는 나란히, PC 크기는 위아래로 크게 보여 줍니다. “다시 실행”은 새로고침과 같아서, 새로고침 뒤에도 글이 남는지 확인할 때 누릅니다.</p>
+  </div>
+
+  <div class="card-box">
+    <h3>MUST 기능이 실제로 동작하나요?</h3>
+    <p class="sub">화면에 버튼이 있는 것만으로는 부족합니다. 직접 눌러서 결과까지 확인하세요.</p>
+    <div id="must-table"></div>
+  </div>
+
+  <div class="card-box">
+    <h3>완성도 다섯 가지</h3>
+    <p class="sub">첫 결과가 최종 제품으로 자라려면 필요한 기준입니다.</p>
+    <div id="quality-table"></div>
+  </div>
+
+  <div class="card-box">
+    <h3>PRD에 없는데 생긴 기능</h3>
+    <p class="sub">요청하지 않은 기능, 나중에 만들기로 한 기능, 필요 없는 화면이 끼어들었는지 찾습니다.</p>
+    <div class="grid-2">
+      <div class="list-block">
+        <span class="lbl">Version A에만 / A에서 추가된 것</span>
+        <div class="tag-chips" data-quick="extra.a"></div>
+        <div class="rows" data-list="extra.a" data-ph="예) 다크 모드 버튼"></div>
+        <button class="btn btn-add" type="button" data-add="extra.a">+ 추가</button>
+      </div>
+      <div class="list-block">
+        <span class="lbl">Version B에만 / B에서 추가된 것</span>
+        <div class="tag-chips" data-quick="extra.b"></div>
+        <div class="rows" data-list="extra.b" data-ph="예) 좋아요 버튼"></div>
+        <button class="btn btn-add" type="button" data-add="extra.b">+ 추가</button>
+      </div>
+    </div>
+  </div>
+  <div class="nav"><button class="btn btn-ghost" type="button" data-prev="3">← 이전</button><button class="btn btn-primary" type="button" data-next="3">다음: 비교 기록 →</button></div>
+</section>
+
+<!-- ================= STEP 4 · RECORD ================= -->
+<section class="step" data-step="4">
+  <p class="eyebrow">STEP 4 · RECORD <span class="slide-ref">슬라이드 12 · 실습 ②</span></p>
+  <h2 class="title">본 사실을 먼저 적으세요</h2>
+  <p class="lead">내 생각보다 <b>화면에서 본 사실</b>을 먼저 적습니다. 마지막 칸 “AI가 스스로 판단한 부분”이 오늘의 핵심 발견입니다.</p>
+
+  <div class="grid-2">
+    <div class="example"><h4>내 판단</h4><p><span class="bad">✗</span> B가 더 예쁘다.</p></div>
+    <div class="example"><h4>본 사실</h4><p><span class="good">✓</span> B는 등록 버튼이 입력칸 오른쪽에 있다.</p></div>
+  </div>
+
+  <div class="card-box">
+    <div class="actions" style="margin-bottom:14px">
+      <button class="btn btn-soft btn-sm" type="button" id="import-check">3단계 점검 결과 가져오기</button>
+      <span class="hint" style="margin:0">동작하지 않은 MUST와 추가된 기능을 아래 칸에 넣어 줍니다.</span>
+    </div>
+    <div class="grid-2">
+      <div>
+        <div class="list-block"><span class="lbl">두 결과의 공통점</span><div class="rows" data-list="record.common" data-ph="예) 둘 다 제목과 내용 칸이 있다"></div><button class="btn btn-add" type="button" data-add="record.common">+ 추가</button></div>
+        <div class="list-block"><span class="lbl">서로 다른 구현 · 화면</span><div class="rows" data-list="record.diffScreen" data-ph="예) A는 목록이 위, B는 글쓰기가 위"></div><button class="btn btn-add" type="button" data-add="record.diffScreen">+ 추가</button></div>
+        <div class="list-block"><span class="lbl">서로 다른 구현 · 기능</span><div class="rows" data-list="record.diffFeature" data-ph="예) A는 최신 글이 위, B는 아래"></div><button class="btn btn-add" type="button" data-add="record.diffFeature">+ 추가</button></div>
+        <div class="list-block"><span class="lbl">서로 다른 구현 · 코드</span><div class="rows" data-list="record.diffCode" data-ph="예) A는 배열에 저장, B는 화면 요소를 바로 추가"></div><button class="btn btn-add" type="button" data-add="record.diffCode">+ 추가</button></div>
+      </div>
+      <div>
+        <div class="list-block"><span class="lbl">PRD에 있는데 빠진 내용</span><div class="rows" data-list="record.missing" data-ph="예) B에는 삭제 기능이 없다"></div><button class="btn btn-add" type="button" data-add="record.missing">+ 추가</button></div>
+        <div class="list-block"><span class="lbl">PRD에 없는데 추가된 내용</span><div class="rows" data-list="record.added" data-ph="예) B에 좋아요 버튼이 생겼다"></div><button class="btn btn-add" type="button" data-add="record.added">+ 추가</button></div>
+        <div class="list-block"><span class="lbl">AI가 스스로 판단한 부분 ★</span><div class="rows" data-list="record.aiChoice" data-ph="예) 익명 이름을 A는 '익명', B는 '익명1, 익명2'로 표시"></div><button class="btn btn-add" type="button" data-add="record.aiChoice">+ 추가</button></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card-box">
+    <div class="actions" style="margin-bottom:10px"><h3 style="margin:0">비교기록.md 미리 보기</h3><span class="spacer"></span>
+      <button class="btn btn-ghost btn-sm" type="button" data-copy="md-record">복사</button>
+      <button class="btn btn-primary btn-sm" type="button" data-dl="record">비교기록.md 저장</button></div>
+    <div class="md-preview"><pre id="md-record"></pre></div>
+  </div>
+  <div class="nav"><button class="btn btn-ghost" type="button" data-prev="4">← 이전</button><button class="btn btn-primary" type="button" data-next="4">다음: 위반·빈칸 판단 →</button></div>
+</section>
+
+<!-- ================= STEP 5 · JUDGE ================= -->
+<section class="step" data-step="5">
+  <p class="eyebrow">STEP 5 · JUDGE <span class="slide-ref">슬라이드 13–14</span></p>
+  <h2 class="title">이 차이는 위반일까요, 빈칸일까요?</h2>
+  <p class="lead">PRD에서 그 내용을 찾아보세요. <b>기준이 있으면 위반, 없으면 빈칸</b>입니다. 둘 다일 수도 있습니다.</p>
+
+  <div class="explain">
+    <div class="v"><h4>PRD 위반 → 코드를 고친다</h4><p>PRD에 분명한 기준이 있는데 AI가 지키지 않았습니다. 문제 · 근거 · 결과 · 범위로 수정 요청을 보냅니다.</p></div>
+    <div class="b"><h4>PRD의 빈칸 → 내가 결정한다</h4><p>PRD에 기준이 없어서 AI가 하나를 골랐습니다. AI 잘못이 아닙니다. 내가 정하고 PRD에 적어 보완합니다.</p></div>
+  </div>
+  <div class="counts" id="judge-counts"></div>
+  <div class="jcards" id="judge-cards"></div>
+  <div class="nav"><button class="btn btn-ghost" type="button" data-prev="5">← 이전</button><button class="btn btn-primary" type="button" data-next="5">다음: 최종 선택 →</button></div>
+</section>
+
+<!-- ================= STEP 6 · DECIDE ================= -->
+<section class="step" data-step="6">
+  <p class="eyebrow">STEP 6 · DECIDE <span class="slide-ref">슬라이드 15–16 · 실습 ③</span></p>
+  <h2 class="title">섞기 전에, 기준과 이유부터 적으세요</h2>
+  <p class="lead">“둘 다 좋은 거 합쳐 줘”라고 하면 AI가 또 마음대로 고릅니다. 무엇을 유지하고 바꿀지 <b>이유와 함께</b> 정합니다.</p>
+
+  <div class="card-box">
+    <div class="actions" style="margin-bottom:14px">
+      <button class="btn btn-soft btn-sm" type="button" id="import-judge">5단계 판단 결과 가져오기</button>
+      <span class="hint" style="margin:0">위반은 수정할 내용으로, 빈칸은 내가 내린 결정으로 넣어 줍니다.</span>
+    </div>
+    <div class="grid-2">
+      <div>
+        <div class="list-block"><span class="lbl">Version A에서 유지할 부분</span><div class="rows" data-list="decide.keepA" data-ph="예) 글쓰기 칸이 맨 위에 있는 배치"></div><button class="btn btn-add" type="button" data-add="decide.keepA">+ 추가</button></div>
+        <div class="list-block"><span class="lbl">Version B에서 유지할 부분</span><div class="rows" data-list="decide.keepB" data-ph="예) 빈 입력일 때 입력칸 아래에 뜨는 안내 문구"></div><button class="btn btn-add" type="button" data-add="decide.keepB">+ 추가</button></div>
+        <div class="list-block"><span class="lbl">변경할 부분과 이유</span><div class="rows" data-list="decide.change" data-ph="예) 최신 글이 맨 위로 — PRD에 보완한 결정"></div><button class="btn btn-add" type="button" data-add="decide.change">+ 추가</button></div>
+        <div class="list-block"><span class="lbl">제거할 부분과 이유</span><div class="rows" data-list="decide.remove" data-ph="예) 좋아요 버튼 — PRD에 없는 기능"></div><button class="btn btn-add" type="button" data-add="decide.remove">+ 추가</button></div>
+      </div>
+      <div>
+        <span class="lbl">최종 버전에서 반드시 지킬 완료 기준</span>
+        <p class="hint" style="margin:0 0 8px">PRD의 완료 기준 중에서 오늘 확인할 것을 고르세요.</p>
+        <div class="pick" id="criteria-pick"></div>
+        <div class="list-block" style="margin-top:12px"><span class="lbl">새로 정한 완료 기준 (빈칸 결정 등)</span><div class="rows" data-list="decide.extraCriteria" data-ph="예) 최신 글이 목록 맨 위에 보인다"></div><button class="btn btn-add" type="button" data-add="decide.extraCriteria">+ 기준 추가</button></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="prompt-box">
+    <div class="prompt-head"><h4>최종본 요청문 · 자동으로 채워집니다</h4><span class="spacer"></span><button class="btn btn-sm btn-copy" type="button" data-copy="prompt-final">요청문 복사</button></div>
+    <pre id="prompt-final"></pre>
+    <p class="note">새 대화라면 <b>PRD.md · version-a.html · version-b.html</b>을 꼭 함께 첨부하세요. 파일이 없으면 AI는 A와 B를 모릅니다.</p>
+  </div>
+
+  <div class="grid-2">
+    <div class="card-box">
+      <h3>최종본 저장</h3>
+      <p class="sub">받은 결과를 <b>index.html</b>로 저장하고 열리는지 확인합니다.</p>
+      <div class="slot" data-slot="f"></div>
+    </div>
+    <div class="card-box">
+      <h3>이 단계의 기록</h3>
+      <p class="sub">빈칸에서 내린 결정은 PRD에도 채워 둡니다.</p>
+      <div class="actions">
+        <button class="btn btn-ghost btn-sm" type="button" data-copy-md="decision">최종결정.md 복사</button>
+        <button class="btn btn-primary btn-sm" type="button" data-dl="decision">최종결정.md 저장</button>
+        <button class="btn btn-soft btn-sm" type="button" data-dl="prd">보완한 PRD 저장</button>
+      </div>
+    </div>
+  </div>
+  <div class="nav"><button class="btn btn-ghost" type="button" data-prev="6">← 이전</button><button class="btn btn-primary" type="button" data-next="6">다음: 완료 확인 →</button></div>
+</section>
+
+<!-- ================= STEP 7 · VERIFY ================= -->
+<section class="step" data-step="7">
+  <p class="eyebrow">STEP 7 · VERIFY <span class="slide-ref">슬라이드 17 · 실습 ④</span></p>
+  <h2 class="title">완료 기준으로 직접 확인하세요</h2>
+  <p class="lead">기준마다 <b>조건 · 예상 · 실제 · 판정 · 근거</b>를 채웁니다. 실패는 숨기지 않고 HANDOFF.md의 다음 작업으로 남깁니다.</p>
+
+  <div class="viewer" id="viewer-final">
+    <div class="viewer-bar">
+      <span class="lbl">최종본 index.html</span>
+      <div class="seg" data-seg="view.mode"><button type="button" data-v="pc">PC</button><button type="button" data-v="mobile">휴대폰</button></div>
+    </div>
+    <div class="panes single" id="panes-final"></div>
+  </div>
+
+  <div class="counts" id="verify-counts"></div>
+  <div class="vrows" id="verify-rows"></div>
+  <div class="nav"><button class="btn btn-ghost" type="button" data-prev="7">← 이전</button><button class="btn btn-primary" type="button" data-next="7">다음: HANDOFF →</button></div>
+</section>
+
+<!-- ================= STEP 8 · HANDOFF ================= -->
+<section class="step" data-step="8">
+  <div class="final-hero">
+    <h2>오늘의 기록이 완성되었습니다.</h2>
+    <p>HANDOFF.md는 다음 시간의 나와, 다음 대화의 AI에게 넘겨주는 인수인계 메모입니다.</p>
+  </div>
+  <div class="stats">
+    <div class="stat"><div class="n" id="stat-must">0</div><div class="l">MUST 기능</div></div>
+    <div class="stat"><div class="n" id="stat-violation">0</div><div class="l">찾은 위반</div></div>
+    <div class="stat"><div class="n" id="stat-blank">0</div><div class="l">채운 빈칸</div></div>
+    <div class="stat"><div class="n" id="stat-verify">0 / 0</div><div class="l">통과 / 실패</div></div>
+  </div>
+
+  <div class="card-box">
+    <h3>다음 작업 더하기</h3>
+    <p class="sub">실패한 기준은 자동으로 들어갑니다. 그 밖에 다음 시간에 할 일을 적으세요.</p>
+    <div class="rows" data-list="handoff.next" data-ph="예) 휴대폰에서 목록 글자가 잘리는 문제 확인"></div>
+    <button class="btn btn-add" type="button" data-add="handoff.next">+ 다음 작업 추가</button>
+  </div>
+
+  <div class="card-box">
+    <div class="actions" style="margin-bottom:10px"><h3 style="margin:0">HANDOFF.md 미리 보기</h3><span class="spacer"></span><button class="btn btn-ghost btn-sm" type="button" data-copy="md-handoff">복사</button></div>
+    <div class="md-preview"><pre id="md-handoff"></pre></div>
+    <div class="downloads">
+      <button class="btn btn-primary" type="button" data-dl="handoff">HANDOFF.md<small>오늘의 인수인계</small></button>
+      <button class="btn btn-ghost" type="button" data-dl="record">비교기록.md<small>A와 B 비교</small></button>
+      <button class="btn btn-ghost" type="button" data-dl="decision">최종결정.md<small>유지·변경·제거</small></button>
+      <button class="btn btn-ghost" type="button" data-dl="prd">PRD_보완.md<small>빈칸 결정 반영</small></button>
+    </div>
+  </div>
+  <div class="nav"><button class="btn btn-ghost" type="button" data-prev="8">← 이전</button><span class="spacer"></span><button class="btn btn-danger" type="button" id="btn-reset">처음부터 다시</button></div>
+</section>
+
+</main>
+
+<input type="file" id="html-file" accept=".html,.htm,text/html" hidden>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+/* ===== mvp-core.js ===== */
+/* MVP 비교·검증 도우미 — 상태, 저장, PRD 읽기, 문서/요청문 만들기 */
+(function () {
+'use strict';
+
+var STORAGE_KEY = 'kdmhs-mvp-v1';
+var FILES_KEY = 'kdmhs-mvp-files-v1';
+var LAST_STEP = 8;
+var STEP_LABELS = ['PRD', 'A·B 만들기', '나란히 보기', '비교 기록', '위반·빈칸', '최종 선택', '완료 확인', 'HANDOFF'];
+
+var GENERATE_PROMPT = [
+  '첨부한 PRD.md를 기준으로 MVP 웹페이지를 구현해주세요.',
+  '',
+  '- PRD의 MUST 기능만 구현해주세요.',
+  '- LATER와 NON-GOAL 기능은 구현하지 마세요.',
+  '- HTML, CSS, JavaScript를 한 개의 HTML 파일에 작성해주세요.',
+  '- 브라우저에서 바로 실행할 수 있어야 합니다.',
+  '- 외부 API, 로그인, 서버 기능은 사용하지 마세요.',
+  '- PRD의 사용자 흐름과 Acceptance Criteria를 반영해주세요.',
+  '- PRD에 없는 기능을 임의로 추가하지 마세요.',
+  '',
+  '완성된 전체 코드와 구현한 기능을 알려주세요.'
+].join('\n');
+
+var BUILD_CHECKS = {
+  a: [
+    ['newChat', '<b>새 대화</b>를 열었다'],
+    ['prd', 'PRD를 첨부하거나 붙여 넣었다'],
+    ['prompt', '요청문을 <b>그대로</b> 넣었다'],
+    ['saved', '<b>version-a.html</b>로 저장했다'],
+    ['opened', '브라우저에서 열리고 버튼이 반응하는지 봤다'],
+    ['retry', '실행이 안 돼서 1회 요청했다', 'retry']
+  ],
+  b: [
+    ['newChat', 'A와 다른 <b>새 대화</b>를 열었다'],
+    ['prd', 'A와 <b>같은 PRD</b>를 넣었다'],
+    ['prompt', '요청문을 <b>한 글자도 바꾸지 않았다</b>'],
+    ['secret', 'A의 화면·코드·수정 내용을 <b>보여 주지 않았다</b>'],
+    ['saved', '<b>version-b.html</b>로 저장했다'],
+    ['retry', '실행이 안 돼서 1회 요청했다', 'retry']
+  ]
+};
+
+var QUALITY = [
+  ['start', '시작', '첫 화면만 보고 무엇을 하는 앱인지, 무엇을 누를지 알 수 있다'],
+  ['react', '반응', '누르고 입력하고 완료했을 때 화면이 분명하게 바뀐다'],
+  ['flow', '흐름', '시작부터 결과까지 핵심 사용 한 바퀴가 이어진다'],
+  ['stable', '안정성', '빈 값 · 같은 입력 반복 · 아주 긴 글에도 멈추지 않는다'],
+  ['anywhere', '어디서나', 'PC와 휴대폰 화면에서 핵심 기능을 쓸 수 있다']
+];
+
+var TASKS = {
+  A: 'A와 B를 직접 실행해서 <b>MUST 기능과 사용 흐름</b>이 완료 기준대로 되는지 확인합니다. 아래 “MUST 기능이 실제로 동작하나요?” 표부터 채우세요.',
+  B: '글이 하나도 없을 때, 제목이 아주 길 때, <b>휴대폰 화면</b>에서 깨지는 부분을 찾습니다. 화면 크기를 “휴대폰”으로 바꾸고, 본 것을 “서로 다른 구현 · 화면”에 적으세요.',
+  C: '<b>빈 입력, 버튼 여러 번 누르기, 다 쓰고 다시 쓰기</b>를 직접 시험하고 예상과 실제를 비교합니다. “완성도 · 안정성” 줄을 꼭 채우세요.',
+  D: '코드 구조를 비교하거나, 새 대화에서 <b>세 번째 결과(C)</b>를 만들어 비교합니다. 창 위쪽에서 C를 고를 수 있습니다. 모호한 기준을 찾아 PRD 보완 문장을 준비하세요.'
+};
+
+var QUICK_EXTRA = ['로그인·회원가입', '다크 모드', '검색', '댓글', '좋아요', '설정 화면', '정렬·필터', '알림'];
+
+var MARKS = {
+  must: [['ok', '동작'], ['part', '일부'], ['no', '없음']],
+  quality: [['ok', '좋음'], ['part', '애매'], ['no', '부족']]
+};
+
+var JUDGE_TYPES = [['violation', '위반'], ['blank', '빈칸'], ['both', '둘 다']];
+
+var JUDGE_SOURCES = [
+  ['missing', 'PRD에 있는데 빠짐'],
+  ['added', 'PRD에 없는데 추가됨'],
+  ['aiChoice', 'AI가 스스로 판단'],
+  ['diffFeature', '다른 구현 · 기능'],
+  ['diffScreen', '다른 구현 · 화면'],
+  ['diffCode', '다른 구현 · 코드']
+];
+
+var EXAMPLE_PRD = [
+  '# 우리 반 익명 게시판',
+  '',
+  '## 1. 프로젝트 개요',
+  '',
+  '우리 반 학생들이 이름을 밝히지 않고 고민이나 건의 사항을 편하게 남길 수 있는 게시판입니다.',
+  '',
+  '- 카테고리: 커뮤니티',
+  '',
+  '## 2. 해결하려는 문제',
+  '',
+  '반 단체 대화방에서는 이름이 보여서 솔직한 의견을 말하기 어렵고, 건의 사항이 대화에 묻혀 금방 사라집니다.',
+  '',
+  '## 3. 주요 사용자',
+  '',
+  '- 사용자: 우리 반 학생',
+  '- 사용 상황: 쉬는 시간이나 방과 후, 말하기 어려운 의견이 있을 때',
+  '- 사용 기기: 휴대폰, 학교 PC',
+  '',
+  '## 4. User Flow',
+  '',
+  '1. 게시판을 열면 글 목록을 본다',
+  '2. 제목과 내용을 입력한다',
+  '3. 등록 버튼을 누른다',
+  '4. 목록에서 방금 쓴 글을 확인한다',
+  '5. 글을 눌러 내용을 읽는다',
+  '',
+  '## 5. MVP',
+  '',
+  '### 이번에 만들 기능',
+  '',
+  '- 익명으로 글쓰기 (제목, 내용)',
+  '- 글 목록 보기',
+  '- 글 내용 읽기',
+  '- 내가 쓴 글 삭제하기',
+  '',
+  '### 나중에 만들 기능',
+  '',
+  '- 댓글',
+  '- 공감(좋아요)',
+  '- 글 검색',
+  '',
+  '### 만들지 않을 기능 (Non-goal)',
+  '',
+  '- 로그인과 회원가입',
+  '- 다른 사람 컴퓨터와 글 공유하기 (서버)',
+  '',
+  '## 6. UI 구성',
+  '',
+  '- 제목',
+  '- 입력창',
+  '- 버튼',
+  '- 목록',
+  '',
+  '- 가장 먼저 보여야 하는 것: 글쓰기 영역과 글 목록',
+  '- 가장 중요한 버튼: 등록',
+  '- 추가 메모: 이름이나 로그인 정보는 어디에도 표시하지 않는다',
+  '',
+  '## 7. Acceptance Criteria',
+  '',
+  '- 제목이나 내용이 비어 있으면 등록되지 않고 안내 문구가 보인다',
+  '- 등록한 글이 목록에 바로 나타난다',
+  '- 글 목록에는 작성자 이름이 표시되지 않는다',
+  '- 새로고침해도 작성한 글이 사라지지 않는다',
+  '- 휴대폰 화면에서도 글쓰기와 목록을 쓸 수 있다',
+  ''
+].join('\n');
+
+/* ============================================================
+   상태
+   ============================================================ */
+function blankState() {
+  return {
+    v: 1, _seq: 1, step: 1, task: '',
+    prd: { raw: '', source: '', fileName: '', name: '', must: [], later: [], flow: [], criteria: [] },
+    build: { a: {}, b: {} },
+    view: { mode: 'mobile', layout: 'side', left: 'a', right: 'b' },
+    must: {}, quality: {},
+    extra: { a: [], b: [] },
+    record: { common: [], diffScreen: [], diffFeature: [], diffCode: [], missing: [], added: [], aiChoice: [] },
+    judge: {},
+    decide: { keepA: [], keepB: [], change: [], remove: [], extraCriteria: [], off: {} },
+    verify: {},
+    handoff: { next: [] }
+  };
+}
+
+function isObj(v) { return !!v && typeof v === 'object' && Object.prototype.toString.call(v) === '[object Object]'; }
+function str(v) { return typeof v === 'string' ? v : ''; }
+
+/* 저장된 값을 기본 모양에 맞춰 안전하게 되살린다. 모르는 값은 버린다. */
+function revive(raw) {
+  var s = blankState();
+  if (!isObj(raw)) return s;
+  var maxId = 0;
+
+  function list(v) {
+    var out = [], used = {};
+    if (Object.prototype.toString.call(v) !== '[object Array]') return out;
+    v.forEach(function (it) {
+      if (!isObj(it) || typeof it.id !== 'string' || !it.id || used[it.id]) return;
+      used[it.id] = true;
+      var m = /^i(\d+)$/.exec(it.id);
+      if (m) maxId = Math.max(maxId, parseInt(m[1], 10));
+      out.push({ id: it.id, text: str(it.text) });
+    });
+    return out;
+  }
+  function strMap(v) {
+    var out = {};
+    if (!isObj(v)) return out;
+    Object.keys(v).forEach(function (k) {
+      if (typeof v[k] === 'string' || typeof v[k] === 'boolean') out[k] = v[k];
+    });
+    return out;
+  }
+  function objMap(v) {
+    var out = {};
+    if (!isObj(v)) return out;
+    Object.keys(v).forEach(function (k) { if (isObj(v[k])) out[k] = strMap(v[k]); });
+    return out;
+  }
+
+  if (isObj(raw.prd)) {
+    ['raw', 'source', 'fileName', 'name'].forEach(function (k) { s.prd[k] = str(raw.prd[k]); });
+    ['must', 'later', 'flow', 'criteria'].forEach(function (k) { s.prd[k] = list(raw.prd[k]); });
+  }
+  if (isObj(raw.build)) { s.build.a = strMap(raw.build.a); s.build.b = strMap(raw.build.b); }
+  if (isObj(raw.view)) {
+    if (raw.view.mode === 'pc' || raw.view.mode === 'mobile') s.view.mode = raw.view.mode;
+    if (raw.view.layout === 'side' || raw.view.layout === 'stack') s.view.layout = raw.view.layout;
+    if (/^[abc]$/.test(raw.view.left)) s.view.left = raw.view.left;
+    if (/^[abc]$/.test(raw.view.right)) s.view.right = raw.view.right;
+  }
+  s.task = /^[ABCD]$/.test(raw.task) ? raw.task : '';
+  s.must = objMap(raw.must);
+  s.quality = objMap(raw.quality);
+  if (isObj(raw.extra)) { s.extra.a = list(raw.extra.a); s.extra.b = list(raw.extra.b); }
+  if (isObj(raw.record)) Object.keys(s.record).forEach(function (k) { s.record[k] = list(raw.record[k]); });
+  s.judge = objMap(raw.judge);
+  if (isObj(raw.decide)) {
+    ['keepA', 'keepB', 'change', 'remove', 'extraCriteria'].forEach(function (k) { s.decide[k] = list(raw.decide[k]); });
+    s.decide.off = strMap(raw.decide.off);
+  }
+  s.verify = objMap(raw.verify);
+  if (isObj(raw.handoff)) s.handoff.next = list(raw.handoff.next);
+
+  var st = parseInt(raw.step, 10);
+  s.step = st >= 1 && st <= LAST_STEP ? st : 1;
+  s._seq = maxId + 1;
+  return s;
+}
+
+function load() {
+  try {
+    var raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? revive(JSON.parse(raw)) : blankState();
+  } catch (e) { return blankState(); }
+}
+function save(state) {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); return true; } catch (e) { return false; }
+}
+
+/* 불러온 HTML 파일은 따로 저장한다 (용량이 클 수 있음). */
+function loadFiles() {
+  try {
+    var raw = JSON.parse(localStorage.getItem(FILES_KEY) || '{}');
+    var out = {};
+    ['a', 'b', 'c', 'f'].forEach(function (k) {
+      var f = raw && raw[k];
+      if (isObj(f) && typeof f.html === 'string') out[k] = { name: str(f.name), html: f.html, at: str(f.at) };
+    });
+    return out;
+  } catch (e) { return {}; }
+}
+function saveFiles(files) {
+  try { localStorage.setItem(FILES_KEY, JSON.stringify(files)); return true; } catch (e) { return false; }
+}
+function clearAll() {
+  try { localStorage.removeItem(STORAGE_KEY); localStorage.removeItem(FILES_KEY); } catch (e) {}
+}
+
+function makeItem(state, text) { return { id: 'i' + (state._seq++), text: text || '' }; }
+function texts(list) {
+  var out = [];
+  (list || []).forEach(function (it) { var t = (it.text || '').trim(); if (t) out.push(t); });
+  return out;
+}
+function filledItems(list) { return (list || []).filter(function (it) { return (it.text || '').trim(); }); }
+
+/* ============================================================
+   PRD 읽기
+   - PRD 기획 도구의 형식(## 5. MVP / ### 이번에 만들 기능 …)과
+     2회기 슬라이드 형식(MUST, NON-GOAL, 완성 기준 …)을 모두 읽는다.
+   ============================================================ */
+function classifyHeading(title) {
+  var t = title.replace(/[*_`]/g, '').replace(/^\s*\d+[.)]\s*/, '').toLowerCase();
+  if (/non[\s-]?goal|제외|만들지\s*않|하지\s*않|범위\s*밖|won'?t/.test(t)) return 'later';
+  if (/later|나중|이후|추후|다음\s*버전|should|could/.test(t)) return 'later';
+  if (/acceptance|완료\s*기준|완성\s*기준|성공\s*기준|확인\s*기준|검수/.test(t)) return 'criteria';
+  if (/must|이번에\s*만들|꼭\s*(필요|만들)|필수|핵심\s*기능|반드시/.test(t)) return 'must';
+  if (/user\s*flow|사용자\s*흐름|사용\s*흐름|사용\s*순서|흐름|플로우?/.test(t)) return 'flow';
+  if (/^mvp\b|mvp\s*(기능|범위)?$/.test(t.trim())) return 'must';
+  return null;
+}
+
+function parsePRD(md) {
+  var out = { name: '', must: [], later: [], flow: [], criteria: [] };
+  var lines = String(md || '').replace(/^\uFEFF/, '').replace(/\r\n?/g, '\n').split('\n');
+  var cur = null, curLevel = 0;
+  lines.forEach(function (line) {
+    var m = /^(#{1,6})\s+(.+?)\s*#*\s*$/.exec(line);
+    if (m) {
+      var level = m[1].length;
+      if (level === 1) {
+        if (!out.name) out.name = m[2].replace(/[*_`]/g, '').trim();
+        cur = null; curLevel = 1;
+        return;
+      }
+      var c = classifyHeading(m[2]);
+      if (c) { cur = c; curLevel = level; }
+      else if (level <= curLevel || !cur) { cur = null; curLevel = level; }
+      return;
+    }
+    if (!cur) return;
+    m = /^\s*(?:[-*+]|\d+[.)])\s+(?:\[[ xX]\]\s+)?(.+)$/.exec(line);
+    if (!m) return;
+    var text = m[1].replace(/\*\*/g, '').replace(/`/g, '').trim();
+    if (!text || /^\(.*(아직|없음).*\)$/.test(text) || text === '-') return;
+    if (out[cur].indexOf(text) === -1) out[cur].push(text);
+  });
+  return out;
+}
+
+/* ============================================================
+   문서 만들기
+   ============================================================ */
+function today() {
+  var d = new Date();
+  function p(n) { return (n < 10 ? '0' : '') + n; }
+  return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate());
+}
+function projectName(state) { return state.prd.name.trim() || '내 작품'; }
+function bullets(list, empty) {
+  var t = texts(list);
+  return t.length ? t.map(function (x) { return '- ' + x; }) : ['- ' + (empty || '')];
+}
+function cell(v) { return String(v || '').replace(/\|/g, '\\|').replace(/\s*\n\s*/g, ' ').trim() || '-'; }
+function markLabel(kind, v) {
+  var found = MARKS[kind].filter(function (m) { return m[0] === v; })[0];
+  return found ? found[1] : '-';
+}
+function tidy(lines) { return lines.join('\n').replace(/\n{3,}/g, '\n\n').replace(/\s+$/, '') + '\n'; }
+
+function recordMD(state) {
+  var r = state.record;
+  var L = ['# Version A와 B 비교', '', '- 작품: ' + projectName(state), '- 작성일: ' + today(), ''];
+  L.push('## 두 결과의 공통점', ''); L = L.concat(bullets(r.common), ['']);
+  L.push('## 서로 다른 구현', '');
+  [['화면', r.diffScreen], ['기능', r.diffFeature], ['코드', r.diffCode]].forEach(function (p) {
+    var t = texts(p[1]);
+    if (!t.length) L.push('- ' + p[0] + ': ');
+    t.forEach(function (x) { L.push('- ' + p[0] + ': ' + x); });
+  });
+  L.push('');
+  L.push('## PRD에 있는데 빠진 내용', ''); L = L.concat(bullets(r.missing), ['']);
+  L.push('## PRD에 없는데 추가된 내용', ''); L = L.concat(bullets(r.added), ['']);
+  L.push('## AI가 스스로 판단한 부분', ''); L = L.concat(bullets(r.aiChoice), ['']);
+
+  var must = filledItems(state.prd.must);
+  var hasMust = must.some(function (it) { var m = state.must[it.id]; return m && (m.a || m.b); });
+  if (hasMust) {
+    L.push('## 참고 · MUST 기능 동작 확인', '', '| MUST 기능 | A | B |', '|---|---|---|');
+    must.forEach(function (it) {
+      var m = state.must[it.id] || {};
+      L.push('| ' + cell(it.text) + ' | ' + markLabel('must', m.a) + ' | ' + markLabel('must', m.b) + ' |');
+    });
+    L.push('');
+  }
+  var hasQ = QUALITY.some(function (q) { var m = state.quality[q[0]]; return m && (m.a || m.b); });
+  if (hasQ) {
+    L.push('## 참고 · 완성도 다섯 가지', '', '| 기준 | A | B |', '|---|---|---|');
+    QUALITY.forEach(function (q) {
+      var m = state.quality[q[0]] || {};
+      L.push('| ' + q[1] + ' | ' + markLabel('quality', m.a) + ' | ' + markLabel('quality', m.b) + ' |');
+    });
+    L.push('');
+  }
+  return tidy(L);
+}
+
+/* 판단 대상: 비교 기록에서 내용이 있는 항목 */
+function judgeItems(state) {
+  var out = [];
+  JUDGE_SOURCES.forEach(function (src) {
+    filledItems(state.record[src[0]]).forEach(function (it) {
+      out.push({ id: it.id, text: it.text.trim(), source: src[1], key: src[0] });
+    });
+  });
+  return out;
+}
+function judgeOf(state, id) { return state.judge[id] || {}; }
+
+function fixPrompt(problem, basis, result, scope, basisOwner) {
+  return [
+    '문제: ' + (problem || '(실제로 일어난 현상을 적어 주세요)'),
+    '근거: ' + (basisOwner || 'PRD의 기준') + '은 “' + (basis || '여기에 PRD 문장을 적어 주세요') + '”입니다.',
+    '원하는 결과: ' + (result || '(고친 뒤 기대하는 동작을 적어 주세요)'),
+    '수정 범위: ' + (scope || '이 문제와 관련된 부분') + '만 수정하고, 다른 기능과 디자인은 변경하지 마세요.'
+  ].join('\n');
+}
+function judgeFixPrompt(state, item) {
+  var j = judgeOf(state, item.id);
+  var basis = (j.basis || '').trim(), result = (j.result || '').trim(), scope = (j.scope || '').trim();
+  if (item.key === 'added' && !basis) {
+    return fixPrompt((j.problem || '').trim() || 'PRD에 없는 기능이 추가되었습니다 — ' + item.text,
+      'PRD에 없는 기능을 임의로 추가하지 마세요.',
+      result || '이 기능을 제거하고, 나머지 기능은 그대로 둔다',
+      scope || '이 기능과 관련된 화면과 코드', '생성 요청문의 기준');
+  }
+  return fixPrompt((j.problem || '').trim() || item.text, basis, result, scope);
+}
+
+function judgeCounts(state) {
+  var c = { violation: 0, blank: 0, both: 0, none: 0, total: 0 };
+  judgeItems(state).forEach(function (it) {
+    var t = judgeOf(state, it.id).type;
+    c.total++;
+    if (t === 'violation' || t === 'blank' || t === 'both') c[t]++; else c.none++;
+  });
+  return c;
+}
+
+/* 빈칸 결정 목록: [{ text, decision, prdLine }] */
+function blankDecisions(state) {
+  var out = [];
+  judgeItems(state).forEach(function (it) {
+    var j = judgeOf(state, it.id);
+    if (j.type !== 'blank' && j.type !== 'both') return;
+    var decision = (j.decision || '').trim(), line = (j.prdLine || '').trim();
+    if (decision || line) out.push({ text: it.text, decision: decision, prdLine: line });
+  });
+  return out;
+}
+function violations(state) {
+  return judgeItems(state).filter(function (it) {
+    var t = judgeOf(state, it.id).type;
+    return t === 'violation' || t === 'both';
+  });
+}
+
+function selectedCriteria(state) {
+  var out = [];
+  filledItems(state.prd.criteria).forEach(function (it) {
+    if (state.decide.off[it.id] !== true) out.push({ id: it.id, text: it.text.trim(), src: 'prd' });
+  });
+  filledItems(state.decide.extraCriteria).forEach(function (it) {
+    out.push({ id: it.id, text: it.text.trim(), src: 'extra' });
+  });
+  return out;
+}
+
+function finalPrompt(state) {
+  var d = state.decide;
+  var L = [
+    'Version A와 Version B를 비교해 최종 구현 방향을 결정했습니다.',
+    '첨부한 PRD.md와 구현 결정 내용을 기준으로 최종 버전을 만들어주세요.',
+    '(첨부: PRD.md, version-a.html, version-b.html)',
+    '',
+    '## 유지할 부분'
+  ];
+  var keep = texts(d.keepA).map(function (x) { return '- Version A: ' + x; })
+    .concat(texts(d.keepB).map(function (x) { return '- Version B: ' + x; }));
+  L = L.concat(keep.length ? keep : ['- [작성한 내용]']);
+  L.push('', '## 변경하거나 제거할 부분');
+  var change = texts(d.change).map(function (x) { return '- 변경: ' + x; })
+    .concat(texts(d.remove).map(function (x) { return '- 제거: ' + x; }));
+  L = L.concat(change.length ? change : ['- [작성한 내용]']);
+  L.push('', '## 완료 기준');
+  var crit = selectedCriteria(state).map(function (c) { return '- ' + c.text; });
+  L = L.concat(crit.length ? crit : ['- [작성한 내용]']);
+  L.push('',
+    '- 새로운 기능을 추가하지 마세요.',
+    '- PRD의 MUST 기능과 사용자 흐름을 유지해주세요.',
+    '- HTML, CSS, JavaScript를 한 개의 HTML 파일에 작성해주세요.',
+    '- 완성된 전체 코드를 제공해주세요.');
+  return L.join('\n');
+}
+
+function decisionMD(state) {
+  var d = state.decide;
+  var L = ['# 최종 구현 결정', '', '- 작품: ' + projectName(state), '- 작성일: ' + today(), ''];
+  L.push('## Version A에서 유지할 부분', ''); L = L.concat(bullets(d.keepA), ['']);
+  L.push('## Version B에서 유지할 부분', ''); L = L.concat(bullets(d.keepB), ['']);
+  L.push('## 변경할 부분과 이유', ''); L = L.concat(bullets(d.change), ['']);
+  L.push('## 제거할 부분과 이유', ''); L = L.concat(bullets(d.remove), ['']);
+  L.push('## 최종 버전에서 반드시 지킬 완료 기준', '');
+  var crit = selectedCriteria(state);
+  L = L.concat(crit.length ? crit.map(function (c) { return '- ' + c.text; }) : ['- '], ['']);
+
+  var items = judgeItems(state).filter(function (it) { return judgeOf(state, it.id).type; });
+  if (items.length) {
+    L.push('## 참고 · 위반과 빈칸 판단', '');
+    items.forEach(function (it) {
+      var j = judgeOf(state, it.id);
+      var label = { violation: '위반', blank: '빈칸', both: '위반 + 빈칸' }[j.type];
+      var extra = [];
+      if ((j.basis || '').trim()) extra.push('근거: ' + j.basis.trim());
+      if ((j.decision || '').trim()) extra.push('결정: ' + j.decision.trim());
+      L.push('- [' + label + '] ' + it.text + (extra.length ? ' — ' + extra.join(' / ') : ''));
+    });
+    L.push('');
+  }
+  return tidy(L);
+}
+
+function patchedPRD(state) {
+  var decisions = blankDecisions(state);
+  var base = state.prd.raw.replace(/^\uFEFF/, '').replace(/\s+$/, '');
+  if (!base) {
+    var L = ['# ' + projectName(state), ''];
+    L.push('## User Flow', ''); texts(state.prd.flow).forEach(function (x, i) { L.push((i + 1) + '. ' + x); }); L.push('');
+    L.push('## MVP', '', '### 이번에 만들 기능', ''); L = L.concat(bullets(state.prd.must), ['']);
+    L.push('### 나중에 만들 기능 · 제외 기능', ''); L = L.concat(bullets(state.prd.later), ['']);
+    L.push('## Acceptance Criteria', ''); L = L.concat(bullets(state.prd.criteria), ['']);
+    base = L.join('\n').replace(/\s+$/, '');
+  }
+  var out = [base, '', '## 3회기에 보완한 결정', '', '> ' + today() + ' · Version A와 B를 비교해 PRD에 없던 부분을 직접 정했습니다.', ''];
+  if (decisions.length) {
+    decisions.forEach(function (b) {
+      out.push('- ' + (b.prdLine || b.decision) + (b.prdLine && b.decision && b.decision !== b.prdLine ? ' (결정: ' + b.decision + ')' : ''));
+    });
+  } else out.push('- (아직 보완한 결정이 없습니다.)');
+  var extra = texts(state.decide.extraCriteria);
+  if (extra.length) {
+    out.push('', '### 새로 정한 완료 기준', '');
+    extra.forEach(function (x) { out.push('- ' + x); });
+  }
+  return tidy(out);
+}
+
+function verifyOf(state, id) { return state.verify[id] || {}; }
+function verifyCounts(state) {
+  var c = { pass: 0, fail: 0, none: 0, total: 0 };
+  selectedCriteria(state).forEach(function (cr) {
+    var v = verifyOf(state, cr.id).verdict;
+    c.total++;
+    if (v === 'pass') c.pass++; else if (v === 'fail') c.fail++; else c.none++;
+  });
+  return c;
+}
+function verifyFixPrompt(state, cr) {
+  var v = verifyOf(state, cr.id);
+  var cond = (v.cond || '').trim(), actual = (v.actual || '').trim();
+  var problem = cond && actual ? cond + ' → ' + actual : (actual || cond);
+  return fixPrompt(problem, cr.text, (v.expect || '').trim() || cr.text, (v.scope || '').trim() || '이 완료 기준과 관련된 부분', 'PRD의 완료 기준');
+}
+
+function handoffMD(state) {
+  var name = projectName(state);
+  var jc = judgeCounts(state), vc = verifyCounts(state);
+  var decisions = blankDecisions(state);
+  var L = ['# HANDOFF — ' + name, '작성일: ' + today(), ''];
+  L.push('## 오늘 한 일', '',
+    '- 같은 PRD와 같은 요청으로 Version A, Version B를 만들어 비교했다.',
+    '- 차이를 PRD 위반과 PRD의 빈칸으로 나누었다. (위반 ' + (jc.violation + jc.both) + '개 · 빈칸 ' + (jc.blank + jc.both) + '개)',
+    '- 최종본 index.html을 만들고 완료 기준으로 확인했다.', '');
+  L.push('## 파일', '',
+    '- ' + (decisions.length ? 'PRD_보완.md (빈칸 결정을 반영한 PRD)' : 'PRD.md'),
+    '- version-a.html · version-b.html',
+    '- index.html (최종본)', '');
+
+  L.push('## 완료 확인 결과', '', '- 통과 ' + vc.pass + '개 · 실패 ' + vc.fail + '개' + (vc.none ? ' · 미확인 ' + vc.none + '개' : ''), '');
+  var crit = selectedCriteria(state);
+  if (crit.length) {
+    L.push('| 기준 | 조건 | 예상 | 실제 | 판정 | 근거 |', '|---|---|---|---|---|---|');
+    crit.forEach(function (cr) {
+      var v = verifyOf(state, cr.id);
+      var verdict = v.verdict === 'pass' ? '통과' : v.verdict === 'fail' ? '실패' : '미확인';
+      L.push('| ' + [cell(cr.text), cell(v.cond), cell(v.expect), cell(v.actual), verdict, cell(v.evidence)].join(' | ') + ' |');
+    });
+    L.push('');
+  }
+
+  L.push('## 다음 작업', '');
+  var next = [];
+  crit.forEach(function (cr) {
+    var v = verifyOf(state, cr.id);
+    if (v.verdict === 'fail') next.push('- [ ] [실패한 기준] ' + cr.text + ((v.actual || '').trim() ? ' — 실제: ' + v.actual.trim() : ''));
+  });
+  crit.forEach(function (cr) {
+    if (!verifyOf(state, cr.id).verdict) next.push('- [ ] [아직 확인 안 함] ' + cr.text);
+  });
+  texts(state.handoff.next).forEach(function (x) { next.push('- [ ] ' + x); });
+  L = L.concat(next.length ? next : ['- [ ] '], ['']);
+
+  L.push('## PRD에 보완한 결정 (빈칸)', '');
+  L = L.concat(decisions.length ? decisions.map(function (b) { return '- ' + (b.prdLine || b.decision); }) : ['- '], ['']);
+
+  var vio = violations(state);
+  if (vio.length) {
+    L.push('## 찾은 위반', '');
+    vio.forEach(function (it) { L.push('- ' + it.text); });
+    L.push('');
+  }
+  L.push('## AI가 스스로 판단했던 부분', ''); L = L.concat(bullets(state.record.aiChoice), ['']);
+  L.push('## 다음 대화에서 AI에게 줄 첫 요청', '', '```text',
+    '첨부한 ' + (decisions.length ? 'PRD_보완.md' : 'PRD.md') + ', index.html, HANDOFF.md를 먼저 읽어주세요.',
+    "'다음 작업'의 첫 번째 항목부터 하나씩 수정하고, 다른 기능은 추가하지 마세요.",
+    '```', '');
+  return tidy(L);
+}
+
+/* ============================================================
+   복사 / 파일 저장
+   ============================================================ */
+function legacyCopy(text) {
+  try {
+    var ta = document.createElement('textarea');
+    ta.value = text; ta.setAttribute('readonly', '');
+    ta.style.position = 'fixed'; ta.style.top = '-2000px'; ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select(); ta.setSelectionRange(0, text.length);
+    var ok = document.execCommand('copy');
+    document.body.removeChild(ta);
+    return !!ok;
+  } catch (e) { return false; }
+}
+function copyText(text) {
+  return new Promise(function (resolve) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(function () { resolve(true); }, function () { resolve(legacyCopy(text)); });
+    } else resolve(legacyCopy(text));
+  });
+}
+
+function safeName(name, fallback) {
+  var n = String(name || '').replace(/[\\/:*?"<>|]/g, '').replace(/\s+/g, '_').replace(/^[.\s_]+/, '');
+  if (!n) n = fallback;
+  return n.length > 60 ? n.slice(0, 60) : n;
+}
+
+/* 파일 저장: 저장 위치를 고를 수 있는 브라우저는 저장 창을, 아니면 일반 다운로드를 쓴다.
+   반환값: 'saved' | 'downloaded' | 'cancelled' */
+function saveFile(filename, text, kind) {
+  var isHtml = kind === 'html';
+  var mime = isHtml ? 'text/html' : 'text/markdown';
+  var blob = function () { return new Blob([text], { type: mime + ';charset=utf-8' }); };
+  function download() {
+    var url = URL.createObjectURL(blob());
+    var a = document.createElement('a');
+    a.href = url; a.download = filename; a.style.display = 'none';
+    document.body.appendChild(a); a.click();
+    setTimeout(function () { document.body.removeChild(a); URL.revokeObjectURL(url); }, 1200);
+    return 'downloaded';
+  }
+  if (typeof window.showSaveFilePicker !== 'function') return Promise.resolve(download());
+  var accept = {}; accept[mime] = [isHtml ? '.html' : '.md'];
+  return window.showSaveFilePicker({
+    suggestedName: filename,
+    types: [{ description: isHtml ? 'HTML 파일' : 'Markdown 파일', accept: accept }]
+  }).then(function (handle) {
+    return handle.createWritable().then(function (w) {
+      return w.write(blob()).then(function () { return w.close(); });
+    });
+  }).then(function () { return 'saved'; })['catch'](function (err) {
+    if (err && err.name === 'AbortError') return 'cancelled';
+    return download();
+  });
+}
+
+window.MVP = {
+  LAST_STEP: LAST_STEP, STEP_LABELS: STEP_LABELS, GENERATE_PROMPT: GENERATE_PROMPT,
+  BUILD_CHECKS: BUILD_CHECKS, QUALITY: QUALITY, TASKS: TASKS, QUICK_EXTRA: QUICK_EXTRA,
+  MARKS: MARKS, JUDGE_TYPES: JUDGE_TYPES, EXAMPLE_PRD: EXAMPLE_PRD,
+  blankState: blankState, revive: revive, load: load, save: save,
+  loadFiles: loadFiles, saveFiles: saveFiles, clearAll: clearAll,
+  makeItem: makeItem, texts: texts, filledItems: filledItems,
+  parsePRD: parsePRD, projectName: projectName, today: today,
+  recordMD: recordMD, decisionMD: decisionMD, patchedPRD: patchedPRD, handoffMD: handoffMD,
+  judgeItems: judgeItems, judgeOf: judgeOf, judgeCounts: judgeCounts, judgeFixPrompt: judgeFixPrompt,
+  blankDecisions: blankDecisions, violations: violations,
+  selectedCriteria: selectedCriteria, finalPrompt: finalPrompt,
+  verifyOf: verifyOf, verifyCounts: verifyCounts, verifyFixPrompt: verifyFixPrompt,
+  copyText: copyText, safeName: safeName, saveFile: saveFile
+};
+})();
+</script>
+<script>
+/* ===== mvp-frames.js ===== */
+/* MVP 비교·검증 도우미 — 학생이 만든 HTML을 안전하게 나란히 실행하는 미리보기
+   - iframe sandbox(같은 출처 권한 없음)로 실행해서 도우미 페이지의 데이터에 접근하지 못하게 한다.
+   - 그 대신 localStorage를 흉내 내는 저장소를 넣어 주고, 결과(A/B/C/최종)별로 따로 보관한다.
+     그래서 A와 B가 같은 키를 써도 데이터가 섞이지 않고, "다시 실행"해도 글이 남는다. */
+(function () {
+'use strict';
+
+var STORE_KEY = 'kdmhs-mvp-frame-v1';
+var SLOTS = ['a', 'b', 'c', 'f'];
+var SLOT_LABEL = { a: 'A', b: 'B', c: 'C', f: '최종' };
+var DEFAULT_NAME = { a: 'version-a.html', b: 'version-b.html', c: 'version-c.html', f: 'index.html' };
+var SIZE = { pc: { w: 1100, h: 760, maxH: 620 }, mobile: { w: 390, h: 680, maxH: 680 } };
+
+var store = loadStore();
+var saveTimer = null;
+var panes = [];
+var mode = 'mobile';
+var getFile = function () { return null; };
+
+function loadStore() {
+  var out = {};
+  try {
+    var raw = JSON.parse(localStorage.getItem(STORE_KEY) || '{}');
+    SLOTS.forEach(function (s) {
+      out[s] = {};
+      if (raw && raw[s] && typeof raw[s] === 'object') {
+        Object.keys(raw[s]).forEach(function (k) { if (typeof raw[s][k] === 'string') out[s][k] = raw[s][k]; });
+      }
+    });
+  } catch (e) { SLOTS.forEach(function (s) { out[s] = {}; }); }
+  return out;
+}
+function saveStoreSoon() {
+  if (saveTimer) clearTimeout(saveTimer);
+  saveTimer = setTimeout(function () {
+    try { localStorage.setItem(STORE_KEY, JSON.stringify(store)); } catch (e) {}
+  }, 300);
+}
+
+/* iframe 안에서 가장 먼저 실행되는 코드. 문자열로 바꿔 넣으므로 바깥 변수를 쓰면 안 된다. */
+function frameShim(SLOT, DATA) {
+  var hasOwn = Object.prototype.hasOwnProperty;
+  function post(msg) { msg.__mvp = SLOT; try { parent.postMessage(msg, '*'); } catch (e) {} }
+  function makeStorage(d, persist) {
+    var api = {
+      getItem: function (k) { k = String(k); return hasOwn.call(d, k) ? d[k] : null; },
+      setItem: function (k, v) { k = String(k); v = String(v); d[k] = v; if (persist) post({ t: 'set', k: k, v: v }); },
+      removeItem: function (k) { k = String(k); delete d[k]; if (persist) post({ t: 'del', k: k }); },
+      clear: function () { Object.keys(d).forEach(function (k) { delete d[k]; }); if (persist) post({ t: 'clear' }); },
+      key: function (i) { var ks = Object.keys(d); return i >= 0 && i < ks.length ? ks[i] : null; }
+    };
+    Object.defineProperty(api, 'length', { get: function () { return Object.keys(d).length; }, enumerable: false, configurable: true });
+    if (typeof Proxy !== 'function') return api;
+    return new Proxy(api, {
+      get: function (t, p) { if (typeof p === 'symbol' || p in t) return t[p]; return hasOwn.call(d, p) ? d[p] : undefined; },
+      set: function (t, p, v) { if (typeof p === 'symbol' || p in t) return true; t.setItem(p, v); return true; },
+      has: function (t, p) { return p in t || hasOwn.call(d, p); },
+      deleteProperty: function (t, p) { if (hasOwn.call(d, p)) t.removeItem(p); return true; },
+      ownKeys: function () { return Object.keys(d); },
+      getOwnPropertyDescriptor: function (t, p) {
+        if (typeof p === 'string' && hasOwn.call(d, p)) return { value: d[p], writable: true, enumerable: true, configurable: true };
+        return undefined;
+      }
+    });
+  }
+  try { Object.defineProperty(window, 'localStorage', { value: makeStorage(DATA || {}, true), configurable: true, writable: true }); } catch (e) {}
+  try { Object.defineProperty(window, 'sessionStorage', { value: makeStorage({}, false), configurable: true, writable: true }); } catch (e) {}
+  var jar = {};
+  try {
+    Object.defineProperty(document, 'cookie', {
+      get: function () { return Object.keys(jar).map(function (k) { return k + '=' + jar[k]; }).join('; '); },
+      set: function (v) { var first = String(v).split(';')[0]; var i = first.indexOf('='); if (i > 0) jar[first.slice(0, i).trim()] = first.slice(i + 1); },
+      configurable: true
+    });
+  } catch (e) {}
+  window.addEventListener('error', function (e) {
+    if (e && e.message) post({ t: 'err', msg: String(e.message), line: e.lineno || 0 });
+  });
+  window.addEventListener('unhandledrejection', function (e) {
+    var r = e && e.reason;
+    post({ t: 'err', msg: String((r && r.message) || r || '처리되지 않은 오류'), line: 0 });
+  });
+}
+
+function inject(html, slot) {
+  var data = JSON.stringify(store[slot] || {})
+    .replace(/</g, '\\u003c')
+    .split(String.fromCharCode(0x2028)).join('\\u2028')
+    .split(String.fromCharCode(0x2029)).join('\\u2029');
+  var script = '<script>(' + frameShim.toString() + ')(' + JSON.stringify(slot) + ',' + data + ');</' + 'script>';
+  var at = 0, m;
+  if ((m = /<head(\s[^>]*)?>/i.exec(html))) at = m.index + m[0].length;
+  else if ((m = /<html(\s[^>]*)?>/i.exec(html))) at = m.index + m[0].length;
+  else if ((m = /<!doctype[^>]*>/i.exec(html))) at = m.index + m[0].length;
+  var before = html.slice(0, at);
+  return {
+    html: before + script + html.slice(at),
+    line: (before.match(/\n/g) || []).length + 1,
+    offset: (script.match(/\n/g) || []).length
+  };
+}
+
+/* ---------- iframe 에서 오는 메시지 ---------- */
+window.addEventListener('message', function (e) {
+  var d = e.data;
+  if (!d || typeof d !== 'object' || typeof d.__mvp !== 'string') return;
+  var pane = null;
+  for (var i = 0; i < panes.length; i++) {
+    if (panes[i].iframe && panes[i].iframe.contentWindow === e.source) { pane = panes[i]; break; }
+  }
+  if (!pane) return;
+  var s = store[pane.slot];
+  if (d.t === 'set' && typeof d.k === 'string') { s[d.k] = String(d.v); saveStoreSoon(); }
+  else if (d.t === 'del' && typeof d.k === 'string') { delete s[d.k]; saveStoreSoon(); }
+  else if (d.t === 'clear') { store[pane.slot] = {}; saveStoreSoon(); }
+  else if (d.t === 'err') {
+    var line = parseInt(d.line, 10) || 0;
+    if (line > pane.injectLine) line -= pane.injectOffset;
+    pane.errors.push(String(d.msg).slice(0, 200) + (line ? ' (코드 ' + line + '번째 줄 근처)' : ''));
+    renderErrors(pane);
+  }
+});
+
+function renderErrors(pane) {
+  var el = pane.errEl;
+  if (!pane.errors.length) { el.hidden = true; el.textContent = ''; return; }
+  var shown = pane.errors.slice(-3);
+  el.hidden = false;
+  el.textContent = '⚠ 오류 ' + pane.errors.length + '개가 났습니다. 버튼이 반응하지 않는 이유일 수 있어요.\n' + shown.join('\n');
+}
+
+function el(tag, cls, text) {
+  var n = document.createElement(tag);
+  if (cls) n.className = cls;
+  if (text != null) n.textContent = text;
+  return n;
+}
+
+function runPane(pane) {
+  var file = getFile(pane.slot);
+  pane.errors = [];
+  renderErrors(pane);
+  pane.body.innerHTML = '';
+  pane.iframe = null;
+  pane.nameEl.textContent = file ? (file.name || DEFAULT_NAME[pane.slot]) : DEFAULT_NAME[pane.slot] + ' · 아직 없음';
+  pane.head.querySelectorAll('[data-act]').forEach(function (b) { b.disabled = !file; });
+
+  if (!file) {
+    var empty = el('div', 'pane-empty');
+    empty.appendChild(el('p', null, '아직 ' + DEFAULT_NAME[pane.slot] + ' 결과를 불러오지 않았습니다.'));
+    var btn = el('button', 'btn btn-primary btn-sm', DEFAULT_NAME[pane.slot] + ' 불러오기');
+    btn.type = 'button';
+    btn.setAttribute('data-open-file', pane.slot);
+    empty.appendChild(btn);
+    pane.body.appendChild(empty);
+    pane.box = null;
+    return;
+  }
+  var built = inject(file.html, pane.slot);
+  pane.injectLine = built.line;
+  pane.injectOffset = built.offset;
+  var box = el('div', 'frame-box');
+  var iframe = document.createElement('iframe');
+  iframe.setAttribute('sandbox', 'allow-scripts allow-forms allow-modals allow-popups allow-downloads');
+  iframe.setAttribute('title', 'Version ' + SLOT_LABEL[pane.slot] + ' 미리보기');
+  iframe.srcdoc = built.html;
+  box.appendChild(iframe);
+  pane.body.appendChild(box);
+  pane.box = box;
+  pane.iframe = iframe;
+  sizePane(pane);
+}
+
+function sizePane(pane) {
+  if (!pane.box || !pane.iframe) return;
+  var avail = pane.root.clientWidth - 20;
+  if (avail <= 0) return;
+  var sz = SIZE[mode];
+  var scale = Math.min(1, avail / sz.w, sz.maxH / sz.h);
+  pane.iframe.style.width = sz.w + 'px';
+  pane.iframe.style.height = sz.h + 'px';
+  pane.iframe.style.transform = 'scale(' + scale + ')';
+  pane.box.style.width = Math.floor(sz.w * scale) + 'px';
+  pane.box.style.height = Math.floor(sz.h * scale) + 'px';
+}
+
+function openInNewTab(slot) {
+  var file = getFile(slot);
+  if (!file) return;
+  var url = URL.createObjectURL(new Blob([file.html], { type: 'text/html;charset=utf-8' }));
+  var a = document.createElement('a');
+  a.href = url; a.target = '_blank'; a.rel = 'noopener';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(function () { URL.revokeObjectURL(url); }, 60000);
+}
+
+/* host 안의 미리보기 창들을 새로 만든다.
+   configs: [{ slot, selectable, onPick(slot) }] */
+function mount(host, configs) {
+  panes = panes.filter(function (p) { return p.host !== host; });
+  host.innerHTML = '';
+  configs.forEach(function (cfg) {
+    var root = el('div', 'pane');
+    var head = el('div', 'pane-head');
+    if (cfg.selectable) {
+      var seg = el('div', 'seg');
+      seg.setAttribute('role', 'group');
+      seg.setAttribute('aria-label', '보여 줄 결과 고르기');
+      ['a', 'b', 'c'].forEach(function (s) {
+        var b = el('button', null, SLOT_LABEL[s]);
+        b.type = 'button';
+        b.setAttribute('aria-pressed', s === cfg.slot ? 'true' : 'false');
+        b.addEventListener('click', function () { if (s !== cfg.slot && cfg.onPick) cfg.onPick(s); });
+        seg.appendChild(b);
+      });
+      head.appendChild(seg);
+    } else {
+      head.appendChild(el('span', 'slot-badge ' + cfg.slot, SLOT_LABEL[cfg.slot]));
+    }
+    var nameEl = el('span', 'pane-name');
+    head.appendChild(nameEl);
+    [['rerun', '↻ 다시 실행'], ['newtab', '새 탭 ↗'], ['wipe', '데이터 초기화']].forEach(function (a) {
+      var b = el('button', 'mini', a[1]);
+      b.type = 'button';
+      b.setAttribute('data-act', a[0]);
+      head.appendChild(b);
+    });
+    root.appendChild(head);
+    var body = el('div');
+    root.appendChild(body);
+    var errEl = el('div', 'pane-errors');
+    errEl.hidden = true;
+    root.appendChild(errEl);
+    host.appendChild(root);
+
+    var pane = { host: host, root: root, head: head, body: body, nameEl: nameEl, errEl: errEl, slot: cfg.slot, errors: [], iframe: null, box: null, injectLine: 0, injectOffset: 0 };
+    head.addEventListener('click', function (e) {
+      var t = e.target.closest ? e.target.closest('[data-act]') : null;
+      if (!t) return;
+      var act = t.getAttribute('data-act');
+      if (act === 'rerun') runPane(pane);
+      else if (act === 'newtab') openInNewTab(pane.slot);
+      else if (act === 'wipe') { reset(pane.slot); rerunSlot(pane.slot); }
+    });
+    panes.push(pane);
+    runPane(pane);
+  });
+}
+
+function rerunSlot(slot) { panes.forEach(function (p) { if (p.slot === slot) runPane(p); }); }
+function reset(slot) { store[slot] = {}; saveStoreSoon(); }
+function sizeAll() { panes.forEach(sizePane); }
+function setMode(m) { mode = m === 'mobile' ? 'mobile' : 'pc'; sizeAll(); }
+function resetAll() { SLOTS.forEach(function (s) { store[s] = {}; }); try { localStorage.removeItem(STORE_KEY); } catch (e) {} }
+
+var resizeTimer = null;
+window.addEventListener('resize', function () {
+  if (resizeTimer) clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(sizeAll, 120);
+});
+
+window.MVPFrames = {
+  init: function (fileGetter) { getFile = fileGetter; },
+  mount: mount, rerunSlot: rerunSlot, reset: reset, resetAll: resetAll,
+  sizeAll: sizeAll, setMode: setMode, DEFAULT_NAME: DEFAULT_NAME, SLOT_LABEL: SLOT_LABEL
+};
+})();
+</script>
+<script>
+/* ===== mvp-app.js ===== */
+/* MVP 비교·검증 도우미 — 화면 그리기와 이벤트 */
+(function () {
+'use strict';
+
+var M = window.MVP, F = window.MVPFrames;
+var state = M.load();
+var files = M.loadFiles();
+var mounted = { compare: '', final: '' };
+var saveTimer = null, liveTimer = null, toastTimer = null, pendingSlot = null;
+
+/* ============================================================
+   작은 도구들
+   ============================================================ */
+function $(id) { return document.getElementById(id); }
+function esc(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+  });
+}
+function getPath(path) {
+  var o = state, parts = path.split('.');
+  for (var i = 0; i < parts.length; i++) { if (o == null) return undefined; o = o[parts[i]]; }
+  return o;
+}
+function setPath(path, value) {
+  var o = state, parts = path.split('.');
+  for (var i = 0; i < parts.length - 1; i++) {
+    if (!o[parts[i]] || typeof o[parts[i]] !== 'object') o[parts[i]] = {};
+    o = o[parts[i]];
+  }
+  o[parts[parts.length - 1]] = value;
+}
+function persist() {
+  if (saveTimer) clearTimeout(saveTimer);
+  saveTimer = setTimeout(function () {
+    if (!M.save(state)) toast('브라우저에 저장하지 못했습니다. 기록을 파일로 저장해 두세요.', 'warn');
+  }, 200);
+}
+function liveSoon() {
+  if (liveTimer) clearTimeout(liveTimer);
+  liveTimer = setTimeout(refreshLive, 120);
+}
+function toast(msg, kind) {
+  var t = $('toast');
+  t.textContent = msg;
+  t.className = 'toast show' + (kind ? ' ' + kind : '');
+  if (toastTimer) clearTimeout(toastTimer);
+  toastTimer = setTimeout(function () { t.className = 'toast' + (kind ? ' ' + kind : ''); }, 2800);
+}
+function closest(el, sel) {
+  while (el && el.nodeType === 1) { if (el.matches(sel)) return el; el = el.parentNode; }
+  return null;
+}
+function section(n) { return document.querySelector('.step[data-step="' + n + '"]'); }
+function addUnique(path, text) {
+  var list = getPath(path);
+  if (list.some(function (it) { return it.text.trim() === text; })) return false;
+  var empty = list.filter(function (it) { return !it.text.trim(); })[0];
+  if (empty) empty.text = text; else list.push(M.makeItem(state, text));
+  return true;
+}
+
+/* ============================================================
+   목록 입력 · 바인딩 · 세그먼트
+   ============================================================ */
+function renderList(host) {
+  var path = host.getAttribute('data-list');
+  var list = getPath(path);
+  if (!Array.isArray(list)) return;
+  if (!list.length) list.push(M.makeItem(state));
+  var ph = host.getAttribute('data-ph') || '';
+  host.innerHTML = list.map(function (it, i) {
+    var key = path + '|' + it.id;
+    return '<div class="row-item"><span class="row-num">' + (i + 1) + '</span>' +
+      '<input type="text" data-item="' + key + '" value="' + esc(it.text) + '" placeholder="' + esc(ph) + '" aria-label="' + (i + 1) + '번째 항목">' +
+      '<button type="button" class="icon-btn" data-remove="' + key + '" aria-label="' + (i + 1) + '번째 항목 지우기">×</button></div>';
+  }).join('');
+}
+function renderListsIn(root) { root.querySelectorAll('[data-list]').forEach(renderList); }
+function findItem(key) {
+  var bar = key.lastIndexOf('|');
+  var list = getPath(key.slice(0, bar)), id = key.slice(bar + 1);
+  if (!Array.isArray(list)) return null;
+  for (var i = 0; i < list.length; i++) if (list[i].id === id) return { list: list, index: i, item: list[i], path: key.slice(0, bar) };
+  return null;
+}
+function hostOf(path) { return document.querySelector('[data-list="' + path + '"]'); }
+function focusRow(path, index) {
+  var host = hostOf(path);
+  var inputs = host ? host.querySelectorAll('input') : [];
+  var target = inputs[index == null ? inputs.length - 1 : index];
+  if (target) target.focus();
+}
+
+function checkClass(label, input) {
+  var retry = /\.retry$/.test(input.getAttribute('data-bind') || '');
+  label.classList.toggle('on', input.checked && !retry);
+  label.classList.toggle('retry', input.checked && retry);
+}
+function bindFieldsIn(root) {
+  root.querySelectorAll('[data-bind]').forEach(function (el) {
+    var v = getPath(el.getAttribute('data-bind'));
+    if (el.type === 'checkbox') {
+      el.checked = v === true;
+      var label = closest(el, '.check');
+      if (label) checkClass(label, el);
+    } else el.value = typeof v === 'string' ? v : '';
+  });
+}
+function syncSegs() {
+  document.querySelectorAll('[data-seg]').forEach(function (seg) {
+    var v = getPath(seg.getAttribute('data-seg'));
+    seg.querySelectorAll('button[data-v]').forEach(function (b) {
+      b.setAttribute('aria-pressed', b.getAttribute('data-v') === v ? 'true' : 'false');
+    });
+  });
+}
+function pressIn(seg, value) {
+  seg.querySelectorAll('button[data-v]').forEach(function (b) {
+    b.setAttribute('aria-pressed', b.getAttribute('data-v') === value ? 'true' : 'false');
+  });
+}
+
+/* ============================================================
+   단계 이동
+   ============================================================ */
+function buildChips() {
+  $('chips').innerHTML = M.STEP_LABELS.map(function (label, i) {
+    return '<button type="button" class="chip" data-go="' + (i + 1) + '">' + (i + 1) + ' ' + esc(label) + '</button>';
+  }).join('');
+}
+function updateChrome() {
+  $('progress-fill').style.width = ((state.step - 1) / (M.LAST_STEP - 1) * 100) + '%';
+  document.querySelectorAll('#chips .chip').forEach(function (c) {
+    var n = parseInt(c.getAttribute('data-go'), 10);
+    c.classList.toggle('now', n === state.step);
+    c.classList.toggle('done', n < state.step);
+    if (n === state.step) {
+      c.setAttribute('aria-current', 'step');
+      var host = $('chips');
+      host.scrollLeft = Math.max(0, c.offsetLeft - host.clientWidth / 2 + c.clientWidth / 2);
+    } else c.removeAttribute('aria-current');
+  });
+}
+function goTo(n, noScroll) {
+  n = Math.max(1, Math.min(M.LAST_STEP, n));
+  state.step = n;
+  persist();
+  document.querySelectorAll('.step').forEach(function (s) {
+    s.classList.toggle('active', parseInt(s.getAttribute('data-step'), 10) === n);
+  });
+  enterStep(n);
+  updateChrome();
+  if (!noScroll) { try { window.scrollTo({ top: 0, behavior: 'smooth' }); } catch (e) { window.scrollTo(0, 0); } }
+}
+function enterStep(n) {
+  var root = section(n);
+  renderListsIn(root);
+  bindFieldsIn(root);
+  syncSegs();
+  if (n === 1) renderPrdStatus();
+  if (n === 2) { root.querySelectorAll('[data-checks]').forEach(renderChecks); root.querySelectorAll('[data-slot]').forEach(renderSlot); }
+  if (n === 3) { renderTask(); renderMarkTables(); renderQuick(); mountCompare(); }
+  if (n === 5) renderJudge();
+  if (n === 6) { renderCriteriaPick(); root.querySelectorAll('[data-slot]').forEach(renderSlot); }
+  if (n === 7) { mountFinal(); renderVerify(); }
+  refreshLive();
+  F.sizeAll();
+}
+
+/* ============================================================
+   STEP 1 · PRD
+   ============================================================ */
+function applyPRD(text, source, fileName) {
+  text = String(text || '').replace(/^\uFEFF/, '');
+  if (!text.trim()) { toast('PRD 내용이 비어 있습니다.', 'warn'); return; }
+  var p = M.parsePRD(text);
+  var cur = state.prd;
+  var had = M.texts(cur.must).length + M.texts(cur.criteria).length + M.texts(cur.flow).length + M.texts(cur.later).length;
+  if (had && cur.raw !== text) {
+    var ok = true;
+    try { ok = window.confirm('이미 적어 둔 PRD 기준이 있습니다.\n새 PRD 내용으로 바꿀까요?'); } catch (e) {}
+    if (!ok) return;
+  }
+  function items(list) { return list.map(function (t) { return M.makeItem(state, t); }); }
+  state.prd = {
+    raw: text, source: source, fileName: fileName || '',
+    name: p.name || cur.name,
+    must: items(p.must), later: items(p.later), flow: items(p.flow), criteria: items(p.criteria)
+  };
+  persist();
+  enterStep(1);
+  $('prd-paste').hidden = true;
+  if (p.must.length && p.criteria.length) toast('PRD를 불러왔습니다 · MUST ' + p.must.length + '개 · 완료 기준 ' + p.criteria.length + '개', 'ok');
+  else toast('PRD를 불러왔지만 일부 항목을 찾지 못했습니다. 아래에 직접 적어 주세요.', 'warn');
+}
+function renderPrdStatus() {
+  var s = $('prd-status'), p = state.prd;
+  var must = M.texts(p.must).length, crit = M.texts(p.criteria).length;
+  $('prd-example-actions').hidden = p.source !== 'example';
+  if (p.raw) {
+    var from = p.source === 'example' ? '예시 PRD' : p.source === 'paste' ? '붙여 넣은 PRD' : (p.fileName || 'PRD 파일');
+    if (must && crit) {
+      s.className = 'status ok';
+      s.textContent = '✓ ' + from + '를 불러왔습니다 · ' + M.projectName(state) + ' · MUST ' + must + '개 · 완료 기준 ' + crit + '개';
+    } else {
+      s.className = 'status warn';
+      s.textContent = from + '를 불러왔지만 ' + (!must ? 'MUST 기능' : '') + (!must && !crit ? '과 ' : '') + (!crit ? '완료 기준' : '') + '을 찾지 못했습니다. 아래에 직접 적어 주세요.';
+    }
+  } else if (must || crit) {
+    s.className = 'status ok';
+    s.textContent = '직접 적은 기준을 사용합니다 · MUST ' + must + '개 · 완료 기준 ' + crit + '개';
+  } else {
+    s.className = 'status';
+    s.textContent = '아직 PRD를 불러오지 않았습니다.';
+  }
+}
+function readTextFile(file, done) {
+  var r = new FileReader();
+  r.onload = function () { done(String(r.result || '')); };
+  r.onerror = function () { toast('파일을 읽지 못했습니다.', 'warn'); };
+  r.readAsText(file, 'utf-8');
+}
+
+/* ============================================================
+   STEP 2 · 체크리스트와 파일 슬롯
+   ============================================================ */
+function renderChecks(host) {
+  var path = host.getAttribute('data-checks');
+  var defs = M.BUILD_CHECKS[path.split('.')[1]];
+  host.innerHTML = defs.map(function (d) {
+    return '<li><label class="check"><input type="checkbox" data-bind="' + path + '.' + d[0] + '"><span>' + d[1] + '</span></label></li>';
+  }).join('');
+  bindFieldsIn(host);
+}
+function cleanHtml(text) {
+  var t = String(text || '').replace(/^\uFEFF/, '').trim();
+  if (/^```/.test(t)) t = t.replace(/^```[^\n]*\n?/, '');
+  if (/```\s*$/.test(t)) t = t.replace(/\n?```\s*$/, '');
+  return t.trim() + '\n';
+}
+function fileWarnings(file) {
+  var w = [], h = file.html;
+  if (/\.txt$/i.test(file.name)) w.push('파일 이름이 .txt로 끝납니다. 브라우저에서 열리도록 .html로 저장하세요.');
+  if (!/<[a-z!]/i.test(h)) w.push('HTML 코드가 아닌 것 같습니다. Claude가 준 전체 코드를 넣었는지 확인하세요.');
+  else if (/<html[\s>]/i.test(h) && !/<\/html>/i.test(h)) w.push('코드가 끝까지 복사되지 않았을 수 있습니다. 마지막 줄이 </html>인지 확인하세요.');
+  if (/\bfetch\s*\(|XMLHttpRequest/.test(h)) w.push('인터넷에서 데이터를 가져오는 코드(fetch)가 있습니다. PRD 범위와 맞는지 확인하세요.');
+  return w;
+}
+function renderSlot(host) {
+  var slot = host.getAttribute('data-slot');
+  var file = files[slot];
+  var name = F.DEFAULT_NAME[slot];
+  var info = file
+    ? '<b>' + esc(file.name) + '</b> · ' + Math.max(1, Math.round(file.html.length / 1024)) + 'KB' + (file.at ? ' · ' + esc(file.at) + ' 불러옴' : '')
+    : '아직 ' + name + ' 결과를 불러오지 않았습니다.';
+  var warn = file ? fileWarnings(file) : [];
+  var pasteOpen = host.getAttribute('data-paste-open') === '1';
+  var prevArea = host.querySelector('textarea');
+  var draft = prevArea ? prevArea.value : '';
+  host.innerHTML =
+    '<div class="slot-top"><span class="slot-badge ' + slot + '">' + F.SLOT_LABEL[slot] + '</span>' +
+    '<span class="slot-info">' + info + '</span>' +
+    '<button type="button" class="btn btn-ghost btn-sm" data-open-file="' + slot + '">파일 불러오기</button>' +
+    '<button type="button" class="btn btn-ghost btn-sm" data-paste-toggle="' + slot + '" aria-expanded="' + pasteOpen + '">코드 붙여넣기</button></div>' +
+    (warn.length ? '<div class="status warn">' + warn.map(esc).join('<br>') + '</div>' : '') +
+    '<div class="slot-paste"' + (pasteOpen ? '' : ' hidden') + '>' +
+    '<textarea class="code" id="paste-' + slot + '" placeholder="Claude가 준 전체 코드를 붙여 넣으세요.&#10;보통 <!DOCTYPE html>로 시작해서 </html>로 끝납니다."></textarea>' +
+    '<div class="actions" style="margin-top:8px">' +
+    '<button type="button" class="btn btn-primary btn-sm" data-paste-apply="' + slot + '">이 코드 사용하기</button>' +
+    '<button type="button" class="btn btn-soft btn-sm" data-save-html="' + slot + '">' + name + ' 파일로 저장</button></div></div>';
+  if (draft) host.querySelector('textarea').value = draft;
+}
+function renderAllSlots() { document.querySelectorAll('[data-slot]').forEach(renderSlot); }
+function setFile(slot, name, html) {
+  var t = new Date();
+  files[slot] = { name: name, html: html, at: (t.getHours() < 10 ? '0' : '') + t.getHours() + ':' + (t.getMinutes() < 10 ? '0' : '') + t.getMinutes() };
+  if (!M.saveFiles(files)) toast('파일이 커서 브라우저에 보관하지 못했습니다. 창을 닫으면 다시 불러와야 합니다.', 'warn');
+  else toast(F.DEFAULT_NAME[slot] + ' 결과를 불러왔습니다.', 'ok');
+  F.reset(slot);
+  renderAllSlots();
+  F.rerunSlot(slot);
+}
+
+/* ============================================================
+   STEP 3 · 나란히 보기와 점검표
+   ============================================================ */
+function renderTask() {
+  var hint = $('task-hint');
+  hint.innerHTML = '<p>' + (M.TASKS[state.task] || '과제를 고르면 무엇을 확인할지 알려 드립니다.') + '</p>';
+}
+function mountCompare() {
+  var host = $('panes-compare');
+  host.className = 'panes' + (state.view.layout === 'stack' ? ' stack' : '');
+  var key = state.view.left + '|' + state.view.right;
+  if (mounted.compare === key && host.children.length) return;
+  mounted.compare = key;
+  F.mount(host, [
+    { slot: state.view.left, selectable: true, onPick: function (s) { state.view.left = s; persist(); mountCompare(); } },
+    { slot: state.view.right, selectable: true, onPick: function (s) { state.view.right = s; persist(); mountCompare(); } }
+  ]);
+}
+function mountFinal() {
+  var host = $('panes-final');
+  if (mounted.final && host.children.length) return;
+  mounted.final = 'f';
+  F.mount(host, [{ slot: 'f' }]);
+}
+function markRow(kind, id, title, desc) {
+  var m = state[kind][id] || {};
+  return '<div class="mrow"><div class="what">' + esc(title) + (desc ? '<small>' + esc(desc) + '</small>' : '') + '</div>' +
+    ['a', 'b'].map(function (v) {
+      return '<div class="mcell"><span class="who">' + v.toUpperCase() + '</span><div class="seg" role="group" aria-label="' + esc(title) + ' · Version ' + v.toUpperCase() + '">' +
+        M.MARKS[kind].map(function (mk) {
+          return '<button type="button" data-mark="' + kind + '|' + id + '|' + v + '" data-v="' + mk[0] + '" aria-pressed="' + (m[v] === mk[0]) + '">' + mk[1] + '</button>';
+        }).join('') + '</div></div>';
+    }).join('') + '</div>';
+}
+function renderMarkTables() {
+  var must = M.filledItems(state.prd.must);
+  $('must-table').innerHTML = must.length
+    ? '<div class="mtable">' + must.map(function (it) { return markRow('must', it.id, it.text.trim()); }).join('') + '</div>'
+    : '<div class="empty-line">1단계에서 MUST 기능을 먼저 적어 주세요. <button type="button" class="btn btn-ghost btn-sm" data-go="1">1단계로</button></div>';
+  $('quality-table').innerHTML = '<div class="mtable">' + M.QUALITY.map(function (q) { return markRow('quality', q[0], q[1], q[2]); }).join('') + '</div>';
+}
+function renderQuick() {
+  document.querySelectorAll('[data-quick]').forEach(function (host) {
+    var path = host.getAttribute('data-quick');
+    host.innerHTML = M.QUICK_EXTRA.map(function (t) {
+      return '<button type="button" data-quick-add="' + path + '|' + esc(t) + '">+ ' + esc(t) + '</button>';
+    }).join('');
+  });
+}
+
+/* ============================================================
+   STEP 4 · 점검 결과 가져오기
+   ============================================================ */
+function importCheck() {
+  var n = 0;
+  function label(kind, v) { var f = M.MARKS[kind].filter(function (m) { return m[0] === v; })[0]; return f ? f[1] : ''; }
+  M.filledItems(state.prd.must).forEach(function (it) {
+    var m = state.must[it.id] || {}, parts = [];
+    ['a', 'b'].forEach(function (v) { if (m[v] === 'no' || m[v] === 'part') parts.push(v.toUpperCase() + ' ' + label('must', m[v])); });
+    if (parts.length && addUnique('record.missing', it.text.trim() + ' — ' + parts.join(', '))) n++;
+  });
+  M.texts(state.extra.a).forEach(function (t) { if (addUnique('record.added', 'A: ' + t)) n++; });
+  M.texts(state.extra.b).forEach(function (t) { if (addUnique('record.added', 'B: ' + t)) n++; });
+  M.QUALITY.forEach(function (q) {
+    var m = state.quality[q[0]] || {};
+    if (m.a && m.b && m.a !== m.b) {
+      var path = q[0] === 'start' || q[0] === 'anywhere' ? 'record.diffScreen' : 'record.diffFeature';
+      if (addUnique(path, q[1] + ': A ' + label('quality', m.a) + ', B ' + label('quality', m.b))) n++;
+    }
+  });
+  persist();
+  enterStep(4);
+  toast(n ? '점검 결과 ' + n + '개를 가져왔습니다.' : '가져올 새 점검 결과가 없습니다. 3단계 표를 먼저 채워 보세요.', n ? 'ok' : 'warn');
+}
+
+/* ============================================================
+   STEP 5 · 위반 / 빈칸
+   ============================================================ */
+function jField(id, field, label, value, ph, full) {
+  var fid = 'j-' + id + '-' + field;
+  return '<div' + (full ? ' class="full"' : '') + '><label for="' + fid + '">' + label + '</label>' +
+    '<input type="text" id="' + fid + '" data-j="' + id + '|' + field + '" value="' + esc(value || '') + '" placeholder="' + esc(ph) + '"' +
+    (field === 'basis' ? ' list="prd-lines"' : '') + '></div>';
+}
+function judgeCard(it) {
+  var j = M.judgeOf(state, it.id), t = j.type || '';
+  var h = '<div class="jcard ' + t + '" id="jc-' + it.id + '"><div class="jtop"><div class="jtext"><span class="jsrc">' + esc(it.source) + '</span>' + esc(it.text) + '</div>' +
+    '<div class="seg" role="group" aria-label="위반인지 빈칸인지 고르기">' + M.JUDGE_TYPES.map(function (tp) {
+      return '<button type="button" data-jtype="' + it.id + '" data-v="' + tp[0] + '" aria-pressed="' + (t === tp[0]) + '">' + tp[1] + '</button>';
+    }).join('') + '</div></div>';
+  if (!t) h += '<p class="jq">PRD에서 이 내용을 찾을 수 있나요? 찾을 수 있으면 <b>위반</b>, 없으면 <b>빈칸</b>입니다.</p>';
+  if (t === 'violation' || t === 'both') {
+    h += '<div class="jfields">' +
+      jField(it.id, 'problem', '문제 · 실제로 일어난 현상', j.problem, it.text) +
+      jField(it.id, 'basis', '근거 · PRD의 원래 기준', j.basis, 'PRD 문장을 적거나 목록에서 고르세요') +
+      jField(it.id, 'result', '원하는 결과 · 고친 뒤 기대하는 동작', j.result, '예) 빈 입력은 저장하지 않고 안내 문구를 보여 준다') +
+      jField(it.id, 'scope', '수정 범위 · 바꿀 부분', j.scope, '예) 입력 검증과 안내 처리') +
+      '<div class="full prompt-box"><div class="prompt-head"><h4>수정 요청문</h4><span class="spacer"></span><button type="button" class="btn btn-sm btn-copy" data-copy="jp-' + it.id + '">복사</button></div>' +
+      '<pre id="jp-' + it.id + '">' + esc(M.judgeFixPrompt(state, it)) + '</pre></div></div>';
+  }
+  if (t === 'blank' || t === 'both') {
+    h += '<div class="jfields">' +
+      jField(it.id, 'decision', '내 결정 · 어떻게 하기로 했나요?', j.decision, '예) 최신 글을 맨 위에 보여 준다') +
+      jField(it.id, 'prdLine', 'PRD에 추가할 문장', j.prdLine, '예) 글 목록은 최신 글이 맨 위에 오도록 정렬한다') + '</div>';
+  }
+  return h + '</div>';
+}
+function renderJudge() {
+  var items = M.judgeItems(state);
+  var lines = [].concat(M.texts(state.prd.must), M.texts(state.prd.flow), M.texts(state.prd.criteria), M.texts(state.prd.later));
+  var dl = '<datalist id="prd-lines">' + lines.map(function (l) { return '<option value="' + esc(l) + '"></option>'; }).join('') + '</datalist>';
+  $('judge-cards').innerHTML = dl + (items.length
+    ? items.map(judgeCard).join('')
+    : '<div class="empty-line">4단계 비교 기록에 적은 차이가 여기에 카드로 나타납니다. <button type="button" class="btn btn-ghost btn-sm" data-go="4">4단계로</button></div>');
+  renderJudgeCounts();
+}
+function renderJudgeCounts() {
+  var c = M.judgeCounts(state);
+  $('judge-counts').innerHTML = c.total
+    ? '<span class="count v">위반 ' + c.violation + '</span><span class="count b">빈칸 ' + c.blank + '</span><span class="count">둘 다 ' + c.both + '</span><span class="count">아직 판단 안 함 ' + c.none + '</span>'
+    : '';
+}
+function findJudgeItem(id) { return M.judgeItems(state).filter(function (it) { return it.id === id; })[0]; }
+
+/* ============================================================
+   STEP 6 · 최종 선택
+   ============================================================ */
+function renderCriteriaPick() {
+  var items = M.filledItems(state.prd.criteria);
+  $('criteria-pick').innerHTML = items.length
+    ? items.map(function (it) {
+        var on = state.decide.off[it.id] !== true;
+        return '<label class="check' + (on ? ' on' : '') + '"><input type="checkbox" data-crit="' + it.id + '"' + (on ? ' checked' : '') + '><span>' + esc(it.text.trim()) + '</span></label>';
+      }).join('')
+    : '<div class="empty-line">PRD의 완료 기준이 없습니다. 1단계에서 적거나 아래에 새로 적어 주세요.</div>';
+}
+function importJudge() {
+  var n = 0;
+  M.violations(state).forEach(function (it) {
+    var j = M.judgeOf(state, it.id);
+    var why = (j.basis || '').trim() ? 'PRD 기준 “' + j.basis.trim() + '”' : 'PRD 기준 위반';
+    if (it.key === 'added') {
+      if (addUnique('decide.remove', it.text + ' — 이유: PRD에 없는 기능')) n++;
+    } else {
+      var what = (j.result || '').trim() ? it.text + ' → ' + j.result.trim() : it.text;
+      if (addUnique('decide.change', what + ' — 이유: ' + why)) n++;
+    }
+  });
+  M.blankDecisions(state).forEach(function (b) {
+    if (addUnique('decide.change', (b.decision || b.prdLine) + ' — 이유: PRD에 없던 부분이라 직접 결정')) n++;
+  });
+  persist();
+  enterStep(6);
+  toast(n ? '판단 결과 ' + n + '개를 가져왔습니다.' : '가져올 판단 결과가 없습니다. 5단계에서 위반·빈칸을 먼저 골라 보세요.', n ? 'ok' : 'warn');
+}
+
+/* ============================================================
+   STEP 7 · 완료 확인
+   ============================================================ */
+function vField(id, field, label, value, ph, full) {
+  var fid = 'v-' + id + '-' + field;
+  return '<div' + (full ? ' class="full"' : '') + '><label for="' + fid + '">' + label + '</label>' +
+    '<input type="text" id="' + fid + '" data-vf="' + id + '|' + field + '" value="' + esc(value || '') + '" placeholder="' + esc(ph) + '"></div>';
+}
+function verifyRow(cr, i) {
+  var v = M.verifyOf(state, cr.id), vd = v.verdict || '';
+  var h = '<div class="vrow ' + vd + '" id="vr-' + cr.id + '"><div class="vtop"><div class="vtitle">' + (i + 1) + '. ' + esc(cr.text) +
+    (cr.src === 'extra' ? ' <span class="jsrc">새 기준</span>' : '') + '</div>' +
+    '<div class="seg" role="group" aria-label="판정">' + [['pass', '통과'], ['fail', '실패']].map(function (p) {
+      return '<button type="button" data-verdict="' + cr.id + '" data-v="' + p[0] + '" aria-pressed="' + (vd === p[0]) + '">' + p[1] + '</button>';
+    }).join('') + '</div></div>' +
+    '<div class="vgrid">' +
+    vField(cr.id, 'cond', '조건 · 무엇을 입력하거나 누르나요?', v.cond, '예) 제목을 비우고 등록을 누른다') +
+    vField(cr.id, 'expect', '예상 · PRD대로라면?', v.expect, '예) 저장되지 않고 안내가 뜬다') +
+    vField(cr.id, 'actual', '실제 · index.html에서는?', v.actual, '예) 안내 없이 빈 글이 올라갔다') +
+    vField(cr.id, 'evidence', '근거 · 화면과 동작에서 확인한 것', v.evidence, '예) 목록에 제목 없는 글이 생겼다', true) + '</div>';
+  if (vd === 'fail') {
+    h += '<div class="vgrid" style="margin-top:10px">' +
+      vField(cr.id, 'scope', '수정 범위 · 수정 요청문에 들어갑니다', v.scope, '예) 입력 검증과 안내 처리', true) +
+      '<div class="full prompt-box"><div class="prompt-head"><h4>실패한 기준 수정 요청문 · 다음 시간에 써도 됩니다</h4><span class="spacer"></span><button type="button" class="btn btn-sm btn-copy" data-copy="vp-' + cr.id + '">복사</button></div>' +
+      '<pre id="vp-' + cr.id + '">' + esc(M.verifyFixPrompt(state, cr)) + '</pre></div></div>';
+  }
+  return h + '</div>';
+}
+function renderVerify() {
+  var crit = M.selectedCriteria(state);
+  $('verify-rows').innerHTML = crit.length
+    ? crit.map(verifyRow).join('')
+    : '<div class="empty-line">확인할 완료 기준이 없습니다. 6단계에서 고르거나 새로 적어 주세요. <button type="button" class="btn btn-ghost btn-sm" data-go="6">6단계로</button></div>';
+  renderVerifyCounts();
+}
+function renderVerifyCounts() {
+  var c = M.verifyCounts(state);
+  $('verify-counts').innerHTML = c.total
+    ? '<span class="count p">통과 ' + c.pass + '</span><span class="count v">실패 ' + c.fail + '</span><span class="count">미확인 ' + c.none + '</span>'
+    : '';
+}
+function findCriterion(id) { return M.selectedCriteria(state).filter(function (c) { return c.id === id; })[0]; }
+
+/* ============================================================
+   실시간 미리 보기
+   ============================================================ */
+function refreshLive() {
+  $('md-record').textContent = M.recordMD(state);
+  $('prompt-final').textContent = M.finalPrompt(state);
+  $('md-handoff').textContent = M.handoffMD(state);
+  var jc = M.judgeCounts(state), vc = M.verifyCounts(state);
+  $('stat-must').textContent = String(M.texts(state.prd.must).length);
+  $('stat-violation').textContent = String(jc.violation + jc.both);
+  $('stat-blank').textContent = String(M.blankDecisions(state).length);
+  $('stat-verify').textContent = vc.pass + ' / ' + vc.fail;
+  if (state.step === 1) renderPrdStatus();
+  if (state.step === 5) renderJudgeCounts();
+  if (state.step === 7) renderVerifyCounts();
+}
+
+/* ============================================================
+   저장 · 복사
+   ============================================================ */
+var DOCS = {
+  record: ['비교기록.md', function () { return M.recordMD(state); }],
+  decision: ['최종결정.md', function () { return M.decisionMD(state); }],
+  prd: ['PRD_보완.md', function () { return M.patchedPRD(state); }],
+  handoff: ['HANDOFF.md', function () { return M.handoffMD(state); }],
+  examplePrd: ['PRD.md', function () { return M.EXAMPLE_PRD; }]
+};
+function downloadDoc(kind) {
+  var d = DOCS[kind];
+  if (!d) return;
+  M.saveFile(d[0], d[1](), 'md').then(function (r) {
+    if (r !== 'cancelled') toast(d[0] + (r === 'saved' ? ' 파일을 저장했습니다.' : ' 파일을 내려받았습니다.'), 'ok');
+  });
+}
+function copy(text, what) {
+  M.copyText(text).then(function (ok) {
+    toast(ok ? what + '을(를) 복사했습니다.' : '복사하지 못했습니다. 직접 선택해서 복사해 주세요.', ok ? 'ok' : 'warn');
+  });
+}
+
+/* ============================================================
+   이벤트
+   ============================================================ */
+function onClick(e) {
+  var t = closest(e.target, 'button, [data-go]');
+  if (!t) return;
+  var a;
+
+  if ((a = t.getAttribute('data-go'))) { goTo(parseInt(a, 10)); return; }
+  if ((a = t.getAttribute('data-next'))) { goTo(parseInt(a, 10) + 1); return; }
+  if ((a = t.getAttribute('data-prev'))) { goTo(parseInt(a, 10) - 1); return; }
+
+  if ((a = t.getAttribute('data-add'))) {
+    getPath(a).push(M.makeItem(state));
+    persist(); renderList(hostOf(a)); focusRow(a);
+    return;
+  }
+  if ((a = t.getAttribute('data-remove'))) {
+    var f = findItem(a);
+    if (!f) return;
+    f.list.splice(f.index, 1);
+    persist(); renderList(hostOf(f.path)); liveSoon();
+    return;
+  }
+  if ((a = t.getAttribute('data-copy'))) {
+    var src = $(a);
+    if (src) copy(src.textContent, t.textContent.indexOf('요청문') > -1 ? '요청문' : '내용');
+    return;
+  }
+  if ((a = t.getAttribute('data-copy-md'))) { if (DOCS[a]) copy(DOCS[a][1](), DOCS[a][0]); return; }
+  if ((a = t.getAttribute('data-dl'))) { downloadDoc(a); return; }
+
+  if ((a = t.getAttribute('data-open-file'))) { pendingSlot = a; $('html-file').value = ''; $('html-file').click(); return; }
+  if ((a = t.getAttribute('data-paste-toggle'))) {
+    document.querySelectorAll('[data-slot="' + a + '"]').forEach(function (host) {
+      host.setAttribute('data-paste-open', host.getAttribute('data-paste-open') === '1' ? '0' : '1');
+      renderSlot(host);
+    });
+    var ta = $('paste-' + a);
+    if (ta && !ta.closest('[hidden]')) ta.focus();
+    return;
+  }
+  if ((a = t.getAttribute('data-paste-apply'))) {
+    var code = ($('paste-' + a) || {}).value || '';
+    if (!code.trim()) { toast('붙여 넣은 코드가 없습니다.', 'warn'); return; }
+    document.querySelectorAll('[data-slot="' + a + '"]').forEach(function (host) {
+      host.setAttribute('data-paste-open', '0');
+      var area = host.querySelector('textarea');
+      if (area) area.value = '';
+    });
+    setFile(a, F.DEFAULT_NAME[a] + ' (붙여넣기)', cleanHtml(code));
+    return;
+  }
+  if ((a = t.getAttribute('data-save-html'))) {
+    var pasted = ($('paste-' + a) || {}).value || '';
+    var html = pasted.trim() ? cleanHtml(pasted) : (files[a] && files[a].html);
+    if (!html) { toast('저장할 코드가 없습니다. 먼저 코드를 붙여 넣으세요.', 'warn'); return; }
+    M.saveFile(F.DEFAULT_NAME[a], html, 'html').then(function (r) {
+      if (r !== 'cancelled') toast(F.DEFAULT_NAME[a] + (r === 'saved' ? ' 파일을 저장했습니다.' : ' 파일을 내려받았습니다. 다운로드 폴더를 확인하세요.'), 'ok');
+    });
+    if (pasted.trim()) {
+      $('paste-' + a).value = '';
+      setFile(a, F.DEFAULT_NAME[a], html);
+    }
+    return;
+  }
+
+  var seg = closest(t, '[data-seg]');
+  if (seg && (a = t.getAttribute('data-v'))) {
+    var path = seg.getAttribute('data-seg');
+    setPath(path, a);
+    persist(); syncSegs();
+    if (path === 'view.mode') {
+      state.view.layout = a === 'pc' ? 'stack' : 'side';
+      syncSegs();
+      $('panes-compare').className = 'panes' + (state.view.layout === 'stack' ? ' stack' : '');
+      F.setMode(a);
+    }
+    if (path === 'view.layout') { $('panes-compare').className = 'panes' + (a === 'stack' ? ' stack' : ''); F.sizeAll(); }
+    if (path === 'task') renderTask();
+    return;
+  }
+  if ((a = t.getAttribute('data-mark'))) {
+    var p = a.split('|'), v = t.getAttribute('data-v');
+    var rec = state[p[0]][p[1]] || (state[p[0]][p[1]] = {});
+    rec[p[2]] = rec[p[2]] === v ? '' : v;
+    pressIn(t.parentNode, rec[p[2]]);
+    persist(); liveSoon();
+    return;
+  }
+  if ((a = t.getAttribute('data-quick-add'))) {
+    var bar = a.indexOf('|');
+    var qp = a.slice(0, bar), qt = a.slice(bar + 1);
+    if (addUnique(qp, qt)) { persist(); renderList(hostOf(qp)); liveSoon(); }
+    else toast('이미 적혀 있습니다.', 'warn');
+    return;
+  }
+  if ((a = t.getAttribute('data-jtype'))) {
+    var j = state.judge[a] || (state.judge[a] = {});
+    var nv = t.getAttribute('data-v');
+    j.type = j.type === nv ? '' : nv;
+    var item = findJudgeItem(a), card = $('jc-' + a);
+    if (item && card) card.outerHTML = judgeCard(item);
+    persist(); liveSoon();
+    return;
+  }
+  if ((a = t.getAttribute('data-verdict'))) {
+    var vr = state.verify[a] || (state.verify[a] = {});
+    var vv = t.getAttribute('data-v');
+    vr.verdict = vr.verdict === vv ? '' : vv;
+    var cr = findCriterion(a), row = $('vr-' + a);
+    if (cr && row) {
+      var idx = M.selectedCriteria(state).map(function (c) { return c.id; }).indexOf(a);
+      row.outerHTML = verifyRow(cr, idx);
+    }
+    persist(); liveSoon();
+    return;
+  }
+
+  switch (t.id) {
+    case 'btn-start': startWork(); break;
+    case 'btn-reset': resetAll(); break;
+    case 'prd-open': $('prd-file').value = ''; $('prd-file').click(); break;
+    case 'prd-paste-toggle': $('prd-paste').hidden = !$('prd-paste').hidden; if (!$('prd-paste').hidden) $('prd-paste-text').focus(); break;
+    case 'prd-paste-apply': applyPRD($('prd-paste-text').value, 'paste', ''); break;
+    case 'prd-example': applyPRD(M.EXAMPLE_PRD, 'example', 'PRD.md'); break;
+    case 'import-check': importCheck(); break;
+    case 'import-judge': importJudge(); break;
+  }
+}
+
+function onInput(e) {
+  var t = e.target, a;
+  if ((a = t.getAttribute('data-item'))) {
+    var f = findItem(a);
+    if (f) { f.item.text = t.value; persist(); liveSoon(); }
+    return;
+  }
+  if ((a = t.getAttribute('data-bind')) && t.type !== 'checkbox') {
+    setPath(a, t.value); persist(); liveSoon();
+    return;
+  }
+  if ((a = t.getAttribute('data-j'))) {
+    var p = a.split('|');
+    (state.judge[p[0]] || (state.judge[p[0]] = {}))[p[1]] = t.value;
+    var item = findJudgeItem(p[0]), pre = $('jp-' + p[0]);
+    if (item && pre) pre.textContent = M.judgeFixPrompt(state, item);
+    persist(); liveSoon();
+    return;
+  }
+  if ((a = t.getAttribute('data-vf'))) {
+    var q = a.split('|');
+    (state.verify[q[0]] || (state.verify[q[0]] = {}))[q[1]] = t.value;
+    var cr = findCriterion(q[0]), vp = $('vp-' + q[0]);
+    if (cr && vp) vp.textContent = M.verifyFixPrompt(state, cr);
+    persist(); liveSoon();
+  }
+}
+
+function onChange(e) {
+  var t = e.target, a;
+  if (t.type === 'checkbox' && (a = t.getAttribute('data-bind'))) {
+    setPath(a, t.checked);
+    var label = closest(t, '.check');
+    if (label) checkClass(label, t);
+    persist(); liveSoon();
+    return;
+  }
+  if ((a = t.getAttribute('data-crit'))) {
+    if (t.checked) delete state.decide.off[a]; else state.decide.off[a] = true;
+    closest(t, '.check').classList.toggle('on', t.checked);
+    persist(); liveSoon();
+    return;
+  }
+  if (t.id === 'prd-file' && t.files && t.files[0]) {
+    var pf = t.files[0];
+    readTextFile(pf, function (text) { applyPRD(text, 'file', pf.name); });
+    return;
+  }
+  if (t.id === 'html-file' && t.files && t.files[0] && pendingSlot) {
+    var hf = t.files[0], slot = pendingSlot;
+    readTextFile(hf, function (text) { setFile(slot, hf.name, cleanHtml(text)); });
+  }
+}
+
+function onKeydown(e) {
+  var t = e.target, a;
+  if (e.key !== 'Enter' || e.isComposing || !(a = t.getAttribute && t.getAttribute('data-item'))) return;
+  e.preventDefault();
+  var f = findItem(a);
+  if (!f) return;
+  f.list.splice(f.index + 1, 0, M.makeItem(state));
+  persist(); renderList(hostOf(f.path)); focusRow(f.path, f.index + 1);
+}
+
+function bindDrop() {
+  var drop = $('prd-drop');
+  ['dragenter', 'dragover'].forEach(function (ev) {
+    drop.addEventListener(ev, function (e) { e.preventDefault(); drop.classList.add('over'); });
+  });
+  ['dragleave', 'drop'].forEach(function (ev) {
+    drop.addEventListener(ev, function () { drop.classList.remove('over'); });
+  });
+  drop.addEventListener('drop', function (e) {
+    e.preventDefault();
+    var file = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+    if (file) readTextFile(file, function (text) { applyPRD(text, 'file', file.name); });
+  });
+  document.addEventListener('dragover', function (e) {
+    if (closest(e.target, '[data-slot]')) e.preventDefault();
+  });
+  document.addEventListener('drop', function (e) {
+    var host = closest(e.target, '[data-slot]');
+    if (!host) return;
+    e.preventDefault();
+    var file = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+    var slot = host.getAttribute('data-slot');
+    if (file) readTextFile(file, function (text) { setFile(slot, file.name, cleanHtml(text)); });
+  });
+}
+
+/* ============================================================
+   시작 · 초기화
+   ============================================================ */
+function startWork() {
+  document.body.classList.remove('intro-mode');
+  goTo(state.step);
+}
+function resetAll() {
+  var ok = true;
+  try { ok = window.confirm('적은 내용과 불러온 파일이 모두 지워집니다.\n정말 처음부터 다시 할까요?\n(필요한 기록은 먼저 파일로 저장해 두세요.)'); } catch (e) {}
+  if (!ok) return;
+  M.clearAll();
+  F.resetAll();
+  state = M.blankState();
+  files = {};
+  mounted = { compare: '', final: '' };
+  $('panes-compare').innerHTML = '';
+  $('panes-final').innerHTML = '';
+  document.querySelectorAll('[data-slot]').forEach(function (h) { h.removeAttribute('data-paste-open'); });
+  updateStartLabel();
+  goTo(1, true);
+  document.body.classList.add('intro-mode');
+  window.scrollTo(0, 0);
+  toast('처음부터 다시 시작합니다.', 'ok');
+}
+function updateStartLabel() {
+  var started = state.step > 1 || state.prd.raw || M.texts(state.prd.must).length;
+  $('btn-start').textContent = started ? '이어서 하기 →' : '시작하기 →';
+}
+
+function init() {
+  F.init(function (slot) { return files[slot] || null; });
+  F.setMode(state.view.mode);
+  buildChips();
+  $('prompt-generate').textContent = M.GENERATE_PROMPT;
+
+  document.addEventListener('click', onClick);
+  document.addEventListener('input', onInput);
+  document.addEventListener('change', onChange);
+  document.addEventListener('keydown', onKeydown);
+  bindDrop();
+  window.addEventListener('pagehide', function () { M.save(state); });
+
+  document.querySelectorAll('.step').forEach(function (s) { renderListsIn(s); bindFieldsIn(s); });
+  document.querySelectorAll('[data-checks]').forEach(renderChecks);
+  renderAllSlots();
+  updateStartLabel();
+  document.querySelectorAll('.step').forEach(function (s) {
+    s.classList.toggle('active', parseInt(s.getAttribute('data-step'), 10) === state.step);
+  });
+  updateChrome();
+  refreshLive();
+}
+
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+else init();
+})();
+</script>
+</body>
+</html>
