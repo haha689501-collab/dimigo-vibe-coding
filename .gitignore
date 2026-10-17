@@ -61,6 +61,7 @@ _보관/
 # 나눠 줄 때는  python tools/build-offline.py  로 만든 한 파일(학생작품_모아보기.html)을 씁니다.
 docs/students/
 /학생작품_모아보기*.html
+/강의홈페이지_모아보기*.html
 
 # 이름을 가린 공개용 사본 (tools/build-gallery.py 로 만듭니다 — 지금은 쓰지 않습니다)
 docs/gallery/
