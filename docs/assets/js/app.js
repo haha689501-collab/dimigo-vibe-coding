@@ -616,12 +616,12 @@
     });
   });
 
-  // 공개용 갤러리(docs/gallery — 이름 가린 사본)가 있을 때만 링크를 보여 줍니다.
-  // 실명이 들어 있는 원본 docs/students 는 올리지 않습니다 (.gitignore).
+  // 학생 작품은 실명이 들어 있어 공개 저장소에 올리지 않습니다 (.gitignore).
+  // 로컬에서만 링크가 보이고, 나눠 줄 때는 tools/build-offline.py 로 만든 한 파일을 씁니다.
   var studentsLink = document.getElementById('studentsLink');
   if (studentsLink) {
     if (location.protocol === 'file:') studentsLink.hidden = false;
-    else fetch('gallery/index.html', { method: 'HEAD' })
+    else fetch('students/index.html', { method: 'HEAD' })
       .then(function (r) { if (r.ok) studentsLink.hidden = false; })
       .catch(function () {});
   }
