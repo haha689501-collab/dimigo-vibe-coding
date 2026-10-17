@@ -616,6 +616,16 @@
     });
   });
 
+  // 공개용 갤러리(docs/gallery — 이름 가린 사본)가 있을 때만 링크를 보여 줍니다.
+  // 실명이 들어 있는 원본 docs/students 는 올리지 않습니다 (.gitignore).
+  var studentsLink = document.getElementById('studentsLink');
+  if (studentsLink) {
+    if (location.protocol === 'file:') studentsLink.hidden = false;
+    else fetch('gallery/index.html', { method: 'HEAD' })
+      .then(function (r) { if (r.ok) studentsLink.hidden = false; })
+      .catch(function () {});
+  }
+
   window.addEventListener('hashchange', route);
   route();
 })();
