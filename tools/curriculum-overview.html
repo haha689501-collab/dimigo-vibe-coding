@@ -6,6 +6,9 @@
 <!--
   PDF 만들기 (Edge):
   msedge --headless=new --no-pdf-header-footer --print-to-pdf="..\00_커리큘럼_한눈에보기.pdf" curriculum-overview.html
+
+  이 문서는 01_수업PPT/ 의 01~10차시 덱과 docs/assets/js/lessons.js 를 기준으로 정리한 것입니다.
+  둘 중 하나가 바뀌면 이 문서도 같이 고쳐 주세요.
 -->
 <style>
 @page{size:A4;margin:14mm 14mm 14mm 14mm}
@@ -77,56 +80,57 @@ code{font-family:Consolas,'D2Coding',monospace;font-size:8.6pt;background:var(--
 <section class="page cover">
   <div class="top"><span>AI × BUILD</span><span>한국디지털미디어고등학교</span></div>
   <h1>Claude 바이브코딩<br><em>10회기 커리큘럼</em> 한눈에 보기</h1>
-  <div class="sub">지금까지 정한 것 · 회기별 핵심 · 수업 도구 · 폴더 안내</div>
+  <div class="sub">회기별 핵심 · 작품 기준 · 수업 도구 · 자료 만드는 순서</div>
   <div class="bar"></div>
   <div class="summary">
     <b>한 줄 요약</b><br>
-    3회기까지 기본기를 익히고, <b>4회기에 각자 Claude 앱으로 자기 아이디어를 만든 뒤</b>,
-    5회기부터 <b>조별 대표작 하나를 데모데이 수준까지</b> 키웁니다.<br>
-    도착점은 <b>"QR 하나로 누구나 휴대폰에서 바로 해 볼 수 있는 작품"</b>입니다.
+    1~3회기에 방법을 익히고, <b>4~5회기에 각자 작품을 만들어 배포한 뒤</b>,
+    6회기부터 <b>팀 미니프로젝트 하나를 출시 수준까지</b> 키웁니다.<br>
+    도착점은 <b>"URL · QR 하나로 누구나 바로 써 볼 수 있는, 검증된 작품"</b>입니다.
   </div>
   <div class="flow">
-    <div><b>IDEA · SPEC</b><span>방법 익히기</span><i>1–3회기</i></div>
-    <div><b>BUILD 1</b><span>각자 만들기</span><i>4회기</i></div>
-    <div><b>BUILD 2</b><span>조 작품 · 한 판</span><i>5–6회기</i></div>
-    <div><b>TEST</b><span>해 보기 · 다듬기</span><i>7–8회기</i></div>
-    <div><b>RELEASE</b><span>출시 · 데모데이</span><i>9–10회기</i></div>
+    <div><b>IDEA</b><span>방법 익히기</span><i>1회기</i></div>
+    <div><b>SPEC</b><span>설계와 검증</span><i>2–3회기</i></div>
+    <div><b>BUILD</b><span>개인 → 미니프로젝트</span><i>4–7회기</i></div>
+    <div><b>TEST</b><span>교차 검증</span><i>8회기</i></div>
+    <div><b>RELEASE</b><span>출시 · 쇼케이스</span><i>9–10회기</i></div>
   </div>
-  <div class="meta">주 1회 90분 · 10회기 · 4~5인 1조 × 5조 · Claude Max · 정리일 2026-10-15</div>
+  <div class="meta">주 1회 90분 · 10회기 · 4~5인 1팀 · Claude Max · 슬라이드 206장 · 정리일 2026-11-19</div>
 </section>
 
 <!-- ============================== 2. 10회기 표 ============================== -->
 <section class="page">
-  <div class="ph"><h2>10회기 한눈에</h2><span>1 / 지금까지 정한 흐름</span></div>
+  <div class="ph"><h2>10회기 한눈에</h2><span>1 / 전체 흐름</span></div>
   <table>
-    <thead><tr><th style="width:34px">회기</th><th style="width:150px">제목</th><th>핵심 질문</th><th style="width:170px">끝나면 남는 것</th><th style="width:54px">상태</th></tr></thead>
+    <thead><tr><th style="width:34px">회기</th><th style="width:150px">제목</th><th>핵심 질문</th><th style="width:160px">끝나면 남는 것</th><th style="width:44px">장수</th></tr></thead>
     <tbody>
-      <tr><td><b>1</b></td><td><b>바이브코딩과 프롬프트</b></td><td>AI에게 어떻게 말해야 원하는 걸 만들까?</td><td>할 일 앱 개조</td><td><span class="tag t-done">완료</span></td></tr>
-      <tr><td><b>2</b></td><td><b>아이디어를 설계도로 (PRD)</b></td><td>AI가 추측하지 않게 하려면 무엇을 정해야 할까?</td><td>개인 PRD.md</td><td><span class="tag t-done">완료</span></td></tr>
-      <tr><td><b>3</b></td><td><b>같은 설계도, 다른 작품</b></td><td>같은 주제인데 왜 결과가 다를까?</td><td>첫 화면 · 반 완성 기준 초안 · 조별 후보</td><td><span class="tag t-ready">준비 완료</span></td></tr>
-      <tr><td><b>4</b></td><td><b>내 아이디어를 바로 만든다</b> <span class="tag t-new">v2</span></td><td>내 아이디어를 AI에게 어떻게 말해야 원하는 대로 나올까?</td><td>개인 작품 · 커밋 기록 · 개발일지 첫 줄 · 포스트잇</td><td><span class="tag t-ready">준비 완료</span></td></tr>
-      <tr><td><b>5</b></td><td><b>우리 조 작품 정하기 · 첫 배포</b></td><td>무엇을 만들고, 인터넷에 올라가 있나?</td><td>합격선 · 기획 한 장 · 역할표 · CLAUDE.md · V0.1</td><td><span class="tag t-todo">자료 전</span></td></tr>
-      <tr><td><b>6</b></td><td><b>한 판 완성</b></td><td>처음부터 끝까지 한 바퀴 도는가?</td><td>V0.5 · 버그 기록</td><td><span class="tag t-todo">자료 전</span></td></tr>
-      <tr><td><b>7</b></td><td><b>다른 조가 해 보기</b></td><td>만든 사람 없이도 즐길 수 있나?</td><td>플레이테스트 기록 · V0.6</td><td><span class="tag t-todo">자료 전</span></td></tr>
-      <tr><td><b>8</b></td><td><b>그림·소리·손맛</b></td><td>같은 규칙인데 왜 이쪽만 게임 같을까?</td><td>V0.9 · 크레딧</td><td><span class="tag t-todo">자료 전</span></td></tr>
-      <tr><td><b>9</b></td><td><b>출시 준비</b></td><td>누가 해도 멈추지 않는가? 어떻게 설명할까?</td><td>V1.0 · 개발 일지 · 3분 발표</td><td><span class="tag t-todo">자료 전</span></td></tr>
-      <tr><td><b>10</b></td><td><b>데모데이</b></td><td>우리 작품은 어떤 평가를 받을까?</td><td>발표 · 시상 · 작품 갤러리 · 회고</td><td><span class="tag t-todo">자료 전</span></td></tr>
+      <tr><td><b>1</b></td><td><b>바이브코딩과 프롬프트</b></td><td>AI에게 어떻게 말해야 원하는 걸 만들까?</td><td>할 일 관리 앱 개조 (LEVEL 1~4)</td><td>19</td></tr>
+      <tr><td><b>2</b></td><td><b>아이디어를 설계도로 (PRD)</b></td><td>AI가 추측하지 않게 하려면 무엇을 정해야 할까?</td><td>내 프로젝트 PRD.md</td><td>30</td></tr>
+      <tr><td><b>3</b></td><td><b>같은 설계도, 다른 작품</b></td><td>같은 PRD인데 왜 결과가 다를까?</td><td>A·B 검증 비교 · 검증 기록</td><td>19</td></tr>
+      <tr><td><b>4</b></td><td><b>인터랙티브 웹 프로젝트</b></td><td>내 아이디어를 어떻게 실제로 작동하게 만들까?</td><td>개인 작품 index.html · 개발일지.md</td><td>16</td></tr>
+      <tr><td><b>5</b></td><td><b>디자인 시스템</b></td><td>왜 내 작품만 어설퍼 보일까?</td><td>DESIGN.md · 리디자인 작품 · 공유 주소</td><td>15</td></tr>
+      <tr><td><b>6</b></td><td><b>미니프로젝트 착수</b> <span class="tag t-new">신규</span></td><td>무엇을, 어디까지, 누가 만들까?</td><td>PRD.md · 완료 조건 · 핵심 흐름 · 역할 분담</td><td>58</td></tr>
+      <tr><td><b>7</b></td><td><b>기능 완결과 디버깅</b></td><td>시작부터 결과까지 끊기지 않고 한 바퀴 도는가?</td><td>기능 완결 · 버그 기록</td><td>12</td></tr>
+      <tr><td><b>8</b></td><td><b>교차 검증과 UI 완성</b></td><td>설명 없이 쓸 수 있는가? 공격하면 버티는가?</td><td>교차 검증 기록 · UI 폴리싱 · 크레딧</td><td>16</td></tr>
+      <tr><td><b>9</b></td><td><b>출시 후보 완성</b></td><td>예상 못한 상황과 다른 기기에서도 작동하는가?</td><td>출시 후보본 · TEST.md · README.md</td><td>10</td></tr>
+      <tr><td><b>10</b></td><td><b>배포와 작품 쇼케이스</b></td><td>완성 결과와 과정을 어떻게 보여 줄까?</td><td>정식 배포 · URL·QR · 갤러리 · 회고</td><td>11</td></tr>
     </tbody>
   </table>
 
-  <div class="note"><b>v2에서 바뀐 것</b> — 4회기를 "조별 기획"에서 <b>"각자 Claude 앱으로 바로 만들기"</b>로 바꿨습니다.
-  조별 작품 결정 · 합격선 확정 · 기획 한 장 · 역할 확정은 <b>5회기</b>로 옮겼고, 4회기 개인 작품과 갤러리 워크 포스트잇이 조 작품을 고르는 근거가 됩니다.</div>
+  <div class="note"><b>개인에서 팀으로 넘어가는 지점은 6회기 하나뿐입니다.</b>
+  5회기까지는 전부 개인 작품이고, 7회기부터는 전부 팀 작품입니다.
+  그래서 6회기에 <b>무엇을 만들지 · 어디까지 만들지 · 누가 맡을지</b>를 문서로 확정하지 않으면 7회기가 전제를 잃습니다.</div>
 
   <h3 style="font-size:12pt;margin:14px 0 6px">운영 원칙 다섯 가지</h3>
   <div class="grid2">
     <div class="box"><ul>
-      <li><b>끝을 먼저 보여 준다</b> — 3회기에 심사 기준 공개, 5회기에 합격선 확정</li>
-      <li><b>매 회기 작동하는 버전이 남는다</b> — V0.1 → V0.5 → V1.0</li>
-      <li><b>넓게보다 끝까지</b> — 기능을 늘리지 않고 "한 판"을 완벽하게</li>
+      <li><b>끝을 먼저 보여 준다</b> — 3회기에 완성 기준 초안, 6회기에 팀 완료 조건 확정</li>
+      <li><b>매 회기 작동하는 버전이 남는다</b> — 개인 작품 → 기능 완결 → v1.0-rc → v1.0</li>
+      <li><b>넓게보다 끝까지</b> — 기능을 늘리지 않고 "한 바퀴"를 완결</li>
     </ul></div>
     <div class="box"><ul>
-      <li><b>판정은 사람이 한다</b> — 합격선과 플레이테스트로 확인</li>
-      <li><b>빠른 학생에게는 '더 정확하게'</b> — 더 적은 요청, 되묻기, 동료 돕기</li>
+      <li><b>판정은 사람이 한다</b> — 완료 조건과 교차 검증으로 확인</li>
+      <li><b>빠른 학생에게는 심화 과제</b> — 매 회기 마지막 장에 셋 중 택1</li>
       <li><b>보여 주고 → 만들게 하고 → 막혔을 때 가르친다</b> (4회기부터)</li>
     </ul></div>
   </div>
@@ -134,94 +138,138 @@ code{font-family:Consolas,'D2Coding',monospace;font-size:8.6pt;background:var(--
 
 <!-- ============================== 3. 회기별 1~5 ============================== -->
 <section class="page">
-  <div class="ph"><h2>회기별 핵심 ① · 1~5회기</h2><span>2 / 무엇을 하고, 무엇이 남나</span></div>
+  <div class="ph"><h2>회기별 핵심 ① · 1~5회기</h2><span>2 / 개인 작품을 완성하기까지</span></div>
 
-  <div class="ses"><div class="ses-h"><div class="ses-n">1</div><h3>바이브코딩과 프롬프트</h3><span class="tag t-done">완료</span></div>
+  <div class="ses"><div class="ses-h"><div class="ses-n">1</div><h3>바이브코딩과 프롬프트</h3><span class="tag t-done">IDEA</span></div>
     <div class="q">AI에게 어떻게 말해야 원하는 걸 만들까?</div>
-    <div class="row"><span class="k">하는 일</span><span>바이브코딩 이해 · 명확성·구체성·맥락·제약을 넣은 프롬프트 · Claude Artifacts로 즉시 만들고 고치기</span>
-    <span class="k">남는 것</span><span>할 일 관리 앱 개조 (LEVEL 1~4)</span></div></div>
+    <div class="row"><span class="k">하는 일</span><span>바이브코딩이 기존 개발과 무엇이 같고 다른지 · 명확성·구체성·맥락·제약 · 5W1H · Claude Artifacts로 즉시 만들고 고치기</span>
+    <span class="k">남는 것</span><span>할 일 관리 앱 개조 실습 (LEVEL 1~4)</span></div></div>
 
-  <div class="ses"><div class="ses-h"><div class="ses-n">2</div><h3>아이디어를 설계도로 (PRD)</h3><span class="tag t-done">완료</span></div>
+  <div class="ses"><div class="ses-h"><div class="ses-n">2</div><h3>아이디어를 설계도로 (PRD)</h3><span class="tag t-done">SPEC</span></div>
     <div class="q">AI가 추측하지 않게 하려면 무엇을 정해야 할까?</div>
-    <div class="row"><span class="k">하는 일</span><span>컨텍스트와 유실 · MVP(MUST / LATER / NON-GOAL) · PRD 핵심 8가지 · 마크다운</span>
-    <span class="k">남는 것</span><span>개인 PRD.md — <b>PRD 기획 도구</b>로 작성</span></div></div>
+    <div class="row"><span class="k">하는 일</span><span>컨텍스트와 유실 · 결정의 기록 · MVP(MUST / LATER / NON-GOAL) · PRD 핵심 8가지 · 완성 확인 기준 · 예외 상황 · 마크다운</span>
+    <span class="k">남는 것</span><span>내 프로젝트 PRD.md — <b>PRD 기획 도우미</b>로 작성</span></div></div>
 
-  <div class="ses"><div class="ses-h"><div class="ses-n">3</div><h3>같은 설계도, 다른 작품</h3><span class="tag t-ready">준비 완료</span></div>
-    <div class="q">같은 주제인데 왜 결과가 다를까? 잘 만든 작품은 무엇이 다를까?</div>
-    <div class="row"><span class="k">하는 일</span><span>같은 PRD로 만든 결과 비교 · 기본판↔완성판 게임 비교로 "완성돼 보이는 이유" 찾기 · 조와 역할 소개</span>
-    <span class="k">남는 것</span><span>첫 화면 · 반 완성 기준 초안 · 조별 후보 3개 · 역할 1·2지망 — <b>MVP 비교검증 도우미</b> 사용</span></div>
-    <div class="files">⚠ 3회기 자료가 세 벌(v2 · v3 · PRD와MVP) 있습니다. 최종본을 정해야 합니다 — 마지막 장 참고</div></div>
+  <div class="ses"><div class="ses-h"><div class="ses-n">3</div><h3>같은 설계도, 다른 작품</h3><span class="tag t-done">SPEC</span></div>
+    <div class="q">같은 PRD인데 왜 결과가 다를까? 잘 만든 작품은 무엇이 다를까?</div>
+    <div class="row"><span class="k">하는 일</span><span>같은 PRD로 A·B 생성 → 화면 비교 · 차이를 <b>PRD 위반</b>과 <b>PRD의 빈칸</b>으로 구분 · 완성도 기준 · 수정 요청 · 최종 선택</span>
+    <span class="k">남는 것</span><span>A·B 검증 비교 · 검증 기록 · 반 완성 기준 초안 · 팀 후보</span></div>
+    <div class="files">시연 게임 <code>docs/demo/star-dodge/</code> 기본판 ↔ 완성판 비교에 사용</div></div>
 
-  <div class="ses"><div class="ses-h"><div class="ses-n">4</div><h3>내 아이디어를 바로 만든다</h3><span class="tag t-new">v2</span></div>
-    <div class="q">내 아이디어를 AI에게 어떻게 말해야 원하는 대로 나올까?</div>
-    <div class="row"><span class="k">흐름</span><span>라이브 데모 5′ → 대화창 vs Claude Code 3′ → <b>설치(Claude 앱 + Git)</b> 17′ → 규칙 세 개 · 모드(오늘은 수동) 5′ → 미션 ① 만들기 20′ → 손 멈춤(말 바꾸기) 5′ → <b>세이브 포인트(첫 커밋)</b> 5′ → 미션 ② 고치기 15′ → 갤러리 워크 10′ → 마무리 5′</span>
-    <span class="k">핵심</span><span><b>읽기 → 이해하기 → 확인하기 → 만들기</b> — Claude가 먼저 폴더·PRD를 읽고 <b>질문 3개</b>, 학생이 답하고 <b>계획을 먼저</b> 받아 승인 · 본 것과 바라는 것을 나눠 말하기 · 계획 읽고 승인/거절 · 잘 되면 커밋</span>
-    <span class="k">남는 것</span><span>개인 작품 index.html · 커밋 기록 3개 이상 · 개발일지.md 첫 줄 · 받은 포스트잇</span></div>
-    <div class="files">교안 <code>MD/…4차시_교안_v2_바로만들기.md</code> · PPT <code>…4차시_v2_바로만들기.pptx</code> (15장)</div></div>
+  <div class="ses"><div class="ses-h"><div class="ses-n">4</div><h3>인터랙티브 웹 프로젝트 · Claude Code</h3><span class="tag t-ready">BUILD</span></div>
+    <div class="q">내 아이디어를 어떻게 실제로 작동하는 웹으로 만들까?</div>
+    <div class="row"><span class="k">흐름</span><span>Claude Code 작업 환경 → 실습 환경 설정 → 구현 과정 분석 → 주제와 범위 → 구현 원칙 · 계획 검토 기준 → <b>미션 ① 핵심 기능 구현</b> → 버전 관리와 복원 → 오류 분석과 수정 요청 → <b>미션 ② 기능 개선</b> → 사용자 테스트</span>
+    <span class="k">핵심</span><span><b>계획을 먼저 받아 읽고 승인/거절</b> · 고칠 때는 <b>본 것 / 바라는 것</b>을 나눠 말하기 · 잘 된 지점마다 커밋</span>
+    <span class="k">남는 것</span><span>개인 작품 index.html · 개발일지.md · 커밋 기록</span></div></div>
 
-  <div class="ses"><div class="ses-h"><div class="ses-n">5</div><h3>우리 조 작품 정하기 · 첫 배포</h3><span class="tag t-todo">자료 전</span></div>
-    <div class="q">우리 조는 무엇을 만들고, 그 작품이 인터넷에 올라가 있나?</div>
-    <div class="row"><span class="k">흐름</span><span>합격선 확정 10′ → 4회기 작품 시연 + 포스트잇으로 <b>조 작품 결정</b> 15′ → 기획 한 장 · 범위 자르기 · 역할 15′ → CLAUDE.md 15′ → 배포 20′ → 조별 1분 발표 15′</span>
-    <span class="k">남는 것</span><span>합격선 확정본 · 기획 한 장 · 역할표 · CLAUDE.md · V0.1</span></div>
-    <div class="files">⚠ 시간이 모자라면 배포는 6회기 첫 20분으로. GitHub 배포를 언제 할지는 아직 미정 — 마지막 장 참고</div></div>
+  <div class="ses"><div class="ses-h"><div class="ses-n">5</div><h3>디자인 시스템 · 토큰과 규칙</h3><span class="tag t-ready">BUILD</span></div>
+    <div class="q">기능은 같은데 왜 어떤 작품만 완성돼 보일까?</div>
+    <div class="row"><span class="k">흐름</span><span>작품 디자인 진단 → 디자인 시스템 구조 · 토큰 → <b>STEP 1 진단 → 2 방향 → 3 DESIGN.md → 4 적용 → 5 검증</b> → Netlify Drop 공유</span>
+    <span class="k">핵심</span><span>기능은 그대로 두고 <b>색 · 글자 · 간격을 토큰과 규칙으로 교체</b> · 위반을 직접 검증</span>
+    <span class="k">남는 것</span><span>DESIGN.md · 리디자인 작품 · 공유 주소 · 전후 비교</span></div></div>
 </section>
 
 <!-- ============================== 4. 회기별 6~10 ============================== -->
 <section class="page">
-  <div class="ph"><h2>회기별 핵심 ② · 6~10회기</h2><span>3 / 조별 대표작 키우기</span></div>
+  <div class="ph"><h2>회기별 핵심 ② · 6~10회기</h2><span>3 / 팀 미니프로젝트 키우기</span></div>
 
-  <div class="ses"><div class="ses-h"><div class="ses-n">6</div><h3>한 판 완성</h3></div>
-    <div class="q">처음부터 끝까지 한 바퀴 도는가?</div>
-    <div class="row"><span class="k">하는 일</span><span>타이틀 → 플레이 → 결과 → 다시하기 · 점수와 최고 점수 · 점점 어려워지기 · 대화로 버그 고치기 · <b>커밋으로 되돌리기 실습</b></span>
-    <span class="k">남는 것</span><span>V0.5 · 버그 기록 3건 이상 · 개발 일지 1차</span></div></div>
+  <div class="ses"><div class="ses-h"><div class="ses-n">6</div><h3>미니프로젝트 착수</h3><span class="tag t-new">신규 · 58장</span></div>
+    <div class="q">무엇을, 어디까지, 누가 만들까?</div>
+    <div class="row"><span class="k">PART 1</span><span>단독 개발과 협업 개발 → <b>작품 리뷰</b>(설명 없이 리뷰어가 직접 조작) → <b>베이스 작품 선정</b>(핵심 흐름 · 확장 여지 · 분담 가능성 · 잔여 기간) → 미니프로젝트 정의 → <b>완료 조건 정의</b> → 범위 확정 → 핵심 사용자 흐름 → 역할 분담 → 작업 규칙</span>
+    <span class="k">PART 2</span><span>미니프로젝트 발표 — 다른 팀의 범위 · 기술 · 보안 리뷰로 검증받기</span>
+    <span class="k">부록</span><span><b>부록 A · GitHub 협업</b> 22장 (저장소 · 이슈 · 브랜치 · PR · 리뷰 · 충돌 · Pages) — 저장소로 협업하는 팀만<br><b>부록 B · 클로드 모션그래픽</b> 17장 (편집 프로그램 없이 15초 영상) — 10회기 발표 티저로 사용</span>
+    <span class="k">남는 것</span><span>PRD.md · 완료 조건 · 핵심 흐름 한 장 · 역할 분담표</span></div></div>
 
-  <div class="ses"><div class="ses-h"><div class="ses-n">7</div><h3>다른 조가 해 보기</h3></div>
-    <div class="q">만든 사람 없이도 즐길 수 있나?</div>
-    <div class="row"><span class="k">하는 일</span><span>설명 없이 다른 조가 플레이 · 관찰 기록 · 피드백을 "지금 고침 / 나중에 / 안 고침"으로 분류 · 반영 후 다시 배포</span>
-    <span class="k">남는 것</span><span>플레이테스트 기록 10건 이상 · 분류된 수정 목록 · V0.6</span></div></div>
+  <div class="ses"><div class="ses-h"><div class="ses-n">7</div><h3>기능 완결과 디버깅</h3><span class="tag t-ready">BUILD</span></div>
+    <div class="q">시작부터 결과까지 끊기지 않고 한 바퀴 도는가?</div>
+    <div class="row"><span class="k">하는 일</span><span>완료 정의 → 통합 순서 → <b>상태 설계</b>(흩어진 전역 변수를 하나의 state로) → <b>데이터 저장</b>(localStorage는 비거나 손상될 수 있다고 가정) → 경계 상황 → 버그 기록 → 디버깅 흐름</span>
+    <span class="k">남는 것</span><span>기능 완결(시작 → 동작 → 결과 → 재시작) · 버그 기록</span></div></div>
 
-  <div class="ses"><div class="ses-h"><div class="ses-n">8</div><h3>그림·소리·손맛</h3></div>
-    <div class="q">같은 규칙인데 왜 이쪽만 게임 같을까?</div>
-    <div class="row"><span class="k">하는 일</span><span>손맛(반응 · 소리 · 연출) · Claude로 그림과 소리 만들기 · 출처와 이용 조건 기록 · 조의 와우 포인트 하나</span>
-    <span class="k">남는 것</span><span>V0.9 · 스타일 가이드 적용 · 크레딧 화면</span></div></div>
+  <div class="ses"><div class="ses-h"><div class="ses-n">8</div><h3>교차 검증과 UI 완성</h3><span class="tag t-ready">TEST</span></div>
+    <div class="q">설명 없이도 쓸 수 있는가? 다른 팀이 공격하면 버티는가?</div>
+    <div class="row"><span class="k">PART 1</span><span>검증 구조(TRACK A 사용자 테스트 / TRACK B 레드팀) → 사용자 테스트(설명 없이 관찰) → 공격 표면 점검 → <b>레드팀 점검 · DevTools</b> → AI 코드 감사 → 취약점 보고</span>
+    <span class="k">PART 2</span><span>우선순위 결정(NOW / NEXT / LATER) → <b>블루팀 패치</b>(증상이 아니라 원인 패턴 제거) → UI 완성 → 크레딧 · 전후 비교</span>
+    <span class="k">남는 것</span><span>교차 검증 기록 · UI 폴리싱 · 크레딧 · Before/After</span></div>
+    <div class="files">해킹방어과와 다른 과가 섞인 팀이면 TRACK A·B 역할을 나눠 맡기면 편차가 줄어듭니다</div></div>
 
-  <div class="ses"><div class="ses-h"><div class="ses-n">9</div><h3>출시 준비</h3></div>
-    <div class="q">누가 해도 멈추지 않는가? 어떻게 설명할까?</div>
-    <div class="row"><span class="k">하는 일</span><span>기능 동결 · 합격선 전 항목 점검 · 개발 일지(README)에 과정과 AI 활용 정리 · 3분 발표 리허설</span>
-    <span class="k">남는 것</span><span>V1.0 · README(개발 일지) · 3분 발표 · QR 포스터</span></div></div>
+  <div class="ses"><div class="ses-h"><div class="ses-n">9</div><h3>출시 후보 완성</h3><span class="tag t-ready">RELEASE</span></div>
+    <div class="q">예상하지 못한 상황과 다른 기기에서도 작동하는가?</div>
+    <div class="row"><span class="k">하는 일</span><span><b>기능 동결</b>(통합본에 들어갈 변경 제한) → 기기 · 환경 점검 → <b>TEST.md</b>(PRD 완료 기준 전 항목 판정) → README.md → <b>v1.0-rc 확정</b></span>
+    <span class="k">남는 것</span><span>출시 후보본 · TEST.md · README.md</span></div></div>
 
-  <div class="ses"><div class="ses-h"><div class="ses-n">10</div><h3>데모데이</h3></div>
-    <div class="q">우리 작품은 어떤 평가를 받을까?</div>
-    <div class="row"><span class="k">하는 일</span><span>조별 발표와 시연 · 심사와 시상 · 회고 (가장 어려웠던 요청 · 기억에 남는 AI의 실수 · 다음엔 무엇을 먼저 정할까)</span>
-    <span class="k">남는 것</span><span>수상 · 강의 사이트 <b>학생 작품 갤러리</b> · 회고</span></div></div>
+  <div class="ses"><div class="ses-h"><div class="ses-n">10</div><h3>배포와 작품 쇼케이스</h3><span class="tag t-ready">RELEASE</span></div>
+    <div class="q">완성 결과와 여기까지 온 과정을 어떻게 보여 줄까?</div>
+    <div class="row"><span class="k">하는 일</span><span>최종 배포 점검 → v1.0 · URL · QR → <b>발표 구성 5분</b>(작품보다 판단의 과정) → 데모 대비(백업 영상) → 쇼케이스 운영 → 상호 평가 → 10회기 정리 · 회고</span>
+    <span class="k">남는 것</span><span>정식 배포 · URL·QR · 작품 갤러리 · 회고</span></div></div>
 
-  <h3 style="font-size:12pt;margin:12px 0 6px">데모데이 합격선 (5회기 확정 기준안)</h3>
+  <h3 style="font-size:12pt;margin:12px 0 6px">작품 기준 — 6회기에 팀이 직접 정합니다</h3>
   <div class="grid2">
-    <div class="box"><ul>
-      <li>QR 하나로 <b>PC와 휴대폰에서</b> 설치 없이 실행</li>
-      <li>타이틀 → 방법 → 플레이 → 결과 → 다시하기 <b>한 바퀴</b></li>
-      <li>다른 조 5명이 해도 <b>멈추지 않음</b> · 최고 점수 저장 · 소리 끄기</li>
+    <div class="box"><h3>어떻게 적나</h3><ul>
+      <li>MUST <b>3~5개</b> — 인원 수와 비슷하게 맞추면 분담이 바로 나옴</li>
+      <li>기능마다 <b>완료 조건</b>을 한 줄 — "만들었다"가 아니라 "이렇게 하면 이렇게 된다"</li>
+      <li>판정은 <b>예 / 아니오</b> — "자연스럽게 · 예쁘게"는 조건이 아님</li>
+      <li><b>작성자가 아닌 사람</b>이 혼자 판정할 수 있어야 함</li>
     </ul></div>
-    <div class="box"><ul>
-      <li><b>30초 안에</b> 규칙 이해 · 점점 어려워짐 · 반응 2가지 이상</li>
-      <li>그림 스타일 통일 · 출처 기록</li>
-      <li>개발 일지: 버전 기록 · 핵심 요청문 5개 · <b>AI가 틀린 순간 3건</b></li>
+    <div class="box"><h3>언제 쓰이나</h3><ul>
+      <li><b>6회기</b> — PRD에 기록, 다른 팀 발표 리뷰로 검증</li>
+      <li><b>7회기</b> — 한 바퀴 완결을 판정하는 기준</li>
+      <li><b>9회기</b> — 이 표가 그대로 <b>TEST.md</b>가 됨</li>
+      <li><b>10회기</b> — 상호 평가의 판정 질문</li>
     </ul></div>
   </div>
 </section>
 
-<!-- ============================== 5. 정한 원칙 ============================== -->
+<!-- ============================== 5. 심화 과제 ============================== -->
 <section class="page">
-  <div class="ph"><h2>지금까지 정한 것</h2><span>4 / 도구 · 규칙 · 안전</span></div>
+  <div class="ph"><h2>심화 과제 한눈에</h2><span>4 / 매 회기 마지막 장 · 셋 중 택1</span></div>
+
+  <div class="note">디미고 학생 기준으로 보면 1~3회기는 이미 아는 내용이 많고, 가장 어려운 7·8회기도 여유가 있습니다.
+  먼저 끝낸 학생이 할 일이 없으면 수업이 늘어지므로, 회기마다 고를 수 있는 과제를 셋씩 두었습니다.
+  <b>전체에게 시키는 과제가 아닙니다.</b> 결과는 기록 한 줄로 남기게 하고, 발표 때 근거로 쓰게 합니다.</div>
+
+  <table>
+    <thead><tr><th style="width:34px">회기</th><th style="width:150px">01</th><th style="width:150px">02</th><th>03</th></tr></thead>
+    <tbody>
+      <tr><td><b>1</b></td><td>제약을 세 개 더</td><td>역할을 부여하면</td><td>일부러 모호하게 — AI가 임의로 채운 곳 표시</td></tr>
+      <tr><td><b>2</b></td><td>NON-GOAL 다섯 개</td><td>완료 조건 다시 쓰기</td><td>남에게 주고 확인 — 같은 화면이 그려지는가</td></tr>
+      <tr><td><b>3</b></td><td>세 번째 결과(C안)</td><td>코드 구조 비교</td><td>평가표 만들기 — 기준 5개로 점수화</td></tr>
+      <tr><td><b>4</b></td><td>계획을 깨 보기</td><td>커밋 쪼개기</td><td>CLAUDE.md 규칙 — 다음 요청에서 지켜지는지</td></tr>
+      <tr><td><b>5</b></td><td>다크 모드 토큰</td><td>토큰 위반 검사</td><td>컴포넌트 분리 — 세 곳 이상에서 재사용</td></tr>
+      <tr><td><b>6</b></td><td>범위를 흔들어 보기</td><td>완료 조건 교차 판정</td><td>파일 경계 검증 — 담당 파일이 겹치지 않는지</td></tr>
+      <tr><td><b>7</b></td><td>상태 통합(단일 state)</td><td>저장 손상 복구</td><td>버그 한 건 추적 — 재현 → 원인 → 수정 기록</td></tr>
+      <tr><td><b>8</b></td><td>출력 지점 전수 점검</td><td>저장값 위조</td><td>포기 지점만 뽑아 우선순위 재배치</td></tr>
+      <tr><td><b>9</b></td><td>잘못된 입력 10개</td><td>나쁜 환경에서 열기</td><td>교차 판정 — 다른 팀이 TEST.md를 판정</td></tr>
+      <tr><td><b>10</b></td><td>1분 안에 시작</td><td>5분을 3분으로</td><td>다음 버전 계획 — LATER에서 셋을 꺼내 순위</td></tr>
+    </tbody>
+  </table>
+
+  <div class="grid2" style="margin-top:12px">
+    <div class="box"><h3>난이도 기준 (10점 척도)</h3><ul>
+      <li><b>일반인</b> 약 6.5 — 4회기(설치·터미널)와 8회기(DevTools·취약점)가 이탈 지점</li>
+      <li><b>디미고 학생</b> 약 3.5 — 심화 과제를 포함하면 5.5 수준</li>
+      <li>가장 유익한 구간은 <b>5회기(디자인 시스템)</b>과 <b>7회기(상태·경계 상황)</b></li>
+    </ul></div>
+    <div class="box"><h3>과별 편차가 큰 곳</h3><ul>
+      <li><b>8회기 보안</b> — 해킹방어과는 쉽고, 콘텐츠·이비즈는 적정</li>
+      <li>대응: TRACK A(사용자 테스트) / TRACK B(레드팀) <b>역할을 나눠</b> 맡기기</li>
+      <li><b>6회기 부록 A(GitHub)</b> — 이미 아는 학생이 많으면 건너뛰어도 무방</li>
+    </ul></div>
+  </div>
+</section>
+
+<!-- ============================== 6. 정한 원칙 ============================== -->
+<section class="page">
+  <div class="ph"><h2>지금까지 정한 것</h2><span>5 / 도구 · 규칙 · 안전</span></div>
 
   <h3 style="font-size:12pt;margin-bottom:6px">학생이 쓰는 도구</h3>
   <table>
     <thead><tr><th style="width:120px">항목</th><th style="width:90px">결정</th><th>이유</th></tr></thead>
     <tbody>
-      <tr><td><b>Claude 데스크톱 앱</b></td><td>✅ 설치</td><td>Code 탭이 Claude Code. <b>10회기까지 이 앱 하나로</b> 진행. 터미널 · VS Code는 쓰지 않음 (Node.js·Git 없는 노트북에서 직접 확인함)</td></tr>
-      <tr><td><b>Git</b></td><td>✅ 설치</td><td><b>세이브 기능.</b> 커밋으로 버전 기록을 남기고 그때 그대로 되돌리기. 앱에 커밋 버튼은 없고 <b>말로 시키면</b> Claude가 실행. 기록은 폴더 안 숨은 <code>.git</code>에 저장(인터넷 불필요)</td></tr>
-      <tr><td><b>Node.js · npm</b></td><td>❌ 안 씀</td><td>예전 설치 방식(npm)에만 필요. 2025년 10월 이후 불필요. React 같은 빌드형 프로젝트를 하지 않으므로 필요 없음</td></tr>
-      <tr><td><b>브랜치 · PR · 푸시</b></td><td>❌ 몰라도 됨</td><td>조마다 드라이버 한 명만 작업 → 충돌이 없음</td></tr>
+      <tr><td><b>Claude 데스크톱 앱</b></td><td>✅ 설치</td><td>Code 탭이 Claude Code. <b>10회기까지 이 앱 하나로</b> 진행. 터미널 · VS Code는 쓰지 않음</td></tr>
+      <tr><td><b>Git</b></td><td>✅ 설치</td><td><b>세이브 기능.</b> 커밋으로 버전을 남기고 그때 그대로 되돌리기. 앱에 커밋 버튼은 없고 <b>말로 시키면</b> Claude가 실행. 기록은 폴더 안 <code>.git</code>에 저장(인터넷 불필요)</td></tr>
+      <tr><td><b>Node.js · npm</b></td><td>❌ 안 씀</td><td>예전 설치 방식에만 필요. React 같은 빌드형 프로젝트를 하지 않으므로 불필요</td></tr>
+      <tr><td><b>브랜치 · PR · 머지</b></td><td>🔸 선택</td><td><b>6회기 부록 A</b>에 22장으로 담아 두었습니다. 파일을 주고받는 방식으로도 4회기는 돌아가므로, 팀 수준에 따라 고릅니다</td></tr>
+      <tr><td><b>배포</b></td><td>✅ 사용</td><td>5회기 <b>Netlify Drop</b>(개인) · 6회기 부록 A <b>GitHub Pages</b>(팀) · 10회기 v1.0 + QR</td></tr>
     </tbody>
   </table>
 
@@ -243,37 +291,40 @@ code{font-family:Consolas,'D2Coding',monospace;font-size:8.6pt;background:var(--
   </div>
 
   <div class="grid2" style="margin-top:10px">
-    <div class="box"><h3>⚠ API 키는 작품에 넣지 않는다</h3>
+    <div class="box"><h3>⚠ 키는 작품에 넣지 않는다</h3>
       <p>웹 작품의 코드는 F12로 누구나 볼 수 있습니다. 키를 넣으면 누구나 가져가 쓰고, 요금은 키 주인에게 청구됩니다.</p>
-      <p><b>대신</b>: 대사 · 퀴즈 · 스토리를 Claude로 미리 잔뜩 만들어 파일에 넣기 ("AI는 만드는 데 쓰고, 작품 안에는 넣지 않는다")</p></div>
+      <p><b>대신</b>: 대사 · 퀴즈 · 스토리를 Claude로 미리 잔뜩 만들어 파일에 넣기 ("AI는 만드는 데 쓰고, 작품 안에는 넣지 않는다")</p>
+      <p>공개 키(publishable)와 비밀 키(secret)의 구분은 <b>6회기 부록 A · 협업 보안 체크</b>에서 다룹니다.</p></div>
     <div class="box"><h3>🔒 선생님 계정 설정 (완료)</h3>
       <p>VS Code의 Claude Code 사용 내용이 claude.ai 웹에 공유되지 않도록 설정했습니다. (Remote Control · 웹 커넥터 · 아티팩트 게시 차단)</p>
-      <p>남은 것: claude.ai → 설정 → 개인정보 보호에서 <b>"Claude 개선에 도움 주기"</b> 끄기</p></div>
+      <p>학생 실명이 든 파일은 <code>.gitignore</code>로 저장소에서 제외됩니다 — <code>docs/students/</code> · <code>학생작품_모아보기.html</code> · <code>공유용/</code></p></div>
   </div>
 </section>
 
-<!-- ============================== 6. 수업 도구 ============================== -->
+<!-- ============================== 7. 수업 도구 ============================== -->
 <section class="page">
-  <div class="ph"><h2>수업 도구와 매 회기 루틴</h2><span>5 / 만들어 둔 것</span></div>
+  <div class="ph"><h2>수업 도구와 매 회기 루틴</h2><span>6 / 만들어 둔 것</span></div>
 
   <table>
-    <thead><tr><th style="width:130px">도구</th><th style="width:60px">회기</th><th>하는 일</th><th style="width:150px">위치</th></tr></thead>
+    <thead><tr><th style="width:130px">도구</th><th style="width:60px">회기</th><th>하는 일</th><th style="width:140px">위치</th></tr></thead>
     <tbody>
-      <tr><td><b>PRD 기획 도구</b></td><td>2</td><td>11단계를 따라 PRD를 쓰고 .md로 저장. 교사용 분석 페이지(reviewer)도 있음</td><td><code>PRD/</code> → <code>docs/PRD/</code></td></tr>
-      <tr><td><b>MVP 비교검증 도우미</b></td><td>3</td><td>같은 PRD로 만든 두 결과를 비교 · 선택 · 검증</td><td><code>MVP_비교검증_도우미/</code></td></tr>
-      <tr><td><b>학생 작품 갤러리</b></td><td>매 회기</td><td>학생별 · 일차별로 작품(html · md · 이미지)을 모아 보기. <b>산출물이 있는 회차만</b> 표시. PC/휴대폰 크기로 미리 보기</td><td>강의 사이트 메뉴 "학생 작품"<br><code>docs/students/</code></td></tr>
-      <tr><td><b>바이브코딩 용어사전</b></td><td>참고</td><td>89개 용어 · 회기별 보기 · 검색. <b>강의 사이트에는 넣지 않음</b> (폴더에만)</td><td><code>바이브코딩_용어사전/</code></td></tr>
-      <tr><td><b>시연 게임</b></td><td>3 · 8</td><td>기본판 ↔ 완성판 비교 (Star Dodge)</td><td><code>docs/demo/star-dodge/</code></td></tr>
+      <tr><td><b>PRD 기획 도우미</b></td><td>2</td><td>단계를 따라 PRD를 쓰고 .md로 저장. 교사용 분석 페이지(reviewer)도 있음</td><td><code>docs/PRD/</code></td></tr>
+      <tr><td><b>MVP 비교·검증 도우미</b></td><td>3</td><td>같은 PRD로 만든 두 결과를 비교 · 선택 · 검증</td><td>강의 사이트 "실습도구"</td></tr>
+      <tr><td><b>시연 게임 (Star Dodge)</b></td><td>3 · 8</td><td>기본판 ↔ 완성판 비교 — "완성돼 보이는 이유" 찾기</td><td><code>docs/demo/star-dodge/</code></td></tr>
+      <tr><td><b>학생 작품 갤러리</b></td><td>매 회기</td><td>학생별 · 일차별 작품 모아 보기. <b>저장소에는 올리지 않고</b> 로컬에서만 엽니다</td><td><code>docs/students/</code><br><code>학생작품_모아보기.html</code></td></tr>
+      <tr><td><b>강의 홈페이지</b></td><td>전체</td><td>10회기 커리큘럼과 슬라이드 206장을 웹에서 넘겨 보기</td><td><code>docs/</code> → GitHub Pages</td></tr>
     </tbody>
   </table>
 
-  <h3 style="font-size:12pt;margin:14px 0 6px">학생 작품 올리는 순서 (선생님 · 매 회기 5분)</h3>
-  <div class="grid3">
-    <div class="box"><h3>① 받기</h3><p>클래스룸 · 패들렛 · 메일로 제출받기</p></div>
-    <div class="box"><h3>② 넣기</h3><p><code>docs/students/1조_닉네임/day04/</code><br>산출물 없는 날은 폴더를 만들지 않음</p></div>
-    <div class="box"><h3>③ 정리</h3><p><code>python tools/sync-students.py</code><br>개인정보 · API 키가 보이면 경고</p></div>
-  </div>
-  <div class="note">GitHub Pages는 누구나 볼 수 있습니다. 폴더 이름은 <b>실명 대신 닉네임</b>, 얼굴 사진 · 학번은 올리지 않기. <code>00_예시학생</code> 폴더는 운영 전에 지우거나 <code>_00_예시학생</code>으로 숨기기.</div>
+  <h3 style="font-size:12pt;margin:14px 0 6px">강의자료를 다시 만드는 순서 (tools/)</h3>
+  <div class="tree">1. python tools/make-lesson06-v2.py     6차시 덱 생성 (본편 + 부록 A·B)
+2. python tools/split-decks-07-10.py    7~10차시 덱을 회기별로 분리
+3. python tools/add-advanced.py         전 회기 마지막에 심화 과제 1장 추가
+4. powershell -File tools/export-slides.ps1   PPT → PNG (PowerPoint 사용)
+5. python tools/make-webp.py            PNG → docs/lessons/*/slides · thumbs
+6. docs/assets/js/lessons.js 의 slideCount 를 출력된 숫자로 맞추기</div>
+  <div class="note"><b>순서가 중요합니다.</b> 1·2번은 덱을 새로 만들므로, 그 뒤에 3번을 다시 돌려야 심화 과제가 남습니다.
+  3번은 여러 번 돌려도 심화 장이 중복되지 않고, 원본은 <code>01_수업PPT/지난버전/심화적용전_*.pptx</code>에 백업됩니다.</div>
 
   <h3 style="font-size:12pt;margin:14px 0 6px">학생의 매 회기 루틴 (4회기부터)</h3>
   <table>
@@ -287,80 +338,56 @@ code{font-family:Consolas,'D2Coding',monospace;font-size:8.6pt;background:var(--
   </table>
 </section>
 
-<!-- ============================== 7. 폴더 안내 ============================== -->
+<!-- ============================== 8. 폴더 안내 ============================== -->
 <section class="page">
-  <div class="ph"><h2>폴더 안내 — 무엇을 열면 되나</h2><span>6 / claude_ 폴더</span></div>
+  <div class="ph"><h2>폴더 안내 — 무엇을 열면 되나</h2><span>7 / claude_ 폴더</span></div>
 
   <div class="tree">claude_/
-├── <b>00_커리큘럼_한눈에보기.pdf</b>      ← 지금 이 문서
-├── README.md                     ← 강의 사이트 운영 설명서 (자료 추가 · GitHub 올리기 · 갤러리)
+├── <b>01_수업PPT/</b>                   ← <b>수업 PPT (01~10차시 딱 10개)</b>
+│   ├── 디미고_바이브코딩_01차시_바이브코딩과프롬프트.pptx   (19장)
+│   ├── …02차시_아이디어를설계도로.pptx                   (30장)
+│   ├── …03차시_같은설계도다른작품.pptx                   (19장)
+│   ├── …04차시_인터랙티브웹프로젝트.pptx                 (16장)
+│   ├── …05차시_디자인시스템.pptx                        (15장)
+│   ├── …06차시_미니프로젝트착수.pptx                     (58장)
+│   ├── …07차시_기능완결과디버깅.pptx                     (12장)
+│   ├── …08차시_교차검증과UI완성.pptx                     (16장)
+│   ├── …09차시_출시후보완성.pptx                        (10장)
+│   ├── …10차시_배포와쇼케이스.pptx                       (11장)
+│   └── <b>지난버전/</b>                 ← 이전본 · 심화적용전 백업 · 덱 생성용 소스 2개
+│         · 소스_6차시통합_….pptx        (6차시 부록 A·B의 원본)
+│         · 소스_7-8차시합본_….pptx      (7·8차시 분리 전 합본)
 │
-├── 디미고_바이브코딩_1차시.pptx ~ 4차시…pptx   ← 수업 PPT 원본 (GitHub에 안 올라감)
-│     · 4회기는 <b>…4차시_v2_바로만들기.pptx</b> 를 사용 (A·B안은 참고용)
-├── AI 노코드 창작 클래스_커리큘럼(안)_v1.0.pdf ← 학교 제출 지도안
+├── 02_교안·스크립트/                    ← 커리큘럼 원본 · 발표 스크립트 · 설치 안내
+├── 03_실습도구_원본/  04_수업자료·시연/  05_모션그래픽/
+├── 06_참고·조사/  07_피드백_발표연습/
 │
-├── <b>MD/</b>                           ← 글 문서 모음
-│   ├── …1-10회기_업그레이드_커리큘럼.md   ← <b>커리큘럼 원본 (가장 자세함)</b>
-│   ├── …4차시_교안_v2_바로만들기.md       ← <b>4회기 교안 (사용)</b>
-│   ├── …4차시_교안_A / B_….md            ← 4회기 이전 안 (참고)
-│   ├── …3차시_v2 / v3 · 3회기_PRD와MVP…   ← 3회기 발표 스크립트 세 벌
-│   ├── …5-6회기_참고_배포와PR.md          ← 5~6회기 참고 (정리 필요)
-│   ├── …ClaudeCode_데스크톱_설치안내.md   ← 설치 안내 (Git 단계 추가 필요)
-│   └── …수업방향_재설계_제안.md           ← 방향 제안서 (배경 자료)
+├── <b>docs/</b>                         ← <b>강의 웹사이트</b> (GitHub Pages로 공개)
+│   ├── assets/js/lessons.js        ← <b>회기 데이터 — 이 파일 하나로 사이트가 바뀜</b>
+│   ├── lessons/lesson-01~10/       ← 슬라이드 이미지 206장 + 썸네일
+│   ├── PRD/  demo/                 ← 실습 도구 · 시연 게임
+│   └── students/                   ← 학생 작품 (저장소에는 올라가지 않음)
 │
-├── <b>docs/</b>                         ← <b>강의 웹사이트</b> (GitHub Pages로 공개되는 폴더)
-│   ├── lessons/  PRD/  demo/      ← 회기 슬라이드 · PRD 도구 배포본 · 시연 게임
-│   └── students/                  ← <b>학생 작품 갤러리</b>
-├── PRD/                           ← PRD 기획 도구 원본
-├── MVP_비교검증_도우미/            ← 3회기 도구
-├── 바이브코딩_용어사전/            ← 용어사전 (폴더에만)
-├── tools/                         ← PPT · 갤러리를 만드는 프로그램 (직접 열 일 거의 없음)
-└── _보관/                         ← 예전 버전 · 복사본 (지워도 수업에 영향 없음)</div>
+├── <b>tools/</b>                        ← 덱 생성 · 분리 · 심화 추가 · 변환 스크립트
+├── README.md                       ← 사이트 운영 설명서
+├── 강의홈페이지_모아보기.html        ← 한 파일 보관본 (로컬 전용 · 45MB)
+└── 학생작품_모아보기.html            ← 학생 작품 한 파일 (로컬 전용 · 실명)</div>
 
   <div class="grid2" style="margin-top:12px">
-    <div class="box"><h3>자주 여는 파일 다섯 개</h3><ul>
+    <div class="box"><h3>자주 여는 파일</h3><ul>
       <li>이 문서 — 전체 흐름이 궁금할 때</li>
-      <li><code>MD/…업그레이드_커리큘럼.md</code> — 회기별 상세 · 90분 흐름</li>
-      <li><code>MD/…4차시_교안_v2….md</code> + <code>…4차시_v2….pptx</code> — 다음 수업</li>
+      <li><code>01_수업PPT/…0N차시….pptx</code> — 다음 수업 자료</li>
       <li><code>docs/index.html</code> — 강의 사이트 미리 보기</li>
-      <li><code>README.md</code> — 사이트에 자료 · 작품 올리는 법</li>
+      <li><code>02_교안·스크립트/…업그레이드_커리큘럼.md</code> — 회기별 90분 상세</li>
+      <li><code>README.md</code> — 사이트에 자료 올리는 법</li>
     </ul></div>
     <div class="box"><h3>건드리지 않아도 되는 것</h3><ul>
-      <li><code>tools/</code> — PPT · 갤러리 자동 생성 프로그램</li>
-      <li><code>docs/assets/</code> · <code>docs/students/data.js</code> — 자동 생성</li>
-      <li><code>_보관/</code> — 필요할 때만 꺼내 보기</li>
+      <li><code>tools/</code> — 자동 생성 프로그램</li>
+      <li><code>docs/lessons/*/slides</code> · <code>thumbs</code> — 변환 결과</li>
+      <li><code>01_수업PPT/지난버전/</code> — 필요할 때만 꺼내 보기</li>
       <li><code>~$…pptx</code> — PowerPoint가 열려 있다는 표시 (닫으면 사라짐)</li>
     </ul></div>
   </div>
-</section>
-
-<!-- ============================== 8. 남은 일 ============================== -->
-<section class="page">
-  <div class="ph"><h2>아직 정할 것 · 다음에 할 일</h2><span>7 / 체크리스트</span></div>
-
-  <div class="grid2">
-    <div class="box"><h3>선생님이 정할 것</h3><ul class="check">
-      <li><b>3회기 최종본</b> — v2 "PRD를 화면으로" · v3 "같은 설계도 다른 작품" · "PRD와 MVP"(9/18) 중 하나. 나머지는 _보관으로</li>
-      <li><b>GitHub 배포 시점</b> — 커리큘럼은 5회기 첫 배포. 미루면 5회기 흐름과 합격선 "QR로 휴대폰 실행"을 조정</li>
-      <li><b>작품 공개 범위</b> — 강의 사이트 갤러리 공개에 대해 학교 확인 · 닉네임 규칙</li>
-      <li><b>Claude 계정</b> — 학생별인지 조별인지</li>
-    </ul></div>
-    <div class="box"><h3>수업 전 준비</h3><ul class="check">
-      <li>4회기 전날 — 라이브 데모 리허설 (3분)</li>
-      <li>4회기 전날 — 같은 폴더로 커밋 · 기록 보기 · 되돌리기 리허설</li>
-      <li>Claude 앱 · Git 설치 파일을 USB에도 준비</li>
-      <li>게시판에 4회기 요청문 올리기 (교안 v2 부록 B)</li>
-      <li>포스트잇 (1인당 3장)</li>
-      <li>claude.ai에서 "Claude 개선에 도움 주기" 끄기</li>
-    </ul></div>
-  </div>
-
-  <div class="box" style="margin-top:10px"><h3>문서 정리가 남은 곳</h3><ul class="check">
-    <li><code>MD/…ClaudeCode_데스크톱_설치안내.md</code> — 학생용 1부에 <b>Git 설치 단계</b> 추가 (지금은 "Git 불필요"로 되어 있음)</li>
-    <li><code>MD/…5-6회기_참고_배포와PR.md</code> — 예전 5회기 제목("Claude Code로 옮기기") · Node.js 언급 정리, 브랜치·PR은 심화로 낮추기</li>
-    <li><code>docs/assets/js/lessons.js</code> — 강의 사이트의 4~10회기 제목 · 설명을 v2에 맞추기 (4회기 자료 공개 시)</li>
-    <li>5~10회기 교안과 PPT — 4회기 v2와 같은 형식(미션판 · 발표자 노트)으로 만들기</li>
-  </ul></div>
 
   <div class="note" style="margin-top:14px"><b>원칙 하나만 기억한다면</b> — "뚝딱 나오는 것은 도구의 몫, <b>이게 맞는지 판단하고 설명하는 것은 학생의 몫</b>." 매 회기 똑같이 묻습니다: <b>무엇이 바뀌었나요? 원한 것과 맞나요?</b></div>
 </section>
