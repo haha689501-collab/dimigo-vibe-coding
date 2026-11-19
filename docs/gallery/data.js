@@ -1,6 +1,6 @@
 /* tools/build-gallery.py 가 만든 공개용 파일입니다. 직접 고치지 마세요. */
 window.STUDENT_WORKS = {
- "updated": "2026-11-20 00:56",
+ "updated": "2026-11-20 01:06",
  "days": 5,
  "labels": {
   "1": "기획서",
@@ -51,6 +51,9 @@ window.STUDENT_WORKS = {
   },
   {
    "name": "털실 타자기",
+   "category": "웹앱",
+   "tagline": "타자를 치면 글자가 한 코씩 실로 떠지는 뜨개 타자기",
+   "desc": "천 위에 글자를 치면 실로 한 코씩 떠지고, 지우면 실밥이 떨어져 천에 남아요. 실 색 · 무늬 · 천 색을 고르고, 완성한 천은 그림 파일로 저장할 수 있어요.",
    "members": [
     "안*호",
     "이*후",
@@ -60,6 +63,9 @@ window.STUDENT_WORKS = {
   },
   {
    "name": "MOVE",
+   "category": "인터랙티브 작품집",
+   "tagline": "손동작에 반응하는 WebGL 작품 16개 모음집",
+   "desc": "웹캠 앞 손동작을 인식해 16개의 작품을 움직여요. 손가락을 모으는 동작(핀치)으로 화면을 조작하고, 카메라를 켜지 않아도 마우스 · 터치로 모두 체험할 수 있어요.",
    "members": [
     "고*형",
     "김*온",
@@ -108,7 +114,8 @@ window.STUDENT_WORKS = {
       "ext": "url",
       "path": "s01/day4/디미고 부수기.url",
       "size": 59,
-      "title": "디미고 부수기"
+      "title": "디미고 부수기",
+      "url": "https://dimigo-crash.netlify.app/"
      }
     ],
     "5": [
@@ -117,7 +124,8 @@ window.STUDENT_WORKS = {
       "ext": "url",
       "path": "s01/day5/MOVE.url",
       "size": 67,
-      "title": "MOVE"
+      "title": "MOVE",
+      "url": "https://movewebglslop.netlify.app/#!/main"
      }
     ]
    }
@@ -159,7 +167,8 @@ window.STUDENT_WORKS = {
       "ext": "url",
       "path": "s02/day5/별담 유리병.url",
       "size": 86,
-      "title": "별담 유리병"
+      "title": "별담 유리병",
+      "url": "https://claude.ai/artifact/MiwJVpmhTziF2DvUymPUyY#jar-3Q2YHC"
      }
     ]
    }
@@ -238,7 +247,8 @@ window.STUDENT_WORKS = {
       "ext": "url",
       "path": "s04/day4/로컬 파일 변환기.url",
       "size": 61,
-      "title": "로컬 파일 변환기"
+      "title": "로컬 파일 변환기",
+      "url": "https://rionvivecoding.netlify.app/"
      }
     ],
     "5": [
@@ -247,14 +257,16 @@ window.STUDENT_WORKS = {
       "ext": "url",
       "path": "s04/day5/MOVE.url",
       "size": 67,
-      "title": "MOVE"
+      "title": "MOVE",
+      "url": "https://movewebglslop.netlify.app/#!/main"
      },
      {
       "name": "새 탭.url",
       "ext": "url",
       "path": "s04/day5/새 탭.url",
       "size": 67,
-      "title": "새 탭"
+      "title": "새 탭",
+      "url": "https://movewebglslop.netlify.app/#!/main"
      }
     ]
    }
@@ -280,7 +292,8 @@ window.STUDENT_WORKS = {
       "ext": "url",
       "path": "s05/day4/LIFE WORLD - 나만의 세상.url",
       "size": 75,
-      "title": "LIFE WORLD - 나만의 세상"
+      "title": "LIFE WORLD - 나만의 세상",
+      "url": "https://claude.ai/artifact/2nECnXP2xzxmyGn3Wgjx2M"
      }
     ],
     "5": [
@@ -296,7 +309,8 @@ window.STUDENT_WORKS = {
       "ext": "url",
       "path": "s05/day5/별담 유리병.url",
       "size": 86,
-      "title": "별담 유리병"
+      "title": "별담 유리병",
+      "url": "https://claude.ai/artifact/MiwJVpmhTziF2DvUymPUyY#jar-3Q2YHC"
      }
     ]
    }
@@ -329,7 +343,8 @@ window.STUDENT_WORKS = {
       "ext": "url",
       "path": "s06/day5/털실 타자기.url",
       "size": 63,
-      "title": "털실 타자기"
+      "title": "털실 타자기",
+      "url": "https://kev208dev.github.io/knit-txt/"
      }
     ]
    }
@@ -417,7 +432,8 @@ window.STUDENT_WORKS = {
       "ext": "url",
       "path": "s08/day4/NEON SOUL · 네온 탄막 로그라이크.url",
       "size": 46,
-      "title": "NEON SOUL · 네온 탄막 로그라이크"
+      "title": "NEON SOUL · 네온 탄막 로그라이크",
+      "url": "https://haram.pe.kr/"
      }
     ],
     "5": [
@@ -470,7 +486,8 @@ window.STUDENT_WORKS = {
       "ext": "url",
       "path": "s09/day4/404 Not Found.url",
       "size": 71,
-      "title": "404 Not Found"
+      "title": "404 Not Found",
+      "url": "https://birdforest-production.up.railway.app/"
      }
     ],
     "5": [
@@ -579,7 +596,8 @@ window.STUDENT_WORKS = {
       "ext": "url",
       "path": "s11/day5/털실 타자기.url",
       "size": 63,
-      "title": "털실 타자기"
+      "title": "털실 타자기",
+      "url": "https://kev208dev.github.io/knit-txt/"
      }
     ]
    }
@@ -612,7 +630,8 @@ window.STUDENT_WORKS = {
       "ext": "url",
       "path": "s12/day5/털실 타자기.url",
       "size": 63,
-      "title": "털실 타자기"
+      "title": "털실 타자기",
+      "url": "https://kev208dev.github.io/knit-txt/"
      }
     ]
    }
@@ -637,7 +656,8 @@ window.STUDENT_WORKS = {
       "ext": "url",
       "path": "s13/day5/MOVE.url",
       "size": 67,
-      "title": "MOVE"
+      "title": "MOVE",
+      "url": "https://movewebglslop.netlify.app/#!/main"
      }
     ]
    }
@@ -707,7 +727,8 @@ window.STUDENT_WORKS = {
       "ext": "url",
       "path": "s15/day4/Release v2.1.2 — 알카 포네 추가 · ekatl1012-doyu.url",
       "size": 79,
-      "title": "Release v2.1.2 — 알카 포네 추가 · ekatl1012-doyu"
+      "title": "Release v2.1.2 — 알카 포네 추가 · ekatl1012-doyu",
+      "url": "https://github.com/ekatl1012/doyu/releases/tag/v2.1.2"
      }
     ],
     "5": [
@@ -777,7 +798,8 @@ window.STUDENT_WORKS = {
       "ext": "url",
       "path": "s16/day5/별담 유리병.url",
       "size": 86,
-      "title": "별담 유리병"
+      "title": "별담 유리병",
+      "url": "https://claude.ai/artifact/MiwJVpmhTziF2DvUymPUyY#jar-3Q2YHC"
      }
     ]
    }
@@ -828,7 +850,8 @@ window.STUDENT_WORKS = {
       "ext": "url",
       "path": "s17/day5/별담 유리병.url",
       "size": 86,
-      "title": "별담 유리병"
+      "title": "별담 유리병",
+      "url": "https://claude.ai/artifact/MiwJVpmhTziF2DvUymPUyY#jar-3Q2YHC"
      }
     ]
    }
