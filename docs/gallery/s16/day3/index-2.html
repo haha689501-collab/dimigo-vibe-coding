@@ -1,0 +1,1120 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#05070f">
+<title>ORBIT LAB — 우주·로켓 3D 학습 플랫폼</title>
+<style>
+:root{--bg:#05070f;--panel:rgba(12,18,36,.74);--line:rgba(140,170,255,.18);--tx:#e8eeff;--mut:#9aa6c8;--acc:#5ad1ff;--acc2:#ff8a3d;--ok:#4be39a;--bad:#ff5d6c;--r:16px;--top:56px}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:var(--bg);color:var(--tx);font-family:system-ui,-apple-system,"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR","Segoe UI",Roboto,sans-serif;overflow:hidden;-webkit-tap-highlight-color:transparent}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+.topbar{position:fixed;top:0;left:0;right:0;height:var(--top);display:flex;align-items:center;gap:14px;padding:0 16px;z-index:60;background:linear-gradient(rgba(5,7,15,.92),rgba(5,7,15,.6));backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+.logo{display:flex;align-items:center;gap:10px;white-space:nowrap}
+.logo b{font-size:17px;letter-spacing:.14em}
+.logo small{color:var(--mut);font-size:11.5px;display:block;letter-spacing:.02em}
+.logo svg{width:28px;height:28px}
+.tabs{display:flex;gap:2px;margin:0 auto}
+.tab{background:none;border:0;color:var(--mut);padding:8px 11px;border-radius:10px;font-size:13.5px;display:flex;align-items:center;gap:6px;transition:.2s;white-space:nowrap}
+.tab svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.tab:hover{color:var(--tx)}
+.tab.on{color:var(--tx);background:rgba(90,209,255,.12);box-shadow:inset 0 0 0 1px rgba(90,209,255,.35)}
+.langsel{background:rgba(255,255,255,.06);border:1px solid var(--line);border-radius:10px;padding:6px 8px;font-size:13px}
+.langsel option{background:#0b1022}
+main{position:fixed;top:var(--top);left:0;right:0;bottom:0}
+.view{position:absolute;inset:0;opacity:0;visibility:hidden;transform:scale(1.015);transition:opacity .5s ease,transform .5s ease,visibility .5s}
+.view.active{opacity:1;visibility:visible;transform:none}
+.scroll{overflow-y:auto;-webkit-overflow-scrolling:touch}
+canvas.full{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+.btn{border:1px solid var(--line);background:rgba(255,255,255,.06);padding:11px 18px;border-radius:12px;font-size:14.5px;font-weight:600;transition:.2s}
+.btn:hover{background:rgba(255,255,255,.12)}
+.btn.pri{background:linear-gradient(135deg,#ff9a4a,#ff5f3d);border-color:transparent;color:#fff;box-shadow:0 8px 30px rgba(255,110,60,.35)}
+.btn.pri:hover{filter:brightness(1.08)}
+.btn.cy{background:linear-gradient(135deg,#46c8ff,#4a7dff);border-color:transparent;color:#fff}
+.btn.sm{padding:7px 12px;font-size:13px;border-radius:10px}
+.hidden{display:none!important}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;font-size:12px;background:rgba(90,209,255,.12);color:var(--acc);border:1px solid rgba(90,209,255,.3)}
+.sw{display:flex;align-items:center;gap:8px;font-size:13.5px;cursor:pointer;user-select:none}
+.sw input{appearance:none;-webkit-appearance:none;width:36px;height:20px;border-radius:20px;background:rgba(255,255,255,.15);position:relative;transition:.2s;flex:none}
+.sw input::after{content:"";position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:#fff;transition:.2s}
+.sw input:checked{background:var(--acc)}
+.sw input:checked::after{left:18px}
+input[type=range]{accent-color:var(--acc);width:100%}
+/* HOME */
+#v-home{background:#000}
+.hero{position:absolute;left:clamp(16px,6vw,90px);top:50%;transform:translateY(-50%);max-width:560px;transition:opacity .6s,transform .6s;pointer-events:none}
+.hero>*{pointer-events:auto}
+.hero.gone{opacity:0;transform:translate(-30px,-50%);pointer-events:none}
+.hero.gone>*{pointer-events:none}
+.kicker{color:var(--acc);font-size:13px;letter-spacing:.12em;text-transform:uppercase;margin-bottom:14px}
+.hero h1{font-size:clamp(30px,4.6vw,56px);line-height:1.12;font-weight:800;letter-spacing:-.02em;margin-bottom:16px;text-shadow:0 4px 30px rgba(0,0,0,.6)}
+.hero p{color:#c6d0ee;font-size:clamp(14.5px,1.4vw,17px);line-height:1.6;margin-bottom:26px;text-shadow:0 2px 12px rgba(0,0,0,.8)}
+.btns{display:flex;flex-wrap:wrap;gap:10px}
+.countdown{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:clamp(90px,18vw,200px);font-weight:900;color:#fff;pointer-events:none;text-shadow:0 0 50px rgba(255,140,60,.8)}
+.countdown span{animation:pop 1s ease-out}
+@keyframes pop{0%{transform:scale(1.6);opacity:0}30%{opacity:1}100%{transform:scale(.9);opacity:.15}}
+.hud{position:absolute;left:16px;top:16px;padding:14px 16px;min-width:220px;font-variant-numeric:tabular-nums}
+.hud .tp{font-size:28px;font-weight:800;letter-spacing:.04em}
+.hud .row{display:flex;justify-content:space-between;gap:20px;font-size:13.5px;margin-top:6px;color:var(--mut)}
+.hud .row b{color:var(--tx)}
+.hud .ph{margin-top:8px;color:var(--acc2);font-weight:700;font-size:14px}
+.hud .note{margin-top:10px;font-size:11px;color:var(--mut);max-width:240px;line-height:1.4}
+.toast{position:absolute;left:50%;top:22px;transform:translate(-50%,-20px);padding:10px 18px;border-radius:999px;background:rgba(255,138,61,.16);border:1px solid rgba(255,138,61,.5);color:#ffd2b3;font-weight:700;opacity:0;transition:.4s;pointer-events:none;white-space:nowrap}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.card{position:absolute;left:50%;bottom:28px;transform:translateX(-50%);padding:22px 24px;width:min(560px,calc(100% - 32px));text-align:center;animation:rise .7s ease}
+.card h2{font-size:26px;margin-bottom:8px}
+.card p{color:var(--mut);margin-bottom:16px;line-height:1.5}
+.card .btns{justify-content:center}
+@keyframes rise{from{opacity:0;transform:translate(-50%,30px)}to{opacity:1;transform:translate(-50%,0)}}
+.flash{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none;transition:opacity .8s}
+/* STRUCTURE */
+#v-struct,#v-solar{background:radial-gradient(ellipse at 50% 40%,#13204a 0%,#070b1c 55%,#03040a 100%)}
+.side{position:absolute;right:16px;top:16px;width:340px;max-height:calc(100% - 32px);overflow:auto;padding:18px}
+.side h2{font-size:19px;margin-bottom:6px}
+.side .hint{color:var(--mut);font-size:13px;line-height:1.5;margin-bottom:14px}
+.ctrl{display:flex;flex-direction:column;gap:12px;margin-bottom:16px}
+.ctrl label.rg{font-size:13.5px;display:flex;flex-direction:column;gap:6px}
+.info{border-top:1px solid var(--line);padding-top:14px;min-height:120px}
+.info h3{font-size:17px;margin:8px 0}
+.info p{color:#c9d2ee;font-size:14px;line-height:1.6}
+.info .spec{margin-top:10px;font-size:12.5px;color:var(--acc);font-family:ui-monospace,Menlo,Consolas,monospace}
+.parts{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.parts button{font-size:12px;padding:5px 9px;border-radius:8px;background:rgba(255,255,255,.05);border:1px solid var(--line)}
+.parts button.on{background:rgba(90,209,255,.18);border-color:var(--acc)}
+.legend{position:absolute;left:16px;bottom:16px;font-size:12px;color:var(--mut);padding:8px 12px}
+/* LEARN */
+#v-learn{background:radial-gradient(ellipse at 20% 0%,#1a2457 0%,#080c1e 50%,#04050c 100%)}
+.wrap{max-width:1100px;margin:0 auto;padding:28px 18px 60px}
+.wrap h2{font-size:clamp(24px,3vw,34px);margin-bottom:8px}
+.sub{color:var(--mut);line-height:1.6;margin-bottom:18px;max-width:720px}
+.prog{display:flex;align-items:center;gap:12px;margin-bottom:24px;font-size:13.5px;color:var(--mut)}
+.bar{flex:1;max-width:360px;height:8px;border-radius:8px;background:rgba(255,255,255,.08);overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--acc),#8c7dff);transition:width .6s}
+.mapbox{position:relative}
+#mapSvg{position:absolute;inset:0;pointer-events:none;overflow:visible}
+#mapSvg path{fill:none;stroke:rgba(140,170,255,.25);stroke-width:2;stroke-dasharray:5 6}
+#mapSvg path.d{stroke:rgba(75,227,154,.7);stroke-dasharray:none}
+.level{position:relative;margin-bottom:34px}
+.lvh{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.lvh .lt{font-size:12px;font-weight:800;letter-spacing:.1em;padding:4px 10px;border-radius:8px}
+.lvh h3{font-size:17px}
+.nodes{display:flex;flex-wrap:wrap;gap:14px;justify-content:center}
+.node{position:relative;z-index:1;display:flex;align-items:center;gap:12px;padding:12px 16px 12px 12px;min-width:230px;max-width:280px;flex:1;border-radius:16px;background:rgba(14,22,46,.85);border:1px solid var(--line);text-align:left;transition:.25s}
+.node:hover{transform:translateY(-3px);border-color:rgba(90,209,255,.6);box-shadow:0 10px 30px rgba(40,120,255,.2)}
+.node .dot{flex:none;width:40px;height:40px;border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:15px;background:rgba(255,255,255,.07);border:2px solid rgba(140,170,255,.4)}
+.node.done .dot{background:var(--ok);border-color:var(--ok);color:#05200f}
+.node .nt{font-size:14.5px;font-weight:600;line-height:1.3}
+.node .nk{display:block;font-size:11.5px;color:var(--mut);font-weight:400;margin-top:2px}
+.lesson{position:fixed;top:calc(var(--top) + 12px);right:12px;bottom:12px;width:min(480px,calc(100% - 24px));z-index:40;overflow-y:auto;padding:22px;transform:translateX(110%);transition:transform .45s cubic-bezier(.2,.8,.2,1)}
+.lesson.open{transform:none}
+.lesson .x{position:absolute;right:14px;top:14px;width:34px;height:34px;border-radius:10px;border:1px solid var(--line);background:rgba(255,255,255,.06);font-size:18px}
+.lesson h2{font-size:22px;margin:10px 44px 10px 0;line-height:1.3}
+.lesson p.b{color:#cbd4f0;line-height:1.7;font-size:14.5px}
+.sec{margin-top:18px}
+.sec h4{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--acc);margin-bottom:8px}
+.formula{padding:14px 16px;border-radius:12px;background:rgba(90,209,255,.07);border:1px solid rgba(90,209,255,.25);font-family:"Cambria Math","Times New Roman",serif;font-size:19px;line-height:1.6;overflow-x:auto;white-space:nowrap}
+.calc{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px}
+.calc label{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--mut)}
+.calc input,.qa input{background:rgba(0,0,0,.35);border:1px solid var(--line);border-radius:9px;padding:8px 10px;font-size:14px;width:100%}
+.cres{margin-top:10px;padding:10px 12px;border-radius:10px;background:rgba(255,255,255,.05);font-family:ui-monospace,Menlo,Consolas,monospace;font-size:14.5px;color:#ffe2a8}
+.q{line-height:1.6;font-size:14.5px}
+.qa{display:flex;gap:8px;margin-top:10px}
+.qa span{align-self:center;color:var(--mut);font-size:13px;white-space:nowrap}
+.fb{margin-top:10px;font-size:14px;min-height:20px}
+.fb.ok{color:var(--ok)}.fb.no{color:var(--bad)}
+.solb{margin-top:10px;padding:12px;border-radius:10px;background:rgba(255,255,255,.04);font-size:14px;line-height:1.7;font-family:ui-monospace,Menlo,Consolas,monospace}
+.row2{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+/* SIM */
+#v-sim{background:linear-gradient(180deg,#081028,#04060d)}
+.simgrid{display:grid;grid-template-columns:minmax(0,420px) minmax(0,1fr);gap:16px;max-width:1300px;margin:0 auto;padding:18px}
+.simgrid .panel{padding:16px}
+.simgrid h2{font-size:21px;margin-bottom:12px}
+.presets{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.stg{border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:10px}
+.stg-h{font-weight:700;font-size:13.5px;margin-bottom:8px;color:var(--acc2)}
+.stg-g{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.stg label,.pl label{display:flex;flex-direction:column;gap:4px;font-size:11.5px;color:var(--mut)}
+.stg input,.stg select,.pl input{background:rgba(0,0,0,.35);border:1px solid var(--line);border-radius:8px;padding:7px 8px;font-size:13.5px;width:100%}
+.stg select option{background:#0b1022}
+textarea.code{width:100%;min-height:230px;resize:vertical;background:#03060f;border:1px solid var(--line);border-radius:12px;padding:12px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;line-height:1.6;color:#bfe9ff;tab-size:2}
+.help{font-size:12px;color:var(--mut);line-height:1.6;margin:8px 0 12px}
+.help code{color:#ffd28a;font-size:11.5px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:12px}
+.kpi{padding:12px;border-radius:12px;background:rgba(255,255,255,.04);border:1px solid var(--line)}
+.kpi small{display:block;color:var(--mut);font-size:11.5px;margin-bottom:4px}
+.kpi b{font-size:20px;font-variant-numeric:tabular-nums}
+.verdict{padding:12px 14px;border-radius:12px;font-weight:700;margin-bottom:12px}
+.verdict.ok{background:rgba(75,227,154,.12);color:var(--ok);border:1px solid rgba(75,227,154,.4)}
+.verdict.no{background:rgba(255,93,108,.12);color:var(--bad);border:1px solid rgba(255,93,108,.4)}
+.verdict.mid{background:rgba(255,190,80,.12);color:#ffcf6a;border:1px solid rgba(255,190,80,.4)}
+.trajwrap{position:relative;height:340px;border-radius:12px;overflow:hidden;background:#02040b;border:1px solid var(--line)}
+.trajwrap canvas{width:100%;height:100%;display:block}
+.trajtabs{position:absolute;top:8px;left:8px;display:flex;gap:6px}
+.tele{position:absolute;right:10px;top:8px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;text-align:right;color:#bfe9ff;line-height:1.6}
+.charts{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+.charts canvas{width:100%;height:170px;display:block;background:#02040b;border:1px solid var(--line);border-radius:12px}
+.evlog{margin-top:10px;font-size:12.5px;color:var(--mut);font-family:ui-monospace,Menlo,Consolas,monospace;line-height:1.7}
+/* SOLAR */
+.labelbox{position:absolute;left:16px;bottom:16px;padding:12px 14px;width:min(330px,calc(100% - 32px))}
+/* GAME */
+#v-game{background:#000}
+.ghud{position:absolute;left:12px;top:12px;right:12px;display:flex;justify-content:space-between;gap:10px;pointer-events:none;flex-wrap:wrap}
+.ghud .panel{padding:10px 14px;font-size:13px;font-variant-numeric:tabular-nums}
+.meter{width:120px;height:7px;border-radius:7px;background:rgba(255,255,255,.12);overflow:hidden;margin-top:4px}
+.meter i{display:block;height:100%;background:var(--ok);transition:width .2s}
+.gstat{display:flex;gap:16px}
+.gstat div small{display:block;color:var(--mut);font-size:11px}
+.gstat div b{font-size:16px}
+.overlay{position:absolute;inset:0;display:grid;place-items:center;background:radial-gradient(ellipse at center,rgba(10,20,50,.55),rgba(0,0,0,.85));z-index:5;padding:16px}
+.overlay .panel{padding:26px;max-width:520px;text-align:center}
+.overlay h2{font-size:28px;margin-bottom:10px}
+.overlay p{color:#c6d0ee;line-height:1.6;margin-bottom:10px}
+.overlay .keys{font-size:13px;color:var(--mut);margin-bottom:16px}
+.overlay .opts{display:flex;flex-direction:column;gap:10px;align-items:center;margin:14px 0 18px}
+.overlay .opts small{color:var(--mut);font-size:12px;max-width:380px}
+.gwarn{position:absolute;left:50%;top:30%;transform:translateX(-50%);color:#ffcf6a;font-weight:800;font-size:18px;text-shadow:0 0 20px rgba(0,0,0,.9);pointer-events:none;text-align:center}
+.touch{position:absolute;inset:auto 0 0 0;height:190px;pointer-events:none;display:none}
+.joy{position:absolute;left:22px;bottom:22px;width:130px;height:130px;border-radius:50%;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.2);pointer-events:auto;touch-action:none}
+.joy i{position:absolute;left:50%;top:50%;width:56px;height:56px;margin:-28px;border-radius:50%;background:rgba(90,209,255,.45);border:1px solid rgba(255,255,255,.4)}
+.tbtns{position:absolute;right:20px;bottom:24px;display:flex;flex-direction:column;gap:12px;pointer-events:auto}
+.tbtns button{width:92px;height:56px;border-radius:16px;border:1px solid rgba(255,255,255,.25);background:rgba(255,138,61,.35);font-weight:800;touch-action:none;user-select:none;-webkit-user-select:none}
+.tbtns button.br{background:rgba(90,209,255,.3)}
+.gcam{position:absolute;right:12px;bottom:12px;width:150px;border-radius:12px;transform:scaleX(-1);opacity:.85;border:1px solid var(--line)}
+@media (pointer:coarse){.touch{display:block}}
+/* CAMERA */
+#v-cam{background:#000}
+#camVid{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform:scaleX(-1)}
+.cbar{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);display:flex;flex-wrap:wrap;gap:8px;justify-content:center;padding:10px;width:max-content;max-width:calc(100% - 24px)}
+.cinfo{position:absolute;left:16px;top:16px;padding:12px 14px;max-width:min(360px,calc(100% - 32px))}
+.cinfo h2{font-size:18px;margin-bottom:6px}
+.cinfo p{font-size:13px;color:#c6d0ee;line-height:1.5}
+.cinfo small{display:block;margin-top:8px;color:var(--mut);font-size:11.5px}
+.cstat{display:flex;gap:16px;margin-top:10px;font-size:13px;align-items:center}
+.seg{display:flex;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.seg button{border:0;background:none;padding:7px 12px;font-size:13px;color:var(--mut)}
+.seg button.on{background:rgba(90,209,255,.2);color:var(--tx)}
+/* RESPONSIVE */
+@media (max-width:980px){.simgrid{grid-template-columns:1fr}.tab span{display:none}.tab{padding:8px}}
+@media (max-width:760px){
+ :root{--top:52px}
+ .topbar{backdrop-filter:none;-webkit-backdrop-filter:none;background:rgba(5,7,15,.94)}
+ .logo small{display:none}
+ .tabs{position:fixed;bottom:0;left:0;right:0;justify-content:space-around;background:rgba(5,7,15,.95);padding:6px 2px calc(6px + env(safe-area-inset-bottom));border-top:1px solid var(--line);margin:0;z-index:60}
+ .tab{flex-direction:column;font-size:10px;padding:4px 2px;gap:2px;flex:1;min-width:0}
+ .tab span{display:block;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+ .langsel{margin-left:auto}
+ main{bottom:calc(58px + env(safe-area-inset-bottom))}
+ .side{left:10px;right:10px;width:auto;top:auto;bottom:10px;max-height:44%;padding:14px}
+ .hud{left:10px;top:10px;min-width:0;padding:10px 12px}.hud .tp{font-size:22px}.hud .note{display:none}
+ .hero{left:16px;right:16px;top:auto;bottom:24px;transform:none}
+ .hero.gone{transform:translateY(20px)}
+ .legend{display:none}
+ .charts{grid-template-columns:1fr}
+ .node{min-width:0;max-width:none;flex-basis:100%}
+ .lesson{left:0;right:0;width:auto;top:auto;bottom:0;height:86%;border-radius:20px 20px 0 0;transform:translateY(105%)}
+ .gstat{gap:10px}.meter{width:80px}
+ .labelbox{left:10px;right:10px;width:auto;bottom:10px}
+ .gcam{width:100px;bottom:200px}
+ .cinfo{left:10px;right:10px;max-width:none}
+}
+</style>
+</head>
+<body>
+<header class="topbar">
+ <div class="logo">
+  <svg viewBox="0 0 32 32"><defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5ad1ff"/><stop offset="1" stop-color="#ff8a3d"/></linearGradient></defs><ellipse cx="16" cy="16" rx="14" ry="6" fill="none" stroke="url(#lg)" stroke-width="2" transform="rotate(-30 16 16)"/><circle cx="16" cy="16" r="5" fill="url(#lg)"/><circle cx="27" cy="9" r="2" fill="#fff"/></svg>
+  <div><b>ORBIT LAB</b><small data-i18n="brand_sub"></small></div>
+ </div>
+ <nav class="tabs" id="tabs">
+  <button class="tab on" data-v="home"><svg viewBox="0 0 24 24"><path d="M12 2c3 2 5 6 5 10l-2 4H9l-2-4c0-4 2-8 5-10z"/><circle cx="12" cy="9" r="1.6"/><path d="M9 16l-2 5 3-1.5M15 16l2 5-3-1.5"/></svg><span data-i18n="nav_home"></span></button>
+  <button class="tab" data-v="struct"><svg viewBox="0 0 24 24"><path d="M12 2l9 5-9 5-9-5 9-5zM3 12l9 5 9-5M3 17l9 5 9-5"/></svg><span data-i18n="nav_struct"></span></button>
+  <button class="tab" data-v="learn"><svg viewBox="0 0 24 24"><circle cx="5" cy="6" r="2.5"/><circle cx="19" cy="6" r="2.5"/><circle cx="12" cy="18" r="2.5"/><path d="M6.5 8l4.3 7.6M17.5 8l-4.3 7.6M7.5 6h9"/></svg><span data-i18n="nav_learn"></span></button>
+  <button class="tab" data-v="sim"><svg viewBox="0 0 24 24"><path d="M3 20h18M5 16l4-5 4 3 6-8"/></svg><span data-i18n="nav_sim"></span></button>
+  <button class="tab" data-v="solar"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><ellipse cx="12" cy="12" rx="10" ry="4"/></svg><span data-i18n="nav_solar"></span></button>
+  <button class="tab" data-v="game"><svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="11" rx="5"/><path d="M7 10.5v4M5 12.5h4"/><circle cx="16" cy="11.5" r="1"/><circle cx="18" cy="14" r="1"/></svg><span data-i18n="nav_game"></span></button>
+  <button class="tab" data-v="cam"><svg viewBox="0 0 24 24"><rect x="2" y="7" width="15" height="11" rx="2"/><path d="M17 11l5-3v9l-5-3"/></svg><span data-i18n="nav_cam"></span></button>
+ </nav>
+ <select class="langsel" id="lang" aria-label="language">
+  <option value="ko">한국어</option><option value="en">English</option><option value="mn">Монгол</option>
+ </select>
+</header>
+
+<main>
+ <!-- HOME / LAUNCH -->
+ <section id="v-home" class="view active">
+  <canvas id="homeCv" class="full"></canvas>
+  <div class="hero" id="hero">
+   <div class="kicker" data-i18n="hero_kicker"></div>
+   <h1 data-i18n="hero_title"></h1>
+   <p data-i18n="hero_sub"></p>
+   <div class="btns">
+    <button class="btn pri" id="launchBtn" data-i18n="btn_launch"></button>
+    <button class="btn" data-go="struct" data-i18n="btn_struct"></button>
+    <button class="btn" data-go="learn" data-i18n="btn_learn"></button>
+   </div>
+  </div>
+  <div class="countdown" id="countdown"></div>
+  <div class="hud panel hidden" id="hud">
+   <div class="tp">T+ <span id="hT">00:00</span></div>
+   <div class="row"><span data-i18n="hud_alt"></span><b id="hAlt">0 km</b></div>
+   <div class="row"><span data-i18n="hud_vel"></span><b id="hVel">0 km/h</b></div>
+   <div class="ph" id="hPh"></div>
+   <div class="note" data-i18n="hud_note"></div>
+  </div>
+  <div class="toast" id="toast"></div>
+  <div class="card panel hidden" id="orbitCard">
+   <h2 data-i18n="orbit_title"></h2>
+   <p data-i18n="orbit_sub"></p>
+   <div class="btns">
+    <button class="btn" id="replayBtn" data-i18n="btn_replay"></button>
+    <button class="btn pri" data-go="game" data-i18n="btn_game"></button>
+    <button class="btn cy" data-go="learn" data-i18n="btn_learn"></button>
+   </div>
+  </div>
+  <div class="flash" id="flash"></div>
+ </section>
+
+ <!-- STRUCTURE -->
+ <section id="v-struct" class="view">
+  <canvas id="structCv" class="full"></canvas>
+  <aside class="side panel">
+   <h2 data-i18n="st_title"></h2>
+   <div class="hint" data-i18n="st_hint"></div>
+   <div class="ctrl">
+    <label class="rg"><span data-i18n="st_explode"></span><input type="range" id="stExp" min="0" max="1" step="0.01" value="0"></label>
+    <label class="sw"><input type="checkbox" id="stX"><span data-i18n="st_xray"></span></label>
+    <label class="sw"><input type="checkbox" id="stAuto" checked><span data-i18n="st_auto"></span></label>
+    <button class="btn sm" id="stReset" data-i18n="st_reset"></button>
+   </div>
+   <div class="info" id="stInfo"></div>
+   <div class="parts" id="stParts"></div>
+  </aside>
+ </section>
+
+ <!-- LEARN -->
+ <section id="v-learn" class="view scroll">
+  <div class="wrap">
+   <h2 data-i18n="learn_title"></h2>
+   <p class="sub" data-i18n="learn_sub"></p>
+   <div class="prog"><span data-i18n="learn_prog"></span><div class="bar"><i id="progBar"></i></div><b id="progTxt"></b></div>
+   <div class="mapbox" id="mapBox"><svg id="mapSvg"></svg><div id="mapLv"></div></div>
+  </div>
+  <aside class="lesson panel" id="lesson"></aside>
+ </section>
+
+ <!-- SIM -->
+ <section id="v-sim" class="view scroll">
+  <div class="simgrid">
+   <div class="panel">
+    <h2 data-i18n="sim_title"></h2>
+    <div class="presets" id="presets"></div>
+    <div id="stages"></div>
+    <label class="sw" style="margin:4px 0 10px"><input type="checkbox" id="sim3"><span data-i18n="sim_3"></span></label>
+    <div class="pl" style="margin-bottom:14px"><label><span data-i18n="sim_payload"></span><input type="number" id="simPay" step="any"></label></div>
+    <h2 style="font-size:16px" data-i18n="sim_prog"></h2>
+    <textarea class="code" id="simProg" spellcheck="false"></textarea>
+    <div class="help" data-i18n="sim_help"></div>
+    <button class="btn pri" id="simRun" style="width:100%" data-i18n="sim_run"></button>
+   </div>
+   <div class="panel">
+    <div class="kpis" id="kpis"></div>
+    <div id="verdict"></div>
+    <div class="trajwrap">
+     <canvas id="trajCv"></canvas>
+     <div class="trajtabs"><button class="btn sm" id="tvA" data-i18n="sim_ascent"></button><button class="btn sm" id="tvF" data-i18n="sim_full"></button></div>
+     <div class="tele" id="tele"></div>
+    </div>
+    <div class="charts"><canvas id="chAlt"></canvas><canvas id="chVel"></canvas></div>
+    <div class="evlog" id="evlog"></div>
+   </div>
+  </div>
+ </section>
+
+ <!-- SOLAR -->
+ <section id="v-solar" class="view">
+  <canvas id="solarCv" class="full"></canvas>
+  <aside class="side panel">
+   <h2 data-i18n="so_title"></h2>
+   <div class="hint" data-i18n="so_hint"></div>
+   <div class="ctrl">
+    <label class="rg"><span><span data-i18n="so_speed"></span>: <b id="soSpdV">20</b> <span data-i18n="so_days"></span></span><input type="range" id="soSpd" min="0" max="200" step="1" value="20"></label>
+    <button class="btn sm" id="soAll" data-i18n="so_all"></button>
+   </div>
+   <div class="info" id="soInfo"></div>
+  </aside>
+ </section>
+
+ <!-- GAME -->
+ <section id="v-game" class="view">
+  <canvas id="gameCv" class="full"></canvas>
+  <div class="ghud">
+   <div class="panel gstat">
+    <div><small data-i18n="g_level"></small><b id="gLv">1</b></div>
+    <div><small data-i18n="g_score"></small><b id="gSc">0</b></div>
+    <div><small data-i18n="g_speed"></small><b id="gSp">0</b></div>
+    <div><small data-i18n="g_target"></small><b id="gTg">0</b></div>
+   </div>
+   <div class="panel">
+    <div><small data-i18n="g_fuel"></small><div class="meter"><i id="gFu"></i></div></div>
+    <div style="margin-top:6px"><small data-i18n="g_hull"></small><div class="meter"><i id="gHu" style="background:var(--acc)"></i></div></div>
+   </div>
+  </div>
+  <div class="gwarn" id="gWarn"></div>
+  <video id="gVid" class="gcam hidden" muted playsinline></video>
+  <div class="touch" id="touch">
+   <div class="joy" id="joy"><i></i></div>
+   <div class="tbtns"><button id="tTh" data-i18n="g_thrust"></button><button id="tBr" class="br" data-i18n="g_brake"></button></div>
+  </div>
+  <div class="overlay" id="gMenu">
+   <div class="panel">
+    <h2 id="gMt" data-i18n="g_title"></h2>
+    <p id="gMp" data-i18n="g_how"></p>
+    <div class="keys" data-i18n="g_keys"></div>
+    <div class="opts">
+     <label class="sw"><input type="checkbox" id="gNewton"><span data-i18n="g_newton"></span></label>
+     <small data-i18n="g_newton_d"></small>
+     <label class="sw"><input type="checkbox" id="gCamSteer"><span data-i18n="g_cam"></span></label>
+    </div>
+    <div class="btns" style="justify-content:center">
+     <button class="btn pri" id="gStart" data-i18n="g_start"></button>
+     <button class="btn hidden" id="gNext" data-i18n="g_next"></button>
+    </div>
+    <p style="margin-top:14px;font-size:12.5px;color:var(--mut)"><span data-i18n="g_best"></span>: <b id="gBest">0</b></p>
+   </div>
+  </div>
+ </section>
+
+ <!-- CAMERA -->
+ <section id="v-cam" class="view">
+  <video id="camVid" muted playsinline></video>
+  <canvas id="camCv" class="full"></canvas>
+  <div class="cinfo panel">
+   <h2 data-i18n="c_title"></h2>
+   <p id="cHint" data-i18n="c_hint1"></p>
+   <div class="cstat"><span><span data-i18n="c_launches"></span>: <b id="cCount">0</b></span><span data-i18n="c_motion"></span><div class="meter" style="width:90px;margin:0"><i id="cMeter" style="width:0"></i></div></div>
+   <small id="cMsg" data-i18n="c_priv"></small>
+  </div>
+  <div class="cbar panel">
+   <button class="btn pri sm" id="cStart" data-i18n="c_start"></button>
+   <div class="seg"><button class="on" data-m="1" data-i18n="c_mode1"></button><button data-m="2" data-i18n="c_mode2"></button></div>
+   <button class="btn sm" id="cSnap" data-i18n="c_snap"></button>
+  </div>
+ </section>
+</main>
+
+<script>
+'use strict';
+/* =====================================================================
+   ORBIT LAB — single-file 3D space & rocket learning platform
+   No external libraries. Custom Canvas2D 3D renderer.
+   ===================================================================== */
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const clamp=(v,a,b)=>v<a?a:v>b?b:v, lerp=(a,b,t)=>a+(b-a)*t, rnd=(a,b)=>a+Math.random()*(b-a);
+const store={get(k,d){try{const v=localStorage.getItem('orbitlab:'+k);return v==null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem('orbitlab:'+k,JSON.stringify(v))}catch(e){}}};
+
+/* ============================ I18N ============================ */
+const I18N={
+ko:{brand_sub:'우주·로켓 3D 학습 플랫폼',nav_home:'발사',nav_struct:'구조',nav_learn:'학습맵',nav_sim:'시뮬레이터',nav_solar:'태양계',nav_game:'게임',nav_cam:'카메라',
+hero_kicker:'3D 우주 · 항공우주공학 플레이그라운드',hero_title:'우주로 가는 원리를<br>직접 만지며 배우세요',hero_sub:'로켓 구조부터 대학 수준 궤도역학까지 — 3D로 보고, 계산하고, 프로그래밍하고, 직접 비행하세요.',
+btn_launch:'🚀 발사하기',btn_struct:'구조 탐색',btn_learn:'학습 시작',
+hud_alt:'고도',hud_vel:'속도',hud_note:'표시 수치는 실제 2단 발사체의 상승 프로파일을 단순화한 예시입니다.',
+ph_count:'카운트다운',ph_ign:'엔진 점화',ph_lift:'이륙',ph_maxq:'최대 동압 (Max Q)',ph_meco:'1단 엔진 정지 · 단 분리',ph_ses:'2단 엔진 점화',ph_fair:'페어링 분리',ph_orbit:'궤도 진입',
+orbit_title:'궤도 진입 성공!',orbit_sub:'고도 약 200 km, 초속 약 7.8 km — 지구를 약 90분에 한 바퀴 돕니다.',btn_replay:'다시 발사',btn_game:'우주 비행 게임',
+st_title:'로켓 구조 탐색기',st_hint:'부품을 눌러 설명을 확인하세요. 드래그로 회전, 휠·핀치로 확대합니다.',st_explode:'분해도',st_xray:'X-ray 투시 (내부 부품 보기)',st_auto:'자동 회전',st_reset:'시점 초기화',st_none:'선택된 부품이 없습니다. 3D 모델이나 아래 목록에서 부품을 고르세요.',
+learn_title:'우주 학습맵',learn_sub:'기초 물리에서 대학 수준의 궤도역학·추진공학·천체물리까지. 선으로 연결된 순서를 따라 탐험하고, 각 단원의 도전 문제를 풀면 완료됩니다.',learn_prog:'완료',
+lv1:'기초',lv2:'중급',lv3:'고급',lv4:'대학',lvn1:'힘과 중력, 우주의 크기',lvn2:'추력, 궤도, 별빛',lvn3:'로켓 방정식과 행성 간 이동',lvn4:'궤도역학 · 추진공학 · 제어',
+ls_formula:'핵심 공식',ls_calc:'직접 계산해 보기',ls_prob:'도전 문제',ls_check:'확인',ls_hint:'힌트',ls_sol:'풀이 보기',ls_ok:'정답입니다! 이 단원을 완료로 표시했어요.',ls_no:'아직 아니에요. 단위와 계산을 다시 확인해 보세요.',ls_pre:'먼저 보면 좋은 단원',ls_next:'다음 단원 →',ls_ans:'답 입력',ls_tol:'오차 ±2% 이내면 정답',ls_go:'관련 3D 체험 열기',
+sim_title:'발사체 설계 & 비행 프로그래밍',sim_stage:'단',sim_prop:'추진제',sim_pm:'추진제 질량 (t)',sim_dm:'건조 질량 (t)',sim_th:'진공 추력 (kN)',sim_payload:'탑재체 질량 (t)',sim_3:'3단 사용',sim_prog:'비행 프로그램 (로켓 프로그래밍)',sim_run:'▶ 발사 시뮬레이션',
+sim_help:'명령: <code>at 시간 pitch 각도</code> (90°=수직, 0°=수평, 키 사이는 직선 보간) · <code>at 시간 throttle %</code> · <code>at 시간 stage|cut|ignite</code> · <code>when 변수 &gt; 값 cut|ignite|stage</code><br>변수: <code>altitude</code> <code>velocity</code> <code>apoapsis</code> <code>periapsis</code> (km), <code>vspeed</code> (m/s, 수직 속도). <code>when</code> 조건은 위에서부터 하나씩 차례로 작동합니다. <code>#</code> 뒤는 주석입니다.',
+sim_dv:'총 Δv',sim_twr:'이륙 추력/중량비',sim_need:'저궤도에는 중력·공기 손실을 포함해 약 9.3–9.5 km/s의 Δv가 필요합니다.',
+r_orbit:'궤도 진입 성공',r_sub:'준궤도 비행 — 궤도에 도달하지 못했습니다',r_crash:'추락 — 대기권 안에서 지면에 충돌했습니다',r_twr:'추력 부족 — 추력/중량비가 1보다 작아 이륙할 수 없습니다',r_err:'프로그램 오류 — 줄',
+sim_apo:'원지점 고도',sim_peri:'근지점 고도',sim_maxq:'최대 동압',sim_time:'비행 시간',sim_ascent:'상승 구간',sim_full:'전체 궤도',sim_alt:'고도 (km)',sim_spd:'속도 (km/s)',
+ev_stage:'단 분리',ev_cut:'엔진 정지',ev_ignite:'재점화',ev_maxq:'Max Q',ev_orbit:'궤도 진입',
+so_title:'태양계',so_hint:'행성을 눌러 실제 데이터를 확인하세요. 거리와 크기는 보기 좋게 압축했습니다.',so_speed:'시간 속도',so_days:'일/초',so_all:'전체 보기',so_a:'평균 궤도 반지름',so_period:'공전 주기',so_radius:'반지름',so_g:'표면 중력',so_vesc:'탈출 속도',so_day:'일',
+g_title:'우주 비행 게임',g_how:'링을 통과하고 연료를 모으며 소행성을 피해 목표 행성까지 비행하세요. 행성에 가까워지면 속도를 줄여야 궤도에 진입할 수 있습니다!',g_keys:'↑↓ 피치 · ←→ 요 · Q/E 롤 · Space/W 추진 · S 역추진',g_start:'비행 시작',g_newton:'뉴턴 모드 (마찰 없음)',g_newton_d:'실제 우주에는 공기 저항이 없어 한번 얻은 속도가 그대로 유지됩니다. 멈추려면 반대로 분사해야 합니다.',g_cam:'카메라 모션으로 조종',g_score:'점수',g_fuel:'연료',g_hull:'선체',g_speed:'속도',g_target:'목표까지',g_level:'레벨',g_over:'임무 실패',g_win:'궤도 진입 성공!',g_retry:'다시 도전',g_next:'다음 레벨',g_slow:'속도를 줄이세요! 궤도 진입 속도 < 45',g_thrust:'추진',g_brake:'역추진',g_best:'최고 점수',g_crash:'행성에 너무 빠르게 접근해 충돌했습니다.',g_nofuel:'연료가 바닥나 표류하게 되었습니다.',g_broken:'소행성 충돌로 선체가 파괴되었습니다.',g_winmsg:'목표 행성의 중력에 붙잡혀 안정적인 궤도에 들어섰습니다. 보너스',
+c_title:'카메라 플레이그라운드',c_start:'카메라 켜기',c_stop:'카메라 끄기',c_snap:'📸 사진 찍기',c_mode1:'🚀 모션 발사',c_mode2:'🪐 손 중력장',c_hint1:'화면 위쪽에서 손을 흔들면 로켓이 발사됩니다. 좌우로 움직이면 로켓이 따라옵니다.',c_hint2:'움직이는 손이 중력원이 됩니다. 별 입자들이 뉴턴의 만유인력에 따라 궤도를 그리며 끌려옵니다.',c_priv:'영상은 이 기기 안에서만 처리되며 전송·저장되지 않습니다.',c_nocam:'카메라를 사용할 수 없어 데모 모드로 실행합니다. 화면을 드래그하고, 위쪽을 탭하면 발사됩니다.',c_launches:'발사',c_motion:'움직임'},
+en:{brand_sub:'3D space & rocket learning platform',nav_home:'Launch',nav_struct:'Structure',nav_learn:'Study Map',nav_sim:'Simulator',nav_solar:'Solar System',nav_game:'Game',nav_cam:'Camera',
+hero_kicker:'3D space · aerospace engineering playground',hero_title:'Learn what takes us to space<br>by touching it',hero_sub:'From rocket anatomy to university-level orbital mechanics — see it in 3D, calculate it, program it and fly it.',
+btn_launch:'🚀 Launch',btn_struct:'Explore structure',btn_learn:'Start learning',
+hud_alt:'Altitude',hud_vel:'Velocity',hud_note:'Figures are a simplified illustration of a real two-stage ascent profile.',
+ph_count:'Countdown',ph_ign:'Engine ignition',ph_lift:'Liftoff',ph_maxq:'Max Q (max dynamic pressure)',ph_meco:'MECO · stage separation',ph_ses:'Second-stage ignition',ph_fair:'Fairing separation',ph_orbit:'Orbit insertion',
+orbit_title:'Orbit reached!',orbit_sub:'About 200 km up, moving about 7.8 km every second — one lap around Earth in roughly 90 minutes.',btn_replay:'Launch again',btn_game:'Space flight game',
+st_title:'Rocket structure explorer',st_hint:'Tap a part to learn about it. Drag to rotate, scroll or pinch to zoom.',st_explode:'Exploded view',st_xray:'X-ray (see internal parts)',st_auto:'Auto-rotate',st_reset:'Reset view',st_none:'No part selected. Pick one on the 3D model or from the list below.',
+learn_title:'Space study map',learn_sub:'From basic physics to university-level orbital mechanics, propulsion and astrophysics. Follow the connected path and solve each unit’s challenge to complete it.',learn_prog:'Completed',
+lv1:'Foundations',lv2:'Intermediate',lv3:'Advanced',lv4:'University',lvn1:'Force, gravity and the scale of space',lvn2:'Thrust, orbits and starlight',lvn3:'The rocket equation and interplanetary travel',lvn4:'Orbital mechanics · propulsion · control',
+ls_formula:'Key formula',ls_calc:'Try the calculator',ls_prob:'Challenge problem',ls_check:'Check',ls_hint:'Hint',ls_sol:'Show solution',ls_ok:'Correct! This unit is now marked complete.',ls_no:'Not yet — check your units and arithmetic.',ls_pre:'Recommended before this',ls_next:'Next unit →',ls_ans:'Your answer',ls_tol:'Within ±2% counts as correct',ls_go:'Open related 3D experience',
+sim_title:'Launch vehicle design & flight programming',sim_stage:'Stage',sim_prop:'Propellant',sim_pm:'Propellant mass (t)',sim_dm:'Dry mass (t)',sim_th:'Vacuum thrust (kN)',sim_payload:'Payload mass (t)',sim_3:'Use 3 stages',sim_prog:'Flight program (rocket programming)',sim_run:'▶ Run launch simulation',
+sim_help:'Commands: <code>at TIME pitch DEG</code> (90°=vertical, 0°=horizontal, linearly interpolated) · <code>at TIME throttle %</code> · <code>at TIME stage|cut|ignite</code> · <code>when VAR &gt; VALUE cut|ignite|stage</code><br>Variables: <code>altitude</code> <code>velocity</code> <code>apoapsis</code> <code>periapsis</code> (km), <code>vspeed</code> (m/s, vertical speed). <code>when</code> rules fire one at a time, top to bottom. <code>#</code> starts a comment.',
+sim_dv:'Total Δv',sim_twr:'Liftoff thrust-to-weight',sim_need:'Low Earth orbit needs about 9.3–9.5 km/s of Δv including gravity and drag losses.',
+r_orbit:'Orbit achieved',r_sub:'Suborbital flight — orbit not reached',r_crash:'Crash — hit the ground inside the atmosphere',r_twr:'Not enough thrust — thrust-to-weight below 1, cannot lift off',r_err:'Program error — line',
+sim_apo:'Apoapsis altitude',sim_peri:'Periapsis altitude',sim_maxq:'Max dynamic pressure',sim_time:'Flight time',sim_ascent:'Ascent',sim_full:'Full orbit',sim_alt:'Altitude (km)',sim_spd:'Speed (km/s)',
+ev_stage:'Stage separation',ev_cut:'Engine cutoff',ev_ignite:'Re-ignition',ev_maxq:'Max Q',ev_orbit:'Orbit',
+so_title:'Solar System',so_hint:'Tap a planet for real data. Distances and sizes are compressed for viewing.',so_speed:'Time speed',so_days:'days/s',so_all:'View all',so_a:'Mean orbital radius',so_period:'Orbital period',so_radius:'Radius',so_g:'Surface gravity',so_vesc:'Escape velocity',so_day:'days',
+g_title:'Space flight game',g_how:'Fly through rings, collect fuel and dodge asteroids on the way to the target planet. Near the planet you must slow down to enter orbit!',g_keys:'↑↓ pitch · ←→ yaw · Q/E roll · Space/W thrust · S retro-thrust',g_start:'Start flight',g_newton:'Newtonian mode (no friction)',g_newton_d:'Real space has no air drag: speed you gain is kept until you burn the other way.',g_cam:'Steer with camera motion',g_score:'Score',g_fuel:'Fuel',g_hull:'Hull',g_speed:'Speed',g_target:'To target',g_level:'Level',g_over:'Mission failed',g_win:'Orbit achieved!',g_retry:'Try again',g_next:'Next level',g_slow:'Slow down! Orbit insertion speed < 45',g_thrust:'Thrust',g_brake:'Retro',g_best:'Best score',g_crash:'You approached the planet too fast and crashed.',g_nofuel:'Out of fuel — you are drifting.',g_broken:'Asteroid impacts destroyed the hull.',g_winmsg:'Captured by the planet’s gravity into a stable orbit. Bonus',
+c_title:'Camera playground',c_start:'Turn camera on',c_stop:'Turn camera off',c_snap:'📸 Snapshot',c_mode1:'🚀 Motion launch',c_mode2:'🪐 Hand gravity',c_hint1:'Wave your hand near the top of the screen to launch. Move left or right and the rocket follows.',c_hint2:'Your moving hand becomes a gravity source. Star particles fall into orbits following Newton’s law of gravitation.',c_priv:'Video is processed only on this device and is never sent or saved.',c_nocam:'Camera unavailable — running demo mode. Drag on screen; tap near the top to launch.',c_launches:'Launches',c_motion:'Motion'},
+mn:{brand_sub:'Сансар, пуужингийн 3D сургалтын платформ',nav_home:'Хөөргөх',nav_struct:'Бүтэц',nav_learn:'Сургалт',nav_sim:'Симулятор',nav_solar:'Нарны аймаг',nav_game:'Тоглоом',nav_cam:'Камер',
+hero_kicker:'3D сансар · сансрын инженерчлэлийн талбай',hero_title:'Сансарт хүргэх зарчмуудыг<br>гараараа мэдэрч сур',hero_sub:'Пуужингийн бүтцээс их сургуулийн түвшний тойрог замын механик хүртэл — 3D-ээр үзэж, тооцоолж, программчилж, өөрөө нис.',
+btn_launch:'🚀 Хөөргөх',btn_struct:'Бүтэц судлах',btn_learn:'Сурч эхлэх',
+hud_alt:'Өндөр',hud_vel:'Хурд',hud_note:'Тоон утгууд нь бодит хоёр шатат пуужингийн өгсөлтийг хялбарчилсан жишээ юм.',
+ph_count:'Тоолол',ph_ign:'Хөдөлгүүр асаалт',ph_lift:'Хөөрөлт',ph_maxq:'Хамгийн их динамик даралт (Max Q)',ph_meco:'1-р шат унтарч, салав',ph_ses:'2-р шат асав',ph_fair:'Толгойн бүрхүүл салав',ph_orbit:'Тойрог замд орлоо',
+orbit_title:'Тойрог замд амжилттай орлоо!',orbit_sub:'Ойролцоогоор 200 км өндөрт, секундэд 7.8 км хурдтай — Дэлхийг 90 орчим минутад нэг тойрно.',btn_replay:'Дахин хөөргөх',btn_game:'Сансрын нислэгийн тоглоом',
+st_title:'Пуужингийн бүтэц судлагч',st_hint:'Эд анги дээр дарж тайлбарыг үзээрэй. Чирж эргүүлж, хулгана эсвэл хоёр хуруугаар томруулна.',st_explode:'Задласан харагдац',st_xray:'Рентген (дотоод эд анги)',st_auto:'Автомат эргэлт',st_reset:'Харагдацыг сэргээх',st_none:'Эд анги сонгоогүй байна. 3D загвар эсвэл доорх жагсаалтаас сонгоно уу.',
+learn_title:'Сансрын сургалтын зураг',learn_sub:'Суурь физикээс их сургуулийн түвшний тойрог замын механик, хөдөлгүүрийн инженерчлэл, одон орны физик хүртэл. Холбоосын дагуу судалж, бодлого бодоод хичээлээ дуусгаарай.',learn_prog:'Дууссан',
+lv1:'Суурь',lv2:'Дунд',lv3:'Ахисан',lv4:'Их сургууль',lvn1:'Хүч, таталцал, сансрын хэмжээ',lvn2:'Түлхэлт, тойрог зам, одны гэрэл',lvn3:'Пуужингийн тэгшитгэл ба гараг хоорондын нислэг',lvn4:'Тойрог замын механик · хөдөлгүүр · удирдлага',
+ls_formula:'Гол томьёо',ls_calc:'Өөрөө тооцоолж үзэх',ls_prob:'Сорилтын бодлого',ls_check:'Шалгах',ls_hint:'Сануулга',ls_sol:'Бодолт харах',ls_ok:'Зөв! Энэ хичээлийг дууссан гэж тэмдэглэлээ.',ls_no:'Арай болоогүй. Нэгж, тооцоогоо дахин шалгаарай.',ls_pre:'Өмнө нь үзэхэд тустай',ls_next:'Дараагийн хичээл →',ls_ans:'Хариу',ls_tol:'±2% дотор бол зөв',ls_go:'Холбогдох 3D туршлагыг нээх',
+sim_title:'Пуужин зохион бүтээх ба нислэгийн программчлал',sim_stage:'Шат',sim_prop:'Түлш',sim_pm:'Түлшний масс (т)',sim_dm:'Хуурай масс (т)',sim_th:'Вакуум түлхэлт (кН)',sim_payload:'Ачааны масс (т)',sim_3:'3 шат ашиглах',sim_prog:'Нислэгийн программ (пуужин программчлал)',sim_run:'▶ Хөөргөлтийн симуляц',
+sim_help:'Командууд: <code>at ХУГАЦАА pitch ӨНЦӨГ</code> (90°=босоо, 0°=хэвтээ) · <code>at ХУГАЦАА throttle %</code> · <code>at ХУГАЦАА stage|cut|ignite</code> · <code>when ХУВЬСАГЧ &gt; УТГА cut|ignite|stage</code><br>Хувьсагч: <code>altitude</code> <code>velocity</code> <code>apoapsis</code> <code>periapsis</code> (км), <code>vspeed</code> (м/с, босоо хурд). <code>when</code> нөхцөлүүд дээрээс доош нэг нэгээр ажиллана. <code>#</code> бол тайлбар.',
+sim_dv:'Нийт Δv',sim_twr:'Хөөрөх үеийн түлхэлт/жин',sim_need:'Нам тойрог замд таталцал, агаарын алдагдлыг оруулаад 9.3–9.5 км/с орчим Δv хэрэгтэй.',
+r_orbit:'Тойрог замд орлоо',r_sub:'Тойрог замын бус нислэг — тойрог замд хүрсэнгүй',r_crash:'Унасан — агаар мандалд газартай мөргөлдсөн',r_twr:'Түлхэлт хүрэлцэхгүй — түлхэлт/жин 1-ээс бага',r_err:'Программын алдаа — мөр',
+sim_apo:'Апоцентрын өндөр',sim_peri:'Перицентрын өндөр',sim_maxq:'Хамгийн их динамик даралт',sim_time:'Нислэгийн хугацаа',sim_ascent:'Өгсөлт',sim_full:'Бүтэн тойрог зам',sim_alt:'Өндөр (км)',sim_spd:'Хурд (км/с)',
+ev_stage:'Шат салсан',ev_cut:'Хөдөлгүүр унтарсан',ev_ignite:'Дахин асаасан',ev_maxq:'Max Q',ev_orbit:'Тойрог зам',
+so_title:'Нарны аймаг',so_hint:'Гараг дээр дарж бодит мэдээллийг үзээрэй. Зай, хэмжээг харахад тохиромжтойгоор шахсан.',so_speed:'Цагийн хурд',so_days:'өдөр/сек',so_all:'Бүгдийг харах',so_a:'Тойрог замын дундаж радиус',so_period:'Эргэлтийн үе',so_radius:'Радиус',so_g:'Гадаргын таталцал',so_vesc:'Чөлөөлөгдөх хурд',so_day:'өдөр',
+g_title:'Сансрын нислэгийн тоглоом',g_how:'Цагиргуудаар нэвтэрч, түлш цуглуулж, астероидоос зайлсхийн зорилтот гараг руу нис. Гарагт ойртохдоо хурдаа сааруулж тойрог замд орох ёстой!',g_keys:'↑↓ өндөрлөг · ←→ эргэлт · Q/E өнхрөлт · Space/W түлхэлт · S эсрэг түлхэлт',g_start:'Нислэг эхлүүлэх',g_newton:'Ньютоны горим (үрэлтгүй)',g_newton_d:'Бодит сансарт агаарын эсэргүүцэл байхгүй тул олсон хурд хадгалагдана. Зогсохын тулд эсрэг чиглэлд түлхэх хэрэгтэй.',g_cam:'Камерын хөдөлгөөнөөр удирдах',g_score:'Оноо',g_fuel:'Түлш',g_hull:'Их бие',g_speed:'Хурд',g_target:'Зорилт хүртэл',g_level:'Түвшин',g_over:'Даалгавар бүтэлгүйтлээ',g_win:'Тойрог замд орлоо!',g_retry:'Дахин оролдох',g_next:'Дараагийн түвшин',g_slow:'Хурдаа сааруул! Тойрог замд орох хурд < 45',g_thrust:'Түлхэх',g_brake:'Эсрэг',g_best:'Шилдэг оноо',g_crash:'Гарагт хэт хурдан ойртож мөргөлдлөө.',g_nofuel:'Түлш дуусч, хөвж үлдлээ.',g_broken:'Астероидын мөргөлтөөр их бие эвдэрлээ.',g_winmsg:'Гарагийн таталцалд баригдаж тогтвортой тойрог замд орлоо. Урамшуулал',
+c_title:'Камерын тоглоомын талбай',c_start:'Камер асаах',c_stop:'Камер унтраах',c_snap:'📸 Зураг авах',c_mode1:'🚀 Хөдөлгөөнөөр хөөргөх',c_mode2:'🪐 Гарын таталцал',c_hint1:'Дэлгэцийн дээд хэсэгт гараа даллавал пуужин хөөрнө. Хажуу тийш хөдлөхөд пуужин дагана.',c_hint2:'Хөдөлж буй гар тань таталцлын төв болно. Одны бөөмс Ньютоны бүх нийтийн таталцлын хуулиар тойрог зам зурж татагдана.',c_priv:'Видеог зөвхөн энэ төхөөрөмж дээр боловсруулж, хаашаа ч илгээхгүй, хадгалахгүй.',c_nocam:'Камер ашиглах боломжгүй тул демо горимд ажиллаж байна. Дэлгэцийг чирч, дээд хэсгийг дарвал хөөрнө.',c_launches:'Хөөргөлт',c_motion:'Хөдөлгөөн'}
+};
+let LANG=store.get('lang',null)||((navigator.language||'ko').startsWith('mn')?'mn':(navigator.language||'ko').startsWith('ko')?'ko':'en');
+const t=k=>(I18N[LANG]&&I18N[LANG][k])||I18N.en[k]||k;
+const L=o=>o==null?'':typeof o==='string'?o:(o[LANG]||o.en||o.ko);
+function applyLang(){
+ document.documentElement.lang=LANG;$('#lang').value=LANG;
+ $$('[data-i18n]').forEach(el=>{el.innerHTML=t(el.dataset.i18n)});
+ Object.values(VIEWS).forEach(v=>v.lang&&v.lang());
+}
+
+/* ============================ 3D MATH ============================ */
+const add=(a,b)=>[a[0]+b[0],a[1]+b[1],a[2]+b[2]],sub=(a,b)=>[a[0]-b[0],a[1]-b[1],a[2]-b[2]],mul=(a,s)=>[a[0]*s,a[1]*s,a[2]*s];
+const dot=(a,b)=>a[0]*b[0]+a[1]*b[1]+a[2]*b[2];
+const cross=(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]];
+const len=a=>Math.hypot(a[0],a[1],a[2]);
+const norm=a=>{const l=len(a)||1;return [a[0]/l,a[1]/l,a[2]/l]};
+const vlerp=(a,b,k)=>[lerp(a[0],b[0],k),lerp(a[1],b[1],k),lerp(a[2],b[2],k)];
+const M3={I:()=>[1,0,0,0,1,0,0,0,1],
+ rx(a){const c=Math.cos(a),s=Math.sin(a);return [1,0,0,0,c,-s,0,s,c]},
+ ry(a){const c=Math.cos(a),s=Math.sin(a);return [c,0,s,0,1,0,-s,0,c]},
+ rz(a){const c=Math.cos(a),s=Math.sin(a);return [c,-s,0,s,c,0,0,0,1]},
+ mul(a,b){const r=new Array(9);for(let i=0;i<3;i++)for(let j=0;j<3;j++)r[i*3+j]=a[i*3]*b[j]+a[i*3+1]*b[3+j]+a[i*3+2]*b[6+j];return r},
+ ap(m,v){return [m[0]*v[0]+m[1]*v[1]+m[2]*v[2],m[3]*v[0]+m[4]*v[1]+m[5]*v[2],m[6]*v[0]+m[7]*v[1]+m[8]*v[2]]},
+ basis(x,y,z){return [x[0],y[0],z[0],x[1],y[1],z[1],x[2],y[2],z[2]]}};
+const MI=M3.I();
+function hash3(x,y,z){const h=Math.sin(x*127.1+y*311.7+z*74.7)*43758.5453;return h-Math.floor(h)}
+function noise3(x,y,z){const xi=Math.floor(x),yi=Math.floor(y),zi=Math.floor(z);const s=q=>q*q*(3-2*q);const u=s(x-xi),v=s(y-yi),w=s(z-zi);let r=0;for(let a=0;a<2;a++)for(let b=0;b<2;b++)for(let c=0;c<2;c++)r+=hash3(xi+a,yi+b,zi+c)*(a?u:1-u)*(b?v:1-v)*(c?w:1-w);return r*2-1}
+
+/* ============================ MESHES ============================ */
+function fNormal(V,f){return norm(cross(sub(V[f[1]],V[f[0]]),sub(V[f[2]],V[f[0]])))}
+function fCenter(V,f){let c=[0,0,0];for(const i of f)c=add(c,V[i]);return mul(c,1/f.length)}
+function finish(m){m.normals=m.faces.map(f=>fNormal(m.verts,f));return m}
+function orientConvex(m){let c=[0,0,0];m.verts.forEach(v=>c=add(c,v));c=mul(c,1/m.verts.length);m.faces.forEach(f=>{if(dot(fNormal(m.verts,f),sub(fCenter(m.verts,f),c))<0)f.reverse()});return m}
+/* Lathe: revolve a (r,y) profile around Y. Profile goes bottom-center → outward → up → top-center. */
+function lathe(prof,seg,color,arc,start){
+ arc=arc||Math.PI*2;start=start||0;const closed=arc>Math.PI*2-1e-6,cols=closed?seg:seg+1;
+ const verts=[],faces=[];
+ for(const [r,y] of prof)for(let j=0;j<cols;j++){const a=start+j/seg*arc;verts.push([r*Math.cos(a),y,r*Math.sin(a)])}
+ for(let i=0;i<prof.length-1;i++){
+  const [r0,y0]=prof[i],[r1,y1]=prof[i+1],dr=r1-r0,dy=y1-y0;if(r0===0&&r1===0)continue;
+  for(let j=0;j<seg;j++){
+   const j2=closed?(j+1)%seg:j+1,a=i*cols+j,b=i*cols+j2,c=(i+1)*cols+j2,d=(i+1)*cols+j;
+   let f=r0===0?[a,c,d]:r1===0?[a,b,c]:[a,b,c,d];
+   const tm=start+(j+.5)/seg*arc,exp=[dy*Math.cos(tm),-dr,dy*Math.sin(tm)];
+   if(dot(fNormal(verts,f),exp)<0)f.reverse();faces.push(f);
+  }
+ }
+ return finish({verts,faces,color});
+}
+const cyl=(r,h,c,s=22)=>lathe([[0,0],[r,0],[r,h],[0,h]],s,c);
+const bell=(re,h,c,s=18)=>lathe([[0,0],[re,0],[re*.82,h*.22],[re*.55,h*.5],[re*.33,h*.72],[re*.44,h*.84],[re*.44,h],[0,h]],s,c);
+const ogiveP=(r,h)=>[[0,0],[r,0],[r,h*.1],[r*.94,h*.33],[r*.8,h*.56],[r*.58,h*.76],[r*.3,h*.92],[0,h]];
+function sphere(r,seg,rings,c){const p=[];for(let k=0;k<=rings;k++){const a=-Math.PI/2+Math.PI*k/rings;p.push([k===0||k===rings?0:r*Math.cos(a),r*Math.sin(a)])}return lathe(p,seg,c)}
+function box(w,h,d,c){const x=w/2,y=h/2,z=d/2;const verts=[[-x,-y,-z],[x,-y,-z],[x,y,-z],[-x,y,-z],[-x,-y,z],[x,-y,z],[x,y,z],[-x,y,z]];const faces=[[0,1,2,3],[4,5,6,7],[0,1,5,4],[3,2,6,7],[0,3,7,4],[1,2,6,5]];return finish(orientConvex({verts,faces,color:c}))}
+function torus(R,r,su,sv,c){const verts=[],faces=[];for(let i=0;i<su;i++){const u=i/su*Math.PI*2;for(let j=0;j<sv;j++){const v=j/sv*Math.PI*2;verts.push([(R+r*Math.cos(v))*Math.cos(u),(R+r*Math.cos(v))*Math.sin(u),r*Math.sin(v)])}}
+ for(let i=0;i<su;i++)for(let j=0;j<sv;j++){const i2=(i+1)%su,j2=(j+1)%sv;const f=[i*sv+j,i2*sv+j,i2*sv+j2,i*sv+j2];const fc=fCenter(verts,f);const tc=mul(norm([fc[0],fc[1],0]),R);if(dot(fNormal(verts,f),sub(fc,tc))<0)f.reverse();faces.push(f)}
+ return finish({verts,faces,color:c})}
+function octa(s,c){return finish(orientConvex({verts:[[s,0,0],[-s,0,0],[0,s*1.4,0],[0,-s*1.4,0],[0,0,s],[0,0,-s]],faces:[[0,2,4],[4,2,1],[1,2,5],[5,2,0],[0,4,3],[4,1,3],[1,5,3],[5,0,3]],color:c}))}
+function annulus(r1,r2,seg,c){const verts=[],faces=[];for(let j=0;j<seg;j++){const a=j/seg*Math.PI*2;verts.push([r1*Math.cos(a),0,r1*Math.sin(a)],[r2*Math.cos(a),0,r2*Math.sin(a)])}for(let j=0;j<seg;j++){const j2=(j+1)%seg;faces.push([j*2,j2*2,j2*2+1,j*2+1])}return finish({verts,faces,color:c})}
+function asteroidMesh(seed){const m=sphere(1,9,6,[120,112,104]);m.verts=m.verts.map(v=>mul(v,.72+.55*hash3(Math.round(v[0]*100)+seed*13,Math.round(v[1]*100),Math.round(v[2]*100))));orientConvex(m);finish(m);m.fcol=m.faces.map((f,i)=>{const k=.75+.35*hash3(i,seed,3);return [130*k,118*k,105*k]});return m}
+function planetMesh(r,seg,rings,fn){const m=sphere(r,seg,rings,[255,255,255]);m.fcol=m.faces.map(f=>fn(norm(fCenter(m.verts,f))));return m}
+const earthCol=c=>{const lat=Math.abs(c[1]);const n=noise3(c[0]*2.3+5,c[1]*2.3,c[2]*2.3)+.45*noise3(c[0]*6,c[1]*6+3,c[2]*6);if(lat>.9)return [236,242,250];if(n>.12)return lat>.62?[160,170,160]:n>.55?[160,128,86]:[64+n*40,128,70];return [28,74+n*30,170+n*40]};
+function groundMesh(){const verts=[],faces=[],fcol=[];const N=14,S=36,o=-N*S/2;for(let i=0;i<N;i++)for(let j=0;j<N;j++){const x0=o+i*S,z0=o+j*S,k=verts.length;verts.push([x0,0,z0],[x0,0,z0+S],[x0+S,0,z0+S],[x0+S,0,z0]);faces.push([k,k+1,k+2,k+3]);const d=Math.hypot(x0+S/2,z0+S/2);const g=.82+.18*hash3(i,j,1);fcol.push(d<40?[96*g,100*g,104*g]:[58*g,96*g,62*g])}return finish({verts,faces,fcol,color:[80,110,80]})}
+
+/* ============================ RENDERER ============================ */
+function clipNear(P,N){const o=[];for(let i=0;i<P.length;i++){const a=P[i],b=P[(i+1)%P.length],ai=a[2]>=N,bi=b[2]>=N;if(ai)o.push(a);if(ai!==bi){const k=(N-a[2])/(b[2]-a[2]);o.push([a[0]+(b[0]-a[0])*k,a[1]+(b[1]-a[1])*k,N])}}return o}
+function inPoly(x,y,P){let c=false;for(let i=0,j=P.length-1;i<P.length;j=i++){const a=P[i],b=P[j];if((a[1]>y)!==(b[1]>y)&&x<(b[0]-a[0])*(y-a[1])/(b[1]-a[1])+a[0])c=!c}return c}
+const SPR={};function sprite(col){if(SPR[col])return SPR[col];const c=document.createElement('canvas');c.width=c.height=64;const g=c.getContext('2d');const gr=g.createRadialGradient(32,32,0,32,32,32);gr.addColorStop(0,`rgba(${col},1)`);gr.addColorStop(.35,`rgba(${col},.5)`);gr.addColorStop(1,`rgba(${col},0)`);g.fillStyle=gr;g.fillRect(0,0,64,64);return SPR[col]=c}
+class R3D{
+ constructor(cv){this.cv=cv;this.ctx=cv.getContext('2d');this.cam={pos:[0,0,10],target:[0,0,0],up:[0,1,0],fov:50};this.near=.1;this.light=norm([.5,.8,.4]);this.amb=.28;this.fog=0;this.list=[];this.W=this.H=1;this.dpr=1}
+ resize(){const r=this.cv.getBoundingClientRect();this.dpr=Math.min(window.devicePixelRatio||1,1.6);this.cssW=r.width;this.cssH=r.height;const W=Math.max(1,Math.round(r.width*this.dpr)),H=Math.max(1,Math.round(r.height*this.dpr));if(this.cv.width!==W||this.cv.height!==H){this.cv.width=W;this.cv.height=H}this.W=W;this.H=H}
+ begin(){const c=this.cam,f=norm(sub(c.target,c.pos));let r=cross(f,c.up);if(len(r)<1e-6)r=cross(f,[0,0,1]);r=norm(r);this.f=f;this.r=r;this.u=cross(r,f);this.fl=this.H/2/Math.tan(c.fov*Math.PI/360);this.cx=this.W/2;this.cy=this.H/2;this.list=[]}
+ camLight(){this.light=norm(add(add(mul(this.r,-.45),mul(this.u,.75)),mul(this.f,-.55)))}
+ toCam(p){const d=sub(p,this.cam.pos);return [dot(d,this.r),dot(d,this.u),dot(d,this.f)]}
+ sp(c){return [this.cx+c[0]*this.fl/c[2],this.cy-c[1]*this.fl/c[2]]}
+ project(p){const c=this.toCam(p);if(c[2]<this.near)return null;const s=this.sp(c);return [s[0],s[1],c[2]]}
+ add(o){
+  const m=o.mesh,rot=o.rot||MI,sc=o.scale||1,pos=o.pos||[0,0,0],cp=this.cam.pos,N=this.near;
+  const wv=m.verts.map(v=>add(pos,M3.ap(rot,[v[0]*sc,v[1]*sc,v[2]*sc]))),cv=wv.map(p=>this.toCam(p));
+  const Lt=o.lightPos?norm(sub(o.lightPos,pos)):this.light,base=o.color||m.color,a=o.alpha==null?1:o.alpha;
+  for(let i=0;i<m.faces.length;i++){
+   const f=m.faces[i],n=M3.ap(rot,m.normals[i]);const facing=dot(n,sub(wv[f[0]],cp))<0;
+   if(!facing&&!o.double)continue;
+   let pts=f.map(k=>cv[k]),cl=false;for(const p of pts)if(p[2]<N){cl=true;break}
+   if(cl){pts=clipNear(pts,N);if(pts.length<3)continue}
+   let z=0;const s=pts.map(p=>{z+=p[2];return this.sp(p)});z/=pts.length;
+   const fc=m.fcol?m.fcol[i]:base;let k;
+   if(o.emis)k=1;else{let d=dot(facing?n:mul(n,-1),Lt);k=this.amb+(1-this.amb)*Math.max(0,d)}
+   if(o.glowK)k=Math.min(1.25,k+o.glowK);
+   if(this.fog)k*=clamp(1.15-z/this.fog,0,1);
+   this.list.push({s,z:z+(o.zb||0),c:`rgb(${Math.min(255,fc[0]*k)|0},${Math.min(255,fc[1]*k)|0},${Math.min(255,fc[2]*k)|0})`,a,id:o.id});
+  }
+ }
+ draw(){this.list.sort((a,b)=>b.z-a.z);const x=this.ctx;x.lineJoin='round';x.lineWidth=1;for(const p of this.list){x.globalAlpha=p.a;x.fillStyle=p.c;x.beginPath();x.moveTo(p.s[0][0],p.s[0][1]);for(let i=1;i<p.s.length;i++)x.lineTo(p.s[i][0],p.s[i][1]);x.closePath();x.fill();if(p.a>=1){x.strokeStyle=p.c;x.stroke()}}x.globalAlpha=1}
+ pick(px,py){px*=this.dpr;py*=this.dpr;for(let i=this.list.length-1;i>=0;i--){const p=this.list[i];if(p.id!=null&&p.a>.3&&inPoly(px,py,p.s))return p.id}return null}
+ stars(S,alpha=1){const x=this.ctx;for(const s of S){const c2=dot(s.d,this.f);if(c2<=.02)continue;const sx=this.cx+dot(s.d,this.r)*this.fl/c2,sy=this.cy-dot(s.d,this.u)*this.fl/c2;if(sx<0||sy<0||sx>this.W||sy>this.H)continue;x.globalAlpha=alpha*(.3+.7*s.b);x.fillStyle=s.c;const r=(.6+s.sz*1.4)*this.dpr;x.fillRect(sx,sy,r,r)}x.globalAlpha=1}
+ spr(p,rad,col,a=1,mode='lighter'){const q=this.project(p);if(!q)return;const R=rad*this.fl/q[2];if(R<.4||q[0]<-R||q[0]>this.W+R||q[1]<-R||q[1]>this.H+R)return;const x=this.ctx;x.globalCompositeOperation=mode;x.globalAlpha=clamp(a,0,1);x.drawImage(sprite(col),q[0]-R,q[1]-R,R*2,R*2);x.globalAlpha=1;x.globalCompositeOperation='source-over'}
+ line3(pts,style,w=1,closed=false){const x=this.ctx;x.strokeStyle=style;x.lineWidth=w*this.dpr;x.beginPath();let pen=false;for(const p of pts){const q=this.project(p);if(!q){pen=false;continue}if(!pen){x.moveTo(q[0],q[1]);pen=true}else x.lineTo(q[0],q[1])}if(closed&&pen&&pts.length){const q=this.project(pts[0]);if(q)x.lineTo(q[0],q[1])}x.stroke()}
+ label(p,txt,col='#e8eeff',size=12,dy=-14){const q=this.project(p);if(!q)return;const x=this.ctx;x.font=`600 ${size*this.dpr}px system-ui,sans-serif`;x.textAlign='center';x.fillStyle='rgba(0,0,0,.55)';x.fillText(txt,q[0]+1,q[1]+dy*this.dpr+1);x.fillStyle=col;x.fillText(txt,q[0],q[1]+dy*this.dpr)}
+ screenR(p,r){const q=this.project(p);return q?[q[0],q[1],r*this.fl/q[2]]:null}
+}
+function makeStars(n){const s=[];for(let i=0;i<n;i++){const z=Math.random()*2-1,a=Math.random()*Math.PI*2,r=Math.sqrt(1-z*z),b=Math.random();s.push({d:[r*Math.cos(a),z,r*Math.sin(a)],b,sz:Math.random()**3,c:b>.93?'#ffd9a8':b>.86?'#b0ccff':'#fff'})}return s}
+class PS{constructor(){this.a=[]}
+ emit(p,v,life,size,col,grow=1,mode='lighter'){if(this.a.length<1400)this.a.push({p:[...p],v:[...v],t:0,life,size,col,grow,mode})}
+ step(dt,drag=0,grav){for(const q of this.a){q.t+=dt;q.p=add(q.p,mul(q.v,dt));if(drag)q.v=mul(q.v,Math.max(0,1-drag*dt));if(grav)q.v=add(q.v,mul(grav,dt))}this.a=this.a.filter(q=>q.t<q.life)}
+ draw(R){for(const q of this.a){const k=q.t/q.life;R.spr(q.p,q.size*(1+k*q.grow),q.col,(1-k)*(q.mode==='lighter'?1:.55),q.mode)}}}
+function orbitCtl(el,o){
+ const P=new Map();let lastD=0,moved=0;
+ el.addEventListener('pointerdown',e=>{el.setPointerCapture&&el.setPointerCapture(e.pointerId);P.set(e.pointerId,[e.clientX,e.clientY]);if(P.size===1)moved=0;o.idle=0});
+ el.addEventListener('pointermove',e=>{if(!P.has(e.pointerId)||o.locked)return;const pr=P.get(e.pointerId),dx=e.clientX-pr[0],dy=e.clientY-pr[1];P.set(e.pointerId,[e.clientX,e.clientY]);
+  if(P.size===1){o.yaw-=dx*.008;o.pitch=clamp(o.pitch+dy*.008,o.pmin==null?-1.45:o.pmin,1.45);moved+=Math.abs(dx)+Math.abs(dy)}
+  else if(P.size===2){const [a,b]=[...P.values()],d=Math.hypot(a[0]-b[0],a[1]-b[1]);if(lastD)o.dist=clamp(o.dist*lastD/d,o.min,o.max);lastD=d;moved+=20}o.idle=0});
+ const up=e=>{if(!P.has(e.pointerId))return;P.delete(e.pointerId);lastD=0;if(moved<7&&o.onTap&&P.size===0){const r=el.getBoundingClientRect();o.onTap(e.clientX-r.left,e.clientY-r.top)}};
+ el.addEventListener('pointerup',up);el.addEventListener('pointercancel',e=>{P.delete(e.pointerId);lastD=0});
+ el.addEventListener('wheel',e=>{if(o.locked)return;e.preventDefault();o.dist=clamp(o.dist*(1+e.deltaY*.001),o.min,o.max);o.idle=0},{passive:false});
+}
+const orbitPos=(o,t)=>{const c=Math.cos(o.pitch);return [t[0]+o.dist*c*Math.sin(o.yaw),t[1]+o.dist*Math.sin(o.pitch),t[2]+o.dist*c*Math.cos(o.yaw)]};
+function skyGrad(R,top,bot){const x=R.ctx,g=x.createLinearGradient(0,0,0,R.H);g.addColorStop(0,`rgb(${top})`);g.addColorStop(1,`rgb(${bot})`);x.fillStyle=g;x.fillRect(0,0,R.W,R.H)}
+const mixc=(a,b,k)=>[lerp(a[0],b[0],k)|0,lerp(a[1],b[1],k)|0,lerp(a[2],b[2],k)|0];
+
+/* ============================ ROCKET MODEL ============================ */
+const C={white:[234,238,246],dark:[48,52,64],carbon:[34,36,44],copper:[200,116,66],gold:[222,176,70],steel:[150,160,176],blue:[52,96,210],red:[214,64,56]};
+const PART_INFO={
+ s1engine:{ko:['1단 엔진 클러스터','케로신(RP-1)과 액체산소를 태워 만든 3,000 K 이상의 가스를 종 모양 노즐로 가속해 추력을 냅니다. 여러 엔진을 묶으면 추력이 커지고, 하나가 꺼져도 임무를 이어갈 수 있습니다.'],en:['First-stage engine cluster','Burns kerosene (RP-1) with liquid oxygen; gas above 3,000 K is accelerated through bell nozzles to make thrust. Clustering engines adds thrust and engine-out redundancy.'],mn:['1-р шатны хөдөлгүүрийн бөөгнөрөл','Керосин (RP-1), шингэн хүчилтөрөгчийг шатааж, 3,000 K-ээс дээш халуун хийг хонх хэлбэрийн цоргоор хурдасгаж түлхэлт үүсгэнэ. Олон хөдөлгүүрийг нэгтгэвэл түлхэлт нэмэгдэж, нэг нь унтарсан ч даалгавраа үргэлжлүүлж чадна.'],spec:'5 × gas-generator cycle · Isp ≈ 282 s (SL) / 311 s (vac)'},
+ thrust:{ko:['추력 구조 (엔진부)','엔진이 낸 힘을 기체 전체로 전달하는 뼈대입니다. 짐벌 장치가 엔진 방향을 몇 도씩 바꿔 로켓의 자세를 제어합니다.'],en:['Thrust structure','The frame that carries engine forces into the vehicle. Gimbal actuators tilt engines a few degrees to steer the rocket.'],mn:['Түлхэлтийн бүтэц','Хөдөлгүүрийн хүчийг бүх их биед дамжуулдаг хүрээ. Гимбал механизм хөдөлгүүрийг хэдэн градусаар хазайлгаж пуужингийн байрлалыг удирдана.'],spec:'Gimbal ±5° · Al-Li / Ti'},
+ turbopump:{ko:['터보펌프','분당 수만 회전하는 터빈이 연료와 산화제를 연소실에 고압으로 밀어 넣습니다. 엔진의 "심장"으로, 일부 추진제를 태워 터빈을 돌립니다.'],en:['Turbopump','A turbine spinning tens of thousands of rpm forces fuel and oxidizer into the chamber at high pressure — the heart of the engine, driven by burning a little propellant.'],mn:['Турбо насос','Минутад хэдэн арван мянган эргэлт хийдэг турбин түлш, исэлдүүлэгчийг шаталтын камерт өндөр даралтаар шахна. Хөдөлгүүрийн "зүрх" юм.'],spec:'~30,000 rpm · chamber ≈ 10 MPa'},
+ feedline:{ko:['산화제 공급 배관','위쪽 액체산소 탱크의 산화제를 연료 탱크를 관통하는 배관으로 엔진까지 보냅니다.'],en:['Oxidizer feed line','Carries liquid oxygen from the upper tank, straight through the fuel tank, down to the engines.'],mn:['Исэлдүүлэгчийн хоолой','Дээд талын шингэн хүчилтөрөгчийн савнаас түлшний савыг нэвтлэн хөдөлгүүр хүртэл исэлдүүлэгчийг хүргэнэ.'],spec:'LOX · −183 °C'},
+ fueltank:{ko:['1단 연료 탱크 (RP-1)','정제 케로신을 담습니다. 얇은 알루미늄-리튬 합금 벽은 내부 가압으로 강성을 얻어, 가벼우면서도 단단합니다.'],en:['First-stage fuel tank (RP-1)','Holds refined kerosene. Thin aluminium-lithium walls get their stiffness from internal pressurization — light yet strong.'],mn:['1-р шатны түлшний сав (RP-1)','Цэвэршүүлсэн керосин агуулна. Нимгэн хөнгөн цагаан-литийн хананы хатуулаг дотоод даралтаас үүдэлтэй тул хөнгөн боловч бат бөх.'],spec:'Al-Li alloy · pressurized He'},
+ intertank:{ko:['인터탱크','두 탱크 사이를 잇는 구조물로, 전자장비와 배관이 지나가는 통로입니다.'],en:['Intertank','The structure joining the two tanks; avionics and plumbing pass through it.'],mn:['Сав хоорондын хэсэг','Хоёр савыг холбосон бүтэц бөгөөд электрон төхөөрөмж, хоолой дамжин өнгөрнө.'],spec:'Avionics · umbilicals'},
+ loxtank:{ko:['액체산소 탱크 (LOX)','−183 °C의 액체산소를 담습니다. 우주에는 공기가 없으므로 연소에 필요한 산소를 직접 싣고 가야 합니다. 추진제 질량의 약 70%가 산화제입니다.'],en:['Liquid-oxygen tank (LOX)','Holds −183 °C liquid oxygen. There is no air in space, so the rocket must carry its own oxygen — about 70% of propellant mass is oxidizer.'],mn:['Шингэн хүчилтөрөгчийн сав (LOX)','−183 °C-ийн шингэн хүчилтөрөгч агуулна. Сансарт агаар байхгүй тул шаталтад хэрэгтэй хүчилтөрөгчөө өөрөө авч явах ёстой.'],spec:'O/F ≈ 2.3–2.6'},
+ gridfin:{ko:['그리드 핀','격자 모양의 날개로, 분리된 1단이 대기권에 재진입해 착륙 지점으로 돌아올 때 공기를 이용해 방향을 조종합니다.'],en:['Grid fins','Lattice fins that steer the returning first stage aerodynamically as it re-enters and heads for the landing site.'],mn:['Сүлжээ далавч','Торон хэлбэрийн далавч. Салсан 1-р шат агаар мандалд эргэн орж буух газар руу буцахдаа агаарын тусламжтайгаар чиглэлээ удирдана.'],spec:'Titanium · hypersonic steering'},
+ leg:{ko:['착륙 다리','재사용 로켓이 수직으로 착륙할 때 펼쳐져 기체를 지탱합니다. 엔진 재점화와 정밀 유도가 함께 필요합니다.'],en:['Landing legs','Deploy to support a reusable booster during vertical landing, which also needs engine relight and precision guidance.'],mn:['Буух хөл','Дахин ашиглах пуужин босоо буухад дэлгэгдэж их биеийг тулна.'],spec:'Carbon fiber · deploys before touchdown'},
+ interstage:{ko:['단간부 (인터스테이지)','1단과 2단을 연결하고 2단 엔진 노즐을 보호합니다. 분리 순간 공압 장치가 두 단을 밀어냅니다.'],en:['Interstage','Connects stage 1 and stage 2 and shields the upper-stage nozzle. Pneumatic pushers separate the stages.'],mn:['Шат хоорондын хэсэг','1, 2-р шатыг холбож, 2-р шатны цоргыг хамгаална. Салах үед пневмат төхөөрөмж хоёр шатыг түлхэж салгана.'],spec:'Carbon composite · pneumatic separation'},
+ s2engine:{ko:['2단 진공 엔진','공기가 없는 진공에서 최대 효율을 내도록 노즐이 매우 큽니다(높은 팽창비). 같은 추진제라도 진공 Isp가 해수면보다 훨씬 높습니다.'],en:['Upper-stage vacuum engine','Its huge nozzle (high expansion ratio) is optimized for vacuum, giving much higher Isp than a sea-level engine with the same propellants.'],mn:['2-р шатны вакуум хөдөлгүүр','Агааргүй вакуумд хамгийн өндөр үр ашигтай ажиллахаар цорго нь маш том (өндөр тэлэлтийн харьцаа).'],spec:'Expansion ratio ≈ 165 · Isp ≈ 348 s'},
+ s2tank:{ko:['2단 추진제 탱크','궤도 속도까지의 마지막 가속을 맡는 추진제를 담습니다. 공통 격벽으로 연료와 산화제를 나눠 길이와 무게를 줄입니다.'],en:['Upper-stage propellant tanks','Hold the propellant for the final push to orbital speed. A common bulkhead separates fuel and oxidizer to save length and mass.'],mn:['2-р шатны түлшний сав','Тойрог замын хурд хүртэлх сүүлийн хурдатгалын түлшийг агуулна. Нийтлэг хаалтаар түлш, исэлдүүлэгчийг тусгаарлана.'],spec:'Common bulkhead'},
+ payload:{ko:['탑재체 (인공위성)','로켓이 우주로 보내는 목적물입니다. 발사 중에는 접혀 있던 태양전지판을 궤도에서 펼쳐 전력을 얻습니다.'],en:['Payload (satellite)','What the rocket is actually delivering. Solar arrays folded for launch unfold in orbit to generate power.'],mn:['Ачаа (хиймэл дагуул)','Пуужингийн сансарт хүргэх зорилго. Хөөргөлтийн үед эвхэгдсэн нарны хавтангаа тойрог замд дэлгэж эрчим хүч авна.'],spec:'Payload adapter · separation springs'},
+ fairing:{ko:['페어링','대기 중 공기 저항과 공력 가열로부터 탑재체를 보호하는 덮개입니다. 대기가 거의 없는 고도 약 110 km 부근에서 둘로 갈라져 분리됩니다.'],en:['Payload fairing','Protects the payload from drag and aerodynamic heating. It splits in two and separates around 110 km, where the air is almost gone.'],mn:['Толгойн бүрхүүл','Ачааг агаарын эсэргүүцэл, халалтаас хамгаална. Агаар бараг байхгүй 110 км орчим өндөрт хоёр хэсэг болж салдаг.'],spec:'Clamshell · ~110 km jettison'}};
+const PART_ORDER=['fairing','payload','s2tank','s2engine','interstage','loxtank','gridfin','intertank','fueltank','feedline','turbopump','thrust','leg','s1engine'];
+function buildRocket(seg=22){
+ const P=[];const p=(id,mesh,pos,ex,grp,o={})=>P.push({id,mesh,pos,ex,grp,rot:o.rot||MI,shell:!!o.shell,double:!!o.double});
+ const eb=bell(.2,.75,C.copper,Math.max(10,seg*.6|0));
+ [[0,0],[.33,0],[-.33,0],[0,.33],[0,-.33]].forEach(e=>p('s1engine',eb,[e[0],0,e[1]],[e[0]*2.2,-1.4,e[1]*2.2],'s1'));
+ p('thrust',cyl(.6,.6,C.dark,seg),[0,.7,0],[0,-.7,0],'s1',{shell:true});
+ p('turbopump',cyl(.13,.36,C.steel,12),[.26,.82,0],[1.7,-.5,0],'s1');
+ p('feedline',cyl(.05,4.4,C.steel,8),[-.3,1.2,.18],[-1.5,.4,0],'s1');
+ p('fueltank',cyl(.6,2.0,C.white,seg),[0,1.3,0],[0,0,0],'s1',{shell:true});
+ p('intertank',cyl(.612,.25,C.dark,seg),[0,3.3,0],[0,.45,0],'s1',{shell:true});
+ p('loxtank',cyl(.6,2.6,C.white,seg),[0,3.55,0],[0,.9,0],'s1',{shell:true});
+ const gf=box(.32,.26,.05,C.dark);for(let k=0;k<4;k++){const a=k*Math.PI/2;p('gridfin',gf,[Math.cos(a)*.76,5.85,Math.sin(a)*.76],[Math.cos(a)*1.1,.9,Math.sin(a)*1.1],'s1',{rot:M3.ry(-a)})}
+ const lg=box(.08,1.1,.14,C.carbon);for(let k=0;k<4;k++){const a=k*Math.PI/2+Math.PI/4;p('leg',lg,[Math.cos(a)*.66,1.05,Math.sin(a)*.66],[Math.cos(a)*1.3,-.6,Math.sin(a)*1.3],'s1',{rot:M3.mul(M3.ry(-a),M3.rz(.1))})}
+ p('interstage',cyl(.6,.8,C.carbon,seg),[0,6.15,0],[0,1.8,0],'s1',{shell:true});
+ p('s2engine',bell(.42,.78,C.copper,seg),[0,6.17,0],[0,2.3,0],'s2');
+ p('s2tank',cyl(.6,2.1,C.white,seg),[0,6.95,0],[0,3.1,0],'s2',{shell:true});
+ p('payload',cyl(.3,.25,C.steel,12),[0,9.05,0],[0,4.1,0],'pay');
+ p('payload',box(.55,.65,.55,C.gold),[0,9.62,0],[0,4.4,0],'pay');
+ p('payload',box(.04,.6,.5,C.blue),[.32,9.62,0],[.8,4.4,0],'pay');
+ p('payload',box(.04,.6,.5,C.blue),[-.32,9.62,0],[-.8,4.4,0],'pay');
+ const fp=ogiveP(.65,2.4);
+ p('fairing',lathe(fp,seg/2|0,C.white,Math.PI,-Math.PI/2),[0,9.05,0],[1.0,5.6,0],'fA',{shell:true,double:true});
+ p('fairing',lathe(fp,seg/2|0,C.white,Math.PI,Math.PI/2),[0,9.05,0],[-1.0,5.6,0],'fB',{shell:true,double:true});
+ return P;
+}
+function shipMesh(){
+ const parts=[];const s=12,o=-1.6;
+ parts.push({mesh:cyl(.6,2.4,C.white,s),pos:[0,0+o,0]},{mesh:cyl(.615,.18,C.red,s),pos:[0,1.7+o,0]},{mesh:lathe(ogiveP(.6,1.6),s,C.white),pos:[0,2.4+o,0]},{mesh:bell(.45,.8,C.copper,s),pos:[0,-.8+o,0]});
+ const fin=finish(orientConvex({verts:[[0,0,-.0],[0,0,0],[0,1.1,0],[.7,-.2,0]].map((v,i)=>i===1?[0,0,.05]:i===0?[0,0,-.05]:v),faces:[[0,2,3],[1,3,2],[0,3,1],[0,1,2]],color:C.red}));
+ for(let k=0;k<4;k++){const a=k*Math.PI/2;parts.push({mesh:box(.06,1.0,.55,C.red),pos:[Math.cos(a)*.62,.4+o,Math.sin(a)*.62],rot:M3.ry(-a+Math.PI/2)})}
+ void fin;return parts;
+}
+
+/* ============================ HOME / LAUNCH ============================ */
+const Home={
+ init(){const R=this.R=new R3D($('#homeCv'));this.parts=buildRocket(22);this.stars=makeStars(800);this.ps=new PS();this.dust=new PS();
+  this.o={yaw:.9,pitch:.08,dist:24,min:12,max:45,idle:9,pmin:-.05};orbitCtl($('#homeCv'),this.o);
+  this.ground=groundMesh();this.pad=cyl(3.4,.3,[128,130,138],28);
+  this.tower=[{mesh:box(.9,13.5,.9,[150,70,60]),pos:[2.4,6.75,0]},{mesh:box(1.6,.18,.3,[90,94,104]),pos:[1.5,8.6,0]},{mesh:box(1.6,.18,.3,[90,94,104]),pos:[1.5,5.2,0]},{mesh:box(1.4,.25,1.4,[90,94,104]),pos:[2.4,13.6,0]}];
+  this.earth=planetMesh(30,40,26,earthCol);
+  $('#launchBtn').onclick=()=>this.launch();$('#replayBtn').onclick=()=>this.reset();this.reset();},
+ reset(){this.phase='idle';this.t=0;this.speed=0;const g=()=>({p:[0,0,0],v:[0,0,0],rot:MI,ang:[0,0,0]});this.g={s1:g(),s2:g(),fA:g(),fB:g(),pay:g()};this.pivot={s1:[0,3.5,0],s2:[0,8,0],fA:[.3,10,0],fB:[-.3,10,0],pay:[0,9.5,0]};
+  this.ps.a=[];this.dust.a=[];this.ev={};this.camPos=null;this.o.locked=false;this.o.dist=24;
+  $('#hero').classList.remove('gone');$('#hud').classList.add('hidden');$('#orbitCard').classList.add('hidden');$('#countdown').innerHTML='';$('#flash').style.opacity=0},
+ launch(){if(this.phase!=='idle')return;this.phase='count';this.t=0;this.o.locked=true;$('#hero').classList.add('gone');$('#hud').classList.remove('hidden');this.setPh('ph_count');this.lastCd=-1},
+ setPh(k){this.phKey=k;$('#hPh').textContent=t(k)},
+ toast(k){const el=$('#toast');el.textContent=t(k);el.classList.add('show');clearTimeout(this.tt);this.tt=setTimeout(()=>el.classList.remove('show'),2400)},
+ lang(){if(this.phKey)$('#hPh').textContent=t(this.phKey)},
+ enter(){this.R.resize()},
+ gw(gk,local){const g=this.g[gk],pv=this.pivot[gk];return add(add(g.p,pv),M3.ap(g.rot,sub(local,pv)))},
+ frame(dt){
+  const R=this.R;this.t+=dt;const ph=this.phase;let altKm=0,mt=0;
+  // ---------- physics timeline ----------
+  if(ph==='count'){const cd=Math.ceil(3-this.t);if(cd!==this.lastCd&&cd>0){this.lastCd=cd;$('#countdown').innerHTML=`<span>${cd}</span>`}
+   if(this.t>2.3&&!this.ev.ign){this.ev.ign=1;this.setPh('ph_ign')}
+   if(this.t>=3){this.phase='ascent';this.ta=0;$('#countdown').innerHTML='';this.setPh('ph_lift');this.toast('ph_lift')}}
+  if(this.phase==='ascent'||this.phase==='sep'){
+   this.ta+=dt;const ta=this.ta;mt=ta*16;
+   altKm=mt<=144?.0032*mt*mt:66.4+(mt-144)*.45;const vel=mt<=144?.4*mt*mt:8294+(mt-144)*45;
+   $('#hT').textContent=`${String(mt/60|0).padStart(2,'0')}:${String(mt%60|0).padStart(2,'0')}`;$('#hAlt').textContent=altKm.toFixed(1)+' km';$('#hVel').textContent=Math.round(vel).toLocaleString()+' km/h';
+   if(mt>72&&!this.ev.mq){this.ev.mq=1;this.setPh('ph_maxq');this.toast('ph_maxq')}
+   const tilt=clamp((ta-2)*.035,0,.34),rot=M3.rz(-tilt),dir=M3.ap(rot,[0,1,0]);
+   if(this.phase==='ascent'){
+    this.speed+=(1.6+.55*ta)*dt;for(const k in this.g){const g=this.g[k];g.v=mul(dir,this.speed);g.p=add(g.p,mul(g.v,dt));g.rot=rot}
+    if(ta>=9){this.phase='sep';this.setPh('ph_meco');this.toast('ph_meco');const s1=this.g.s1;s1.v=mul(dir,this.speed*.97);s1.ang=[.25,0,.5];['s2','fA','fB','pay'].forEach(k=>{this.g[k].v=mul(dir,this.speed+2.5)})}
+   }else{
+    const s1=this.g.s1;s1.v=add(mul(s1.v,1-.35*dt),[0,-7*dt,0]);s1.p=add(s1.p,mul(s1.v,dt));s1.rot=M3.mul(M3.mul(M3.rz(-tilt-s1.ang[2]*(ta-9)),M3.rx(s1.ang[0]*(ta-9))),MI);
+    const s2on=ta>10.1;if(s2on&&!this.ev.ses){this.ev.ses=1;this.setPh('ph_ses');this.toast('ph_ses')}
+    const acc=s2on?6.5:0;['s2','pay'].concat(this.ev.fair?[]:['fA','fB']).forEach(k=>{const g=this.g[k];g.v=add(g.v,mul(dir,acc*dt));g.p=add(g.p,mul(g.v,dt));g.rot=rot});
+    if(ta>12.2&&!this.ev.fair){this.ev.fair=1;this.setPh('ph_fair');this.toast('ph_fair');const side=M3.ap(rot,[1,0,0]);this.g.fA.v=add(this.g.s2.v,mul(side,5));this.g.fB.v=add(this.g.s2.v,mul(side,-5));this.g.fA.ang=[0,0,-.9];this.g.fB.ang=[0,0,.9];this.fairT=ta}
+    if(this.ev.fair){const k=ta-this.fairT;['fA','fB'].forEach(n=>{const g=this.g[n];g.v=mul(g.v,1-.25*dt);g.p=add(g.p,mul(g.v,dt));g.rot=M3.mul(rot,M3.rz(g.ang[2]*k))})}
+    if(ta>16.2&&!this.ev.flash){this.ev.flash=1;$('#flash').style.opacity=1}
+    if(ta>17){this.toOrbit()}
+   }
+   // flames
+   if(this.phase==='ascent'||(this.phase==='sep'&&!this.ev.s1off)){if(this.phase==='sep')this.ev.s1off=1;
+    if(this.phase==='ascent'){const g=this.g.s1,down=mul(dir,-1);for(const e of [[0,0],[.33,0],[-.33,0],[0,.33],[0,-.33]]){const ex=this.gw('s1',[e[0],-.05,e[1]]);this.ps.emit(ex,add(add(g.v,mul(down,22)),[rnd(-1.5,1.5),0,rnd(-1.5,1.5)]),.32,.32,'255,214,140',1.6);this.ps.emit(ex,add(add(g.v,mul(down,16)),[rnd(-3,3),0,rnd(-3,3)]),.45,.55,'255,120,48',2)}
+     const base=this.gw('s1',[0,0,0]);if(base[1]<30)for(let i=0;i<4;i++){const a=rnd(0,Math.PI*2),s=rnd(6,16);this.ps.emit([rnd(-1,1),.6,rnd(-1,1)],[Math.cos(a)*s,rnd(.5,3),Math.sin(a)*s],rnd(2.5,4),1.4,'205,205,212',3.5,'source-over')}}}
+   if(this.phase==='sep'&&this.ev.ses){const g=this.g.s2,down=mul(dir,-1),ex=this.gw('s2',[0,6.15,0]);for(let i=0;i<3;i++){this.ps.emit(ex,add(add(g.v,mul(down,20)),[rnd(-4,4),rnd(-1,1),rnd(-4,4)]),.5,.4,'190,205,255',3);this.ps.emit(ex,add(add(g.v,mul(down,14)),[rnd(-7,7),0,rnd(-7,7)]),.7,.5,'255,160,90',3.5)}}
+   if(altKm>6){const c=this.gw('s2',[0,8,0]);for(let i=0;i<2;i++)this.dust.emit(add(c,[rnd(-14,14),rnd(18,40),rnd(-14,14)]),[0,0,0],2.2,.12,'200,220,255',0)}
+  }
+  if(this.phase==='orbit'){this.orbitT+=dt}
+  this.ps.step(dt,.6);this.dust.step(dt);
+  // ---------- camera ----------
+  const cam=R.cam;R.resize();R.begin();
+  if(this.phase==='orbit'){this.renderOrbit(dt);return}
+  let target,desired;
+  if(this.phase==='idle'){this.o.idle+=dt;if(this.o.idle>2.5)this.o.yaw+=dt*.12;target=[0,6,0];desired=orbitPos(this.o,target)}
+  else{const ta=this.ta||0;target=this.phase==='count'?[0,6,0]:this.gw('s2',[0,7.5,0]);const k=clamp(ta/9,0,1);let off=this.phase==='sep'?[-6,-3,11]:[lerp(-12,-7,k),lerp(2.5,-6,k),lerp(22,14,k)];desired=add(target,off)}
+  if(!this.camPos)this.camPos=desired;this.camPos=this.phase==='idle'?desired:vlerp(this.camPos,desired,1-Math.exp(-dt*3));
+  cam.pos=this.camPos;cam.target=target;cam.up=[0,1,0];cam.fov=50;R.begin();R.camLight();
+  // ---------- sky ----------
+  const sk=clamp(altKm/70,0,1);skyGrad(R,mixc([58,118,214],[2,4,12],sk).join(','),mixc([182,214,250],[8,14,40],Math.pow(sk,.7)).join(','));
+  R.stars(this.stars,clamp((altKm-18)/40,0,1));
+  const ga=clamp(1-altKm/55,0,1);
+  if(ga>0){R.add({mesh:this.ground,alpha:ga,id:null,zb:1e4});R.add({mesh:this.pad,pos:[0,-.3,0],alpha:ga});for(const tw of this.tower)R.add({...tw,alpha:ga})}
+  for(const pt of this.parts){if(this.phase!=='idle'&&this.phase!=='count'&&false)continue;const gk=pt.grp==='pay'?'pay':pt.grp;const g=this.g[gk],pv=this.pivot[gk];const pos=add(add(g.p,pv),M3.ap(g.rot,sub(pt.pos,pv)));R.add({mesh:pt.mesh,pos,rot:M3.mul(g.rot,pt.rot),double:pt.double})}
+  R.draw();
+  if(this.phase==='ascent'){const ex=this.gw('s1',[0,-.2,0]);R.spr(ex,3.2,'255,170,80',.55)}
+  this.ps.draw(R);this.dust.draw(R);
+  if(this.phase==='idle'&&Math.random()<.5)this.ps.emit(this.gw('s1',[rnd(-.6,.6),rnd(3.6,6),.6]),[rnd(-.5,.5),rnd(-1.5,-.5),rnd(.3,1)],1.6,.35,'235,240,250',2,'source-over');
+ },
+ toOrbit(){this.phase='orbit';this.orbitT=0;this.setPh('ph_orbit');this.toast('ph_orbit');setTimeout(()=>$('#flash').style.opacity=0,60);$('#orbitCard').classList.remove('hidden');this.o.locked=false;this.o.yaw=.6;this.o.pitch=.18;this.o.dist=13;this.o.min=6;this.o.max=60;this.o.idle=0;this.ps.a=[];
+  $('#hAlt').textContent='200 km';$('#hVel').textContent='27,600 km/h'},
+ renderOrbit(dt){const R=this.R,T=this.orbitT;this.o.idle+=dt;if(this.o.idle>2)this.o.yaw+=dt*.05;
+  R.cam.pos=orbitPos(this.o,[0,0,0]);R.cam.target=[0,0,0];R.cam.up=[0,1,0];R.begin();
+  const x=R.ctx;x.fillStyle='#010208';x.fillRect(0,0,R.W,R.H);R.stars(this.stars,1);
+  const sun=[300,120,200];R.spr(mul(norm(sun),400),40,'255,230,180',.9);
+  const ec=[0,-35,0];R.add({mesh:this.earth,pos:ec,rot:M3.ry(T*.03),lightPos:add(ec,mul(norm(sun),1e4)),zb:200});
+  const lp=mul(norm(sun),1e4);
+  for(const pt of this.parts){if(pt.grp==='s2'||pt.grp==='pay'){let pos=pt.pos,rot=pt.rot;const drift=pt.grp==='s2'?mul([-.15,-.35,.1],T):[0,0,0];let lpos=add(sub(pos,[0,8.5,0]),drift);if(pt.grp==='pay'&&pt.mesh.verts.length===8&&Math.abs(pt.pos[0])>.1){lpos=add(lpos,[Math.sign(pt.pos[0])*Math.min(1,T*.4)*.9,0,0])}
+    const R0=M3.mul(M3.rz(.5),M3.rx(.3+T*.02));R.add({mesh:pt.mesh,pos:M3.ap(R0,lpos),rot:M3.mul(R0,rot),lightPos:lp})}}
+  R.draw();const sr=R.screenR(ec,30);if(sr){const g=x.createRadialGradient(sr[0],sr[1],sr[2]*.97,sr[0],sr[1],sr[2]*1.07);g.addColorStop(0,'rgba(110,170,255,.55)');g.addColorStop(1,'rgba(110,170,255,0)');x.globalCompositeOperation='lighter';x.fillStyle=g;x.beginPath();x.arc(sr[0],sr[1],sr[2]*1.07,0,7);x.fill();x.globalCompositeOperation='source-over'}
+ }
+};
+
+/* ============================ STRUCTURE ============================ */
+const Struct={
+ init(){this.R=new R3D($('#structCv'));this.parts=buildRocket(26);this.stars=makeStars(500);this.exp=0;this.sel=null;
+  this.o={yaw:.7,pitch:.12,dist:18,min:5,max:40,idle:0,onTap:(x,y)=>{const id=this.R.pick(x,y);this.select(id)}};orbitCtl($('#structCv'),this.o);
+  $('#stReset').onclick=()=>{Object.assign(this.o,{yaw:.7,pitch:.12,dist:18});this.tgt=[0,5.7,0];this.select(null)};this.tgt=[0,5.7,0];this.ctgt=[0,5.7,0];this.lang()},
+ select(id){this.sel=id;this.o.idle=0;if(id){const pts=this.parts.filter(p=>p.id===id);let c=[0,0,0];pts.forEach(p=>c=add(c,add(p.pos,[0,.4,0])));this.tgt=mul(c,1/pts.length)}else this.tgt=[0,5.7,0];this.lang()},
+ lang(){const id=this.sel,el=$('#stInfo');if(!id)el.innerHTML=`<p style="color:var(--mut)">${t('st_none')}</p>`;else{const I=PART_INFO[id],d=I[LANG]||I.en;el.innerHTML=`<span class="chip">${id.startsWith('s2')||id==='payload'||id==='fairing'?'Stage 2 / Payload':'Stage 1'}</span><h3>${d[0]}</h3><p>${d[1]}</p><div class="spec">${I.spec}</div>`}
+  $('#stParts').innerHTML=PART_ORDER.map(k=>`<button data-p="${k}" class="${k===id?'on':''}">${(PART_INFO[k][LANG]||PART_INFO[k].en)[0]}</button>`).join('');$$('#stParts button').forEach(b=>b.onclick=()=>this.select(b.dataset.p))},
+ enter(){this.R.resize()},
+ frame(dt){const R=this.R;R.resize();const tgtE=+$('#stExp').value;this.exp=lerp(this.exp,tgtE,1-Math.exp(-dt*6));const xr=$('#stX').checked;
+  this.o.idle+=dt;if($('#stAuto').checked&&this.o.idle>2.5)this.o.yaw+=dt*.18;
+  let tg=this.tgt;if(this.sel){const pts=this.parts.filter(p=>p.id===this.sel);let c=[0,0,0];pts.forEach(p=>c=add(c,add(p.pos,mul(p.ex,this.exp))));tg=add(mul(c,1/pts.length),[0,.3,0])}else tg=[0,5.7+this.exp*1.8,0];
+  this.ctgt=vlerp(this.ctgt,tg,1-Math.exp(-dt*4));
+  R.cam.pos=orbitPos({...this.o,dist:this.o.dist*(this.sel?1:1+this.exp*.75)},this.ctgt);R.cam.target=this.ctgt;R.cam.up=[0,1,0];R.begin();R.camLight();R.ctx.clearRect(0,0,R.W,R.H);R.stars(this.stars,.8);
+  for(let k=1;k<=4;k++){const pts=[];for(let i=0;i<64;i++){const a=i/64*Math.PI*2;pts.push([Math.cos(a)*k*1.2,-1.6*this.exp,Math.sin(a)*k*1.2])}R.line3(pts,'rgba(90,209,255,.13)',1,true)}
+  const t0=performance.now()/1000;
+  for(const p of this.parts){const sel=p.id===this.sel;let col=p.mesh.color;if(sel)col=mixc(col,[90,209,255],.45+.15*Math.sin(t0*5));const a=xr&&p.shell?(sel?.5:.14):1;
+   R.add({mesh:p.mesh,pos:add(p.pos,mul(p.ex,this.exp)),rot:p.rot,id:p.id,color:col,alpha:a,double:p.double||a<1,glowK:sel?.15:0})}
+  R.draw();
+  if(this.exp>.45){const seen={};for(const p of this.parts){if(seen[p.id])continue;seen[p.id]=1;const d=PART_INFO[p.id][LANG]||PART_INFO[p.id].en;R.label(add(add(p.pos,mul(p.ex,this.exp)),[0,.3,0]),d[0],p.id===this.sel?'#5ad1ff':'#e8eeff',11.5,-10)}}
+ }
+};
+
+/* ============================ LESSONS (study map) ============================ */
+const LESSONS=[
+{id:'n1',lv:1,pre:[],go:'struct',t:{ko:'뉴턴의 운동 법칙',en:"Newton's laws of motion",mn:'Ньютоны хөдөлгөөний хуулиуд'},
+ b:{ko:'로켓은 뒤로 가스를 강하게 밀어내고, 그 반작용으로 앞으로 나아갑니다(제3법칙). 물체의 가속도는 알짜힘에 비례하고 질량에 반비례합니다(제2법칙). 그래서 로켓은 밀어낼 공기가 없는 진공에서도 작동합니다.',en:'A rocket shoves gas backward and the gas shoves the rocket forward (3rd law). Acceleration is proportional to net force and inversely proportional to mass (2nd law). That is why rockets work in vacuum — they need nothing to push against.',mn:'Пуужин хийг хойш нь хүчтэй түлхэж, эсрэг үйлчлэлээр урагшилна (3-р хууль). Хурдатгал нь тэнцүү үйлчлэгч хүчинд шууд, масстай урвуу пропорциональ (2-р хууль). Тиймээс пуужин түлхэх агааргүй вакуумд ч ажилладаг.'},
+ f:'F = m·a &nbsp;&nbsp;|&nbsp;&nbsp; F<sub>A→B</sub> = −F<sub>B→A</sub>',calc:{in:[['F','F (N)',50000],['m','m (kg)',2000]],f:o=>[o.F/o.m,'m/s²']},
+ q:{ko:'질량 2,000 kg인 로켓에 50,000 N의 알짜힘이 작용합니다. 가속도는 몇 m/s²인가요?',en:'A net force of 50,000 N acts on a 2,000 kg rocket. What is its acceleration in m/s²?',mn:'2,000 кг масстай пуужинд 50,000 Н тэнцүү үйлчлэгч хүч үйлчилнэ. Хурдатгал хэдэн м/с² вэ?'},a:25,u:'m/s²',h:'a = F ÷ m',s:'a = 50,000 N ÷ 2,000 kg = <b>25 m/s²</b>'},
+{id:'n2',lv:1,pre:[],go:'solar',t:{ko:'만유인력과 중력가속도',en:'Universal gravitation & surface gravity',mn:'Бүх нийтийн таталцал ба чөлөөт уналтын хурдатгал'},
+ b:{ko:'질량을 가진 모든 물체는 서로 끌어당기며, 그 힘은 거리의 제곱에 반비례합니다. 행성 표면의 중력가속도 g는 행성의 질량과 반지름만으로 정해집니다.',en:'Every mass attracts every other mass with a force that falls off with the square of distance. A planet’s surface gravity g depends only on its mass and radius.',mn:'Масстай бүх бие бие биеэ татдаг бөгөөд хүч нь зайн квадратад урвуу пропорциональ. Гарагийн гадаргын таталцлын хурдатгал g нь зөвхөн масс, радиусаас хамаарна.'},
+ f:'F = G·M·m / r² &nbsp;&nbsp;→&nbsp;&nbsp; g = G·M / r²',calc:{in:[['M','M (kg)',7.342e22],['r','r (m)',1.7374e6]],f:o=>[6.674e-11*o.M/(o.r*o.r),'m/s²']},
+ q:{ko:'달의 질량은 7.342×10²² kg, 반지름은 1,737 km입니다. 달 표면의 중력가속도는 몇 m/s²인가요? (G = 6.674×10⁻¹¹)',en:'The Moon has mass 7.342×10²² kg and radius 1,737 km. What is its surface gravity in m/s²? (G = 6.674×10⁻¹¹)',mn:'Сарны масс 7.342×10²² кг, радиус 1,737 км. Сарны гадаргын таталцлын хурдатгал хэдэн м/с² вэ? (G = 6.674×10⁻¹¹)'},a:1.62,u:'m/s²',h:'r = 1.737×10⁶ m',s:'g = 6.674e-11 × 7.342e22 / (1.737e6)² ≈ <b>1.62 m/s²</b> (≈ 1/6 g<sub>Earth</sub>)'},
+{id:'n3',lv:1,pre:[],go:'solar',t:{ko:'우주의 크기: AU와 광속',en:'The scale of space: AU and light speed',mn:'Сансрын хэмжээ: AU ба гэрлийн хурд'},
+ b:{ko:'지구–태양 평균 거리를 1 천문단위(AU)라 하며 약 1억 4,960만 km입니다. 빛조차 이 거리를 가는 데 몇 분이 걸리므로, 화성 탐사선에 보낸 명령은 수 분 뒤에야 도착합니다.',en:'The mean Earth–Sun distance is 1 astronomical unit (AU), about 149.6 million km. Even light takes minutes to cross it, so commands to a Mars rover arrive minutes late.',mn:'Дэлхий–Нарны дундаж зайг 1 одон орны нэгж (AU) гэх бөгөөд 149.6 сая км орчим. Гэрэл хүртэл хэдэн минут явдаг тул Ангараг дээрх төхөөрөмжид илгээсэн команд хэдэн минутын дараа хүрнэ.'},
+ f:'t = d / c &nbsp;&nbsp;(c = 2.998×10⁸ m/s)',calc:{in:[['d','d (m)',1.496e11]],f:o=>{const s=o.d/2.998e8;return [s,'s',` = ${(s/60).toFixed(2)} min`]}},
+ q:{ko:'햇빛이 1 AU(1.496×10¹¹ m)를 지나 지구에 도착하는 데 몇 초가 걸리나요?',en:'How many seconds does sunlight take to travel 1 AU (1.496×10¹¹ m) to Earth?',mn:'Нарны гэрэл 1 AU (1.496×10¹¹ м) замыг туулж Дэлхийд хүрэхэд хэдэн секунд зарцуулах вэ?'},a:499,u:'s',h:'t = d ÷ c',s:'t = 1.496e11 ÷ 2.998e8 ≈ <b>499 s</b> ≈ 8.3 min'},
+{id:'n4',lv:2,pre:['n1'],go:'struct',t:{ko:'추력: 운동량과 압력',en:'Thrust: momentum and pressure',mn:'Түлхэлт: импульс ба даралт'},
+ b:{ko:'추력은 초당 뿜어내는 질량(ṁ)과 배기 속도(vₑ)의 곱에, 노즐 출구 압력과 외부 압력의 차이로 생기는 힘을 더한 것입니다. 진공에서는 pₐ = 0이라 같은 엔진도 추력이 커집니다.',en:'Thrust is mass flow (ṁ) times exhaust velocity (vₑ), plus a pressure term from the difference between nozzle-exit and ambient pressure. In vacuum pₐ = 0, so the same engine makes more thrust.',mn:'Түлхэлт нь секундэд гаргах масс (ṁ)-ыг гаргах хурд (vₑ)-аар үржүүлээд, цоргоны гаралтын болон орчны даралтын зөрүүгээс үүсэх хүчийг нэмсэнтэй тэнцүү. Вакуумд pₐ = 0 тул түлхэлт ихэснэ.'},
+ f:'F = ṁ·v<sub>e</sub> + (p<sub>e</sub> − p<sub>a</sub>)·A<sub>e</sub>',calc:{in:[['m','ṁ (kg/s)',300],['v','vₑ (m/s)',3000],['pe','pₑ (Pa)',70000],['pa','pₐ (Pa)',101325],['A','Aₑ (m²)',.9]],f:o=>[(o.m*o.v+(o.pe-o.pa)*o.A)/1000,'kN']},
+ q:{ko:'초당 300 kg의 추진제를 3,000 m/s로 분사하는 엔진이 있습니다. 압력항을 0으로 볼 때 추력은 몇 kN인가요?',en:'An engine expels 300 kg/s of propellant at 3,000 m/s. Ignoring the pressure term, what is its thrust in kN?',mn:'Секундэд 300 кг түлшийг 3,000 м/с хурдаар цацдаг хөдөлгүүр байна. Даралтын гишүүнийг 0 гэвэл түлхэлт хэдэн кН вэ?'},a:900,u:'kN',h:'F = ṁ × vₑ',s:'F = 300 × 3,000 = 900,000 N = <b>900 kN</b>'},
+{id:'n5',lv:2,pre:['n2','n3'],go:'solar',t:{ko:'케플러의 행성 운동 법칙',en:"Kepler's laws of planetary motion",mn:'Кеплерийн гарагийн хөдөлгөөний хуулиуд'},
+ b:{ko:'행성은 태양을 한 초점으로 하는 타원 궤도를 돌고(제1법칙), 같은 시간 동안 같은 면적을 쓸고 지나가며(제2법칙), 공전 주기의 제곱은 긴반지름의 세제곱에 비례합니다(제3법칙). 태양계에서 AU와 년 단위를 쓰면 T² = a³입니다.',en:'Planets move on ellipses with the Sun at one focus (1st law), sweep equal areas in equal times (2nd law), and the period squared is proportional to the semi-major axis cubed (3rd law). In AU and years, T² = a³ for the Solar System.',mn:'Гарагууд Нарыг нэг фокус болгосон эллипс замаар эргэнэ (1-р хууль), ижил хугацаанд ижил талбай зурна (2-р хууль), эргэлтийн үеийн квадрат нь их хагас тэнхлэгийн кубтэй пропорциональ (3-р хууль). AU, жилээр T² = a³.'},
+ f:'T² = a³ &nbsp;(AU, yr) &nbsp;&nbsp;|&nbsp;&nbsp; T = 2π√(a³/μ)',calc:{in:[['a','a (AU)',1.524]],f:o=>{const T=Math.pow(o.a,1.5);return [T,'yr',` = ${(T*365.25).toFixed(0)} d`]}},
+ q:{ko:'화성 궤도의 긴반지름은 1.524 AU입니다. 화성의 공전 주기는 몇 년인가요?',en:'Mars has a semi-major axis of 1.524 AU. What is its orbital period in years?',mn:'Ангарагийн тойрог замын их хагас тэнхлэг 1.524 AU. Ангарагийн эргэлтийн үе хэдэн жил вэ?'},a:1.88,u:'yr',h:'T = a^1.5',s:'T = 1.524^1.5 = 1.524 × √1.524 ≈ <b>1.88 yr</b> (≈ 687 d)'},
+{id:'n6',lv:2,pre:['n2'],go:'sim',t:{ko:'원궤도 속도',en:'Circular orbital velocity',mn:'Тойрог тойрог замын хурд'},
+ b:{ko:'궤도란 "계속 떨어지지만 옆으로 충분히 빨라 지면을 계속 놓치는" 상태입니다. 원궤도에서는 중력이 정확히 구심력 역할을 하므로 필요한 속도가 반지름으로 결정됩니다.',en:'An orbit is falling forever while moving sideways fast enough to keep missing the ground. On a circular orbit gravity supplies exactly the centripetal force, which fixes the required speed for each radius.',mn:'Тойрог зам гэдэг нь байнга унаж байгаа ч хажуу тийш хангалттай хурдан явж газрыг алдсаар байх төлөв. Тойрог тойрог замд таталцал яг төв рүү тэмүүлэх хүчний үүрэг гүйцэтгэдэг.'},
+ f:'m v²/r = G M m / r² &nbsp;→&nbsp; v = √(μ / r)',calc:{in:[['h','h (km)',400]],f:o=>{const r=6371e3+o.h*1e3,v=Math.sqrt(3.986e14/r);return [v/1000,'km/s',` · T = ${(2*Math.PI*r/v/60).toFixed(1)} min`]}},
+ q:{ko:'고도 400 km(국제우주정거장 근처) 원궤도의 속도는 몇 km/s인가요? (μ = 3.986×10¹⁴ m³/s², 지구 반지름 6,371 km)',en:'What is the circular orbital speed at 400 km altitude (near the ISS) in km/s? (μ = 3.986×10¹⁴ m³/s², Earth radius 6,371 km)',mn:'400 км өндөр (ОУСС орчим) дахь тойрог замын хурд хэдэн км/с вэ? (μ = 3.986×10¹⁴ м³/с², Дэлхийн радиус 6,371 км)'},a:7.67,u:'km/s',h:'r = 6,371 + 400 km',s:'v = √(3.986e14 / 6.771e6) ≈ 7,673 m/s = <b>7.67 km/s</b>'},
+{id:'n15',lv:2,pre:['n3'],go:'solar',t:{ko:'별빛의 물리: 빈의 법칙',en:"Physics of starlight: Wien's law",mn:'Одны гэрлийн физик: Виний хууль'},
+ b:{ko:'뜨거운 물체는 온도에 따라 특정 파장에서 가장 밝게 빛납니다(흑체 복사). 별의 색을 보면 표면 온도를 알 수 있고, 슈테판–볼츠만 법칙으로 밝기(광도)도 계산할 수 있습니다.',en:'Hot bodies glow brightest at a wavelength set by temperature (black-body radiation). A star’s colour reveals its surface temperature, and the Stefan–Boltzmann law gives its luminosity.',mn:'Халуун бие температураасаа хамааран тодорхой долгионы урт дээр хамгийн тод гэрэлтдэг (хар биеийн цацраг). Одны өнгөөр гадаргын температурыг нь мэдэж, Стефан–Больцманы хуулиар гэрэлтэлтийг тооцно.'},
+ f:'λ<sub>max</sub> = b / T &nbsp;(b = 2.898×10⁻³ m·K) &nbsp;|&nbsp; L = 4πR²σT⁴',calc:{in:[['T','T (K)',5772]],f:o=>[2.898e-3/o.T*1e9,'nm']},
+ q:{ko:'태양의 표면 온도는 약 5,772 K입니다. 가장 강하게 내는 빛의 파장은 몇 nm인가요?',en:'The Sun’s surface is about 5,772 K. At what wavelength in nm does it emit most strongly?',mn:'Нарны гадаргын температур 5,772 K орчим. Хамгийн хүчтэй цацруулдаг долгионы урт хэдэн нм вэ?'},a:502,u:'nm',h:'λ = 2.898e-3 ÷ T',s:'λ = 2.898e-3 / 5772 = 5.02e-7 m = <b>502 nm</b> (청록·green)'},
+{id:'n7',lv:3,pre:['n4'],go:'sim',t:{ko:'치올콥스키 로켓 방정식',en:'Tsiolkovsky rocket equation',mn:'Циолковскийн пуужингийн тэгшитгэл'},
+ b:{ko:'로켓이 낼 수 있는 속도 변화(Δv)는 배기 속도와 질량비의 자연로그에 비례합니다. 로그 때문에 추진제를 아무리 늘려도 Δv는 천천히 늘어나며, 이것이 로켓 설계의 가장 큰 제약입니다. 비추력 Isp는 vₑ = Isp·g₀로 연결됩니다.',en:'The velocity change a rocket can achieve (Δv) is proportional to exhaust velocity times the natural log of the mass ratio. The logarithm means adding propellant gives diminishing returns — the central constraint of rocket design. Specific impulse links via vₑ = Isp·g₀.',mn:'Пуужингийн гаргаж чадах хурдны өөрчлөлт (Δv) нь гаргах хурдыг массын харьцааны натурал логарифмаар үржүүлсэнтэй тэнцүү. Логарифмын улмаас түлш нэмэх тусам Δv удаан өснө — пуужингийн загварын гол хязгаарлалт.'},
+ f:'Δv = I<sub>sp</sub>·g₀·ln(m₀ / m<sub>f</sub>)',calc:{in:[['I','Isp (s)',350],['m0','m₀ (t)',500],['mf','m_f (t)',100]],f:o=>[o.I*9.80665*Math.log(o.m0/o.mf)/1000,'km/s']},
+ q:{ko:'비추력 350 s인 엔진을 쓰는 로켓의 질량비(m₀/m_f)가 5입니다. Δv는 몇 km/s인가요? (g₀ = 9.80665 m/s²)',en:'A rocket with a 350 s Isp engine has a mass ratio m₀/m_f of 5. What is its Δv in km/s? (g₀ = 9.80665 m/s²)',mn:'Isp = 350 с хөдөлгүүртэй пуужингийн массын харьцаа m₀/m_f = 5. Δv хэдэн км/с вэ? (g₀ = 9.80665 м/с²)'},a:5.52,u:'km/s',h:'ln 5 ≈ 1.609',s:'Δv = 350 × 9.80665 × ln 5 ≈ 3,432 × 1.609 ≈ <b>5.52 km/s</b>'},
+{id:'n8',lv:3,pre:['n6'],go:'game',t:{ko:'궤도 에너지와 탈출 속도 (Vis-viva)',en:'Orbital energy & escape velocity (vis-viva)',mn:'Тойрог замын энерги ба чөлөөлөгдөх хурд (vis-viva)'},
+ b:{ko:'궤도 위 어느 지점의 속도는 그 지점의 거리 r과 궤도 긴반지름 a로 정해집니다(vis-viva 식). a가 무한대가 되면 행성의 중력을 벗어나는 탈출 속도가 됩니다.',en:'The speed anywhere on an orbit is set by the current distance r and the semi-major axis a (vis-viva equation). Let a go to infinity and you get the escape velocity.',mn:'Тойрог замын аль ч цэг дэх хурдыг тухайн зай r, их хагас тэнхлэг a тодорхойлно (vis-viva тэгшитгэл). a хязгааргүй болбол чөлөөлөгдөх хурд гарна.'},
+ f:'v² = μ (2/r − 1/a) &nbsp;&nbsp;|&nbsp;&nbsp; v<sub>esc</sub> = √(2μ / r)',calc:{in:[['r','r (km)',6771],['a','a (km)',6771]],f:o=>{const r=o.r*1e3,a=o.a*1e3,v2=3.986e14*(2/r-1/a);return [v2>0?Math.sqrt(v2)/1000:NaN,'km/s',` · v_esc = ${(Math.sqrt(2*3.986e14/r)/1000).toFixed(2)} km/s`]}},
+ q:{ko:'지구 표면(r = 6,371 km)에서의 탈출 속도는 몇 km/s인가요? (μ = 3.986×10¹⁴ m³/s²)',en:'What is the escape velocity from Earth’s surface (r = 6,371 km) in km/s? (μ = 3.986×10¹⁴ m³/s²)',mn:'Дэлхийн гадаргаас (r = 6,371 км) чөлөөлөгдөх хурд хэдэн км/с вэ? (μ = 3.986×10¹⁴ м³/с²)'},a:11.19,u:'km/s',h:'v = √(2μ/r)',s:'v = √(2 × 3.986e14 / 6.371e6) ≈ 11,186 m/s = <b>11.19 km/s</b>'},
+{id:'n9',lv:3,pre:['n7'],go:'sim',t:{ko:'다단 로켓과 단 분리',en:'Staging',mn:'Олон шатат пуужин ба шат салгалт'},
+ b:{ko:'빈 탱크를 끝까지 들고 가면 질량비가 나빠집니다. 다 쓴 단을 버리면 각 단마다 새로 좋은 질량비를 얻을 수 있고, 전체 Δv는 각 단 Δv의 합이 됩니다. 시뮬레이터에서 1단만으로는 궤도에 가기 어려운 이유를 확인해 보세요.',en:'Carrying empty tanks ruins the mass ratio. Dropping spent stages gives each stage a fresh, good mass ratio, and total Δv is the sum of the stages’ Δv. Try the simulator to see why one stage struggles to reach orbit.',mn:'Хоосон савыг эцэс хүртэл авч явбал массын харьцаа муудна. Ашигласан шатыг хаявал шат бүр шинэ сайн харьцаатай болж, нийт Δv нь шат бүрийн Δv-ийн нийлбэр болно.'},
+ f:'Δv<sub>total</sub> = Σ I<sub>sp,i</sub>·g₀·ln(m<sub>0,i</sub> / m<sub>f,i</sub>)',calc:{in:[['I1','Isp₁ (s)',300],['R1','MR₁',3],['I2','Isp₂ (s)',300],['R2','MR₂',3]],f:o=>[(o.I1*Math.log(o.R1)+o.I2*Math.log(o.R2))*9.80665/1000,'km/s']},
+ q:{ko:'두 단 모두 Isp = 300 s, 질량비 3입니다. 전체 Δv는 몇 km/s인가요?',en:'Both stages have Isp = 300 s and a mass ratio of 3. What is the total Δv in km/s?',mn:'Хоёр шат хоёулаа Isp = 300 с, массын харьцаа 3. Нийт Δv хэдэн км/с вэ?'},a:6.46,u:'km/s',h:'2 × 300 × 9.80665 × ln 3',s:'Δv = 2 × 300 × 9.80665 × 1.0986 ≈ <b>6.46 km/s</b>'},
+{id:'n10',lv:3,pre:['n5','n8'],go:'solar',t:{ko:'호만 전이 궤도',en:'Hohmann transfer orbit',mn:'Хоманы шилжилтийн тойрог зам'},
+ b:{ko:'두 원궤도 사이를 가장 적은 Δv로 옮기는 방법은 두 궤도에 접하는 타원 궤도를 타는 것입니다. 지구에서 화성으로 갈 때도 이 원리를 쓰며, 약 26개월마다 오는 발사 기회(창)가 생기는 이유입니다.',en:'The cheapest two-burn way between two circular orbits is an ellipse tangent to both. Earth-to-Mars missions use it, which is why launch windows open roughly every 26 months.',mn:'Хоёр тойрог замын хооронд хамгийн бага Δv-ээр шилжих арга нь хоёуланд нь шүргэсэн эллипс зам юм. Дэлхийгээс Ангараг руу нисэхэд ашигладаг бөгөөд 26 сар орчим тутамд хөөргөлтийн боломж гардаг шалтгаан.'},
+ f:'Δv₁ = √(μ/r₁)·(√(2r₂/(r₁+r₂)) − 1)',calc:{in:[['r1','r₁ (AU)',1],['r2','r₂ (AU)',1.524]],f:o=>{const mu=1.32712e20,A=1.495979e11,r1=o.r1*A,r2=o.r2*A,a=(r1+r2)/2;const d1=Math.sqrt(mu/r1)*(Math.sqrt(2*r2/(r1+r2))-1),d2=Math.sqrt(mu/r2)*(1-Math.sqrt(2*r1/(r1+r2)));return [d1/1000,'km/s',` · Δv₂ = ${(d2/1000).toFixed(2)} · t = ${(Math.PI*Math.sqrt(a**3/mu)/86400).toFixed(0)} d`]}},
+ q:{ko:'태양 중심 궤도에서 지구(1 AU) → 화성(1.524 AU) 호만 전이의 첫 번째 분사 Δv₁은 몇 km/s인가요? (μ☉ = 1.327×10²⁰ m³/s², 1 AU = 1.496×10¹¹ m)',en:'For a heliocentric Hohmann transfer from Earth (1 AU) to Mars (1.524 AU), what is the first burn Δv₁ in km/s? (μ☉ = 1.327×10²⁰ m³/s², 1 AU = 1.496×10¹¹ m)',mn:'Нарны төвт Хоманы шилжилт: Дэлхий (1 AU) → Ангараг (1.524 AU). Эхний асаалтын Δv₁ хэдэн км/с вэ? (μ☉ = 1.327×10²⁰ м³/с², 1 AU = 1.496×10¹¹ м)'},a:2.94,u:'km/s',h:'√(μ/r₁) ≈ 29.8 km/s',s:'√(μ/r₁) ≈ 29.78 km/s · √(2×1.524/2.524) ≈ 1.0989 → Δv₁ ≈ 29.78 × 0.0989 ≈ <b>2.94 km/s</b>'},
+{id:'n11',lv:4,pre:['n10'],go:'sim',t:{ko:'이체 문제와 궤도 요소',en:'Two-body problem & orbital elements',mn:'Хоёр биеийн бодлого ба тойрог замын элементүүд'},
+ b:{ko:'두 물체의 운동방정식 r̈ = −μr/r³을 풀면 궤도는 원뿔곡선(원·타원·포물선·쌍곡선)이 됩니다. 궤도는 6개의 궤도 요소(a, e, i, Ω, ω, ν)로 완전히 기술되며, 극좌표 궤도 방정식으로 위치를 구할 수 있습니다.',en:'Solving the two-body equation r̈ = −μr/r³ gives conic-section orbits (circle, ellipse, parabola, hyperbola). An orbit is fully described by six elements (a, e, i, Ω, ω, ν), and the polar orbit equation gives the position.',mn:'Хоёр биеийн тэгшитгэл r̈ = −μr/r³-ийг бодоход тойрог зам нь конус огтлол (тойрог, эллипс, парабол, гипербол) болно. Зургаан элемент (a, e, i, Ω, ω, ν)-ээр бүрэн тодорхойлогдоно.'},
+ f:'r̈ = −μ r / r³ &nbsp;→&nbsp; r(ν) = a(1 − e²) / (1 + e·cos ν)',calc:{in:[['a','a (km)',10000],['e','e',.2],['n','ν (°)',90]],f:o=>[o.a*(1-o.e*o.e)/(1+o.e*Math.cos(o.n*Math.PI/180)),'km',` · r_p = ${(o.a*(1-o.e)).toFixed(0)} · r_a = ${(o.a*(1+o.e)).toFixed(0)}`]},
+ q:{ko:'a = 10,000 km, e = 0.2인 타원 궤도에서 진근점이각 ν = 90°일 때 궤도 반지름 r은 몇 km인가요?',en:'On an orbit with a = 10,000 km and e = 0.2, what is the radius r at true anomaly ν = 90° (km)?',mn:'a = 10,000 км, e = 0.2 эллипс зам дээр жинхэнэ аномали ν = 90° үед радиус r хэдэн км вэ?'},a:9600,u:'km',h:'cos 90° = 0',s:'r = 10,000 × (1 − 0.04) / (1 + 0) = <b>9,600 km</b> (semi-latus rectum p)'},
+{id:'n12',lv:4,pre:['n4','n7'],go:'struct',t:{ko:'노즐 유동과 배기 속도',en:'Nozzle flow & exhaust velocity',mn:'Цоргоны урсгал ба гаргах хурд'},
+ b:{ko:'연소실의 고온·고압 가스는 수축–확대(드 라발) 노즐의 목에서 음속에 도달한 뒤 확대부에서 초음속으로 가속됩니다. 등엔트로피 팽창을 가정하면 배기 속도는 연소 온도가 높고 분자량이 작을수록 커집니다. 액체수소 엔진의 Isp가 높은 이유입니다.',en:'Hot, high-pressure chamber gas reaches Mach 1 at the throat of a converging–diverging (de Laval) nozzle, then goes supersonic in the bell. Assuming isentropic expansion, exhaust velocity rises with chamber temperature and falls with molar mass — why hydrogen engines have high Isp.',mn:'Шаталтын камерын халуун, өндөр даралттай хий нарийсах–тэлэх (де Лаваль) цоргоны хоолойд дууны хурдад хүрч, тэлэх хэсэгт хэт авианы хурдтай болно. Температур өндөр, молийн масс бага байх тусам гаргах хурд их.'},
+ f:'v<sub>e</sub> = √[ (2γ/(γ−1)) · (R·T₀/M) · (1 − (p<sub>e</sub>/p₀)<sup>(γ−1)/γ</sup>) ]',calc:{in:[['g','γ',1.2],['T','T₀ (K)',3500],['M','M (kg/mol)',.022],['p','pₑ/p₀',.001]],f:o=>{const v=Math.sqrt(2*o.g/(o.g-1)*8.314*o.T/o.M*(1-Math.pow(o.p,(o.g-1)/o.g)));return [v,'m/s',` · Isp ≈ ${(v/9.80665).toFixed(0)} s`]}},
+ q:{ko:'γ = 1.2, T₀ = 3,500 K, M = 0.022 kg/mol 이고 이상적으로 완전 팽창(pₑ/p₀ → 0)한다고 할 때 배기 속도는 몇 m/s인가요? (R = 8.314 J/mol·K)',en:'With γ = 1.2, T₀ = 3,500 K, M = 0.022 kg/mol and ideal full expansion (pₑ/p₀ → 0), what is the exhaust velocity in m/s? (R = 8.314 J/mol·K)',mn:'γ = 1.2, T₀ = 3,500 K, M = 0.022 кг/моль, бүрэн тэлэлт (pₑ/p₀ → 0) гэвэл гаргах хурд хэдэн м/с вэ? (R = 8.314)'},a:3984,u:'m/s',h:'2γ/(γ−1) = 12',s:'vₑ = √(12 × 8.314 × 3500 / 0.022) = √(1.587e7) ≈ <b>3,984 m/s</b> (Isp ≈ 406 s)'},
+{id:'n13',lv:4,pre:['n9'],go:'sim',t:{ko:'대기 비행: 동압과 상승 손실',en:'Atmospheric ascent: dynamic pressure & losses',mn:'Агаар мандлын нислэг: динамик даралт ба алдагдал'},
+ b:{ko:'공기 밀도는 고도에 따라 줄고 속도는 늘기 때문에 동압 q = ½ρv²는 중간에 최대(Max Q)가 됩니다. 로켓은 이때 구조 하중을 줄이려 추력을 낮추기도 합니다. 또한 수직으로 오래 날수록 중력 손실이, 낮게 빨리 날수록 공기 손실이 커져 최적의 중력 선회 경로가 필요합니다.',en:'Air density falls with altitude while speed rises, so dynamic pressure q = ½ρv² peaks mid-ascent (Max Q); rockets often throttle down there. Flying vertical too long costs gravity loss, flying low and fast costs drag — hence an optimal gravity turn.',mn:'Өндөр нэмэгдэхэд агаарын нягт буурч, хурд өсдөг тул динамик даралт q = ½ρv² дунд хэсэгт дээд цэгтээ (Max Q) хүрнэ. Удаан босоо нисвэл таталцлын алдагдал, нам дор хурдан нисвэл агаарын алдагдал их болно.'},
+ f:'q = ½ ρ v² &nbsp;&nbsp;|&nbsp;&nbsp; Δv<sub>loss</sub> = ∫ g sin γ dt + ∫ D/m dt',calc:{in:[['r','ρ (kg/m³)',.36],['v','v (m/s)',450]],f:o=>[.5*o.r*o.v*o.v/1000,'kPa']},
+ q:{ko:'고도 약 11 km에서 공기 밀도가 0.36 kg/m³이고 로켓 속도가 450 m/s입니다. 동압은 몇 kPa인가요?',en:'At about 11 km the air density is 0.36 kg/m³ and the rocket flies at 450 m/s. What is the dynamic pressure in kPa?',mn:'11 км орчим өндөрт агаарын нягт 0.36 кг/м³, пуужингийн хурд 450 м/с. Динамик даралт хэдэн кПа вэ?'},a:36.5,u:'kPa',h:'q = 0.5 × ρ × v²',s:'q = 0.5 × 0.36 × 450² = 36,450 Pa ≈ <b>36.5 kPa</b>'},
+{id:'n14',lv:4,pre:['n1','n13'],go:'sim',t:{ko:'자세 제어와 PID — 로켓 프로그래밍',en:'Attitude control & PID — programming a rocket',mn:'Байрлалын удирдлага ба PID — пуужин программчлал'},
+ b:{ko:'로켓은 짐벌 엔진이나 반작용 휠로 토크를 만들어 회전합니다(τ = Iα). 비행 컴퓨터는 목표 자세와 현재 자세의 오차를 PID 제어기로 계산해 매 순간 엔진 각도를 조정합니다. 시뮬레이터의 비행 프로그램은 이런 유도(guidance) 명령의 단순한 형태입니다.',en:'Rockets rotate by producing torque with gimballed engines or reaction wheels (τ = Iα). The flight computer feeds the error between desired and actual attitude into a PID controller to adjust engine angle continuously. The simulator’s flight program is a simple form of these guidance commands.',mn:'Пуужин гимбалтай хөдөлгүүр эсвэл урвалын дугуйгаар эргэлтийн момент (τ = Iα) үүсгэж эргэнэ. Нислэгийн компьютер зорилтот болон одоогийн байрлалын зөрүүг PID удирдлагаар тооцож хөдөлгүүрийн өнцгийг тасралтгүй тохируулна.'},
+ f:'τ = I·α &nbsp;&nbsp;|&nbsp;&nbsp; u(t) = K<sub>p</sub>e + K<sub>i</sub>∫e dt + K<sub>d</sub> de/dt',calc:{in:[['I','I (kg·m²)',4e6],['a','α (rad/s²)',.02]],f:o=>[o.I*o.a/1000,'kN·m']},
+ q:{ko:'관성 모멘트가 4.0×10⁶ kg·m²인 로켓을 0.02 rad/s²로 회전 가속하려면 몇 kN·m의 토크가 필요한가요?',en:'What torque in kN·m is needed to give a rocket with moment of inertia 4.0×10⁶ kg·m² an angular acceleration of 0.02 rad/s²?',mn:'Инерцийн момент 4.0×10⁶ кг·м² пуужинд 0.02 рад/с² өнцгийн хурдатгал өгөхөд хэдэн кН·м момент хэрэгтэй вэ?'},a:80,u:'kN·m',h:'τ = I × α',s:'τ = 4.0e6 × 0.02 = 80,000 N·m = <b>80 kN·m</b>'}
+];
+const fmt=n=>{if(n==null||isNaN(n)||!isFinite(n))return '—';const a=Math.abs(n);if(a!==0&&(a>=1e7||a<1e-3))return n.toExponential(3);return n.toLocaleString(undefined,{maximumFractionDigits:a<10?3:a<1000?2:0})};
+const Learn={
+ init(){this.done=store.get('done',{});this.open=null;window.addEventListener('resize',()=>{if(cur==='learn')this.lines()})},
+ enter(){this.render()},lang(){this.render();if(this.open)this.show(this.open)},
+ render(){const lvC=['#5ad1ff','#8c7dff','#ff8a3d','#ff5d9a'];let h='';
+  for(let lv=1;lv<=4;lv++){h+=`<div class="level"><div class="lvh"><span class="lt" style="background:${lvC[lv-1]}22;color:${lvC[lv-1]}">LEVEL ${lv} · ${t('lv'+lv)}</span><h3>${t('lvn'+lv)}</h3></div><div class="nodes">`;
+   LESSONS.filter(n=>n.lv===lv).forEach(n=>{const i=LESSONS.indexOf(n)+1;h+=`<button class="node ${this.done[n.id]?'done':''}" id="nd-${n.id}" data-id="${n.id}"><span class="dot" style="${this.done[n.id]?'':`border-color:${lvC[lv-1]}`}">${this.done[n.id]?'✓':i}</span><span class="nt">${L(n.t)}<span class="nk">${n.u} · ${n.pre.length?n.pre.map(p=>LESSONS.findIndex(x=>x.id===p)+1).join(', ')+' →':'START'}</span></span></button>`});h+='</div></div>'}
+  $('#mapLv').innerHTML=h;$$('#mapLv .node').forEach(b=>b.onclick=()=>this.show(b.dataset.id));
+  const c=Object.keys(this.done).filter(k=>this.done[k]).length;$('#progBar').style.width=(c/LESSONS.length*100)+'%';$('#progTxt').textContent=`${c} / ${LESSONS.length}`;
+  requestAnimationFrame(()=>this.lines())},
+ lines(){const box=$('#mapBox'),svg=$('#mapSvg');if(!box.offsetParent)return;const br=box.getBoundingClientRect();svg.setAttribute('width',br.width);svg.setAttribute('height',br.height);let h='';
+  LESSONS.forEach(n=>n.pre.forEach(p=>{const a=$('#nd-'+p+' .dot'),b=$('#nd-'+n.id+' .dot');if(!a||!b)return;const ra=a.getBoundingClientRect(),rb=b.getBoundingClientRect();const x1=ra.left+ra.width/2-br.left,y1=ra.top+ra.height/2-br.top,x2=rb.left+rb.width/2-br.left,y2=rb.top+rb.height/2-br.top,my=(y1+y2)/2;
+   h+=`<path class="${this.done[p]&&this.done[n.id]?'d':''}" d="M${x1},${y1} C${x1},${my} ${x2},${my} ${x2},${y2}"/>`}));svg.innerHTML=h},
+ show(id){const n=LESSONS.find(x=>x.id===id);if(!n)return;this.open=id;const i=LESSONS.indexOf(n),nx=LESSONS[i+1];const el=$('#lesson');
+  el.innerHTML=`<button class="x" id="lsX">×</button><span class="chip">LEVEL ${n.lv} · ${t('lv'+n.lv)} · #${i+1}</span>${this.done[id]?` <span class="chip" style="color:var(--ok);border-color:rgba(75,227,154,.4);background:rgba(75,227,154,.1)">✓</span>`:''}
+  <h2>${L(n.t)}</h2><p class="b">${L(n.b)}</p>
+  <div class="sec"><h4>${t('ls_formula')}</h4><div class="formula">${n.f}</div></div>
+  <div class="sec"><h4>${t('ls_calc')}</h4><div class="calc">${n.calc.in.map(([k,l,v])=>`<label><span>${l}</span><input type="number" step="any" data-k="${k}" value="${v}"></label>`).join('')}</div><div class="cres" id="lsRes"></div></div>
+  <div class="sec"><h4>${t('ls_prob')}</h4><p class="q">${L(n.q)}</p><div class="qa"><input id="lsAns" inputmode="decimal" placeholder="${t('ls_ans')}"><span>${n.u}</span><button class="btn cy sm" id="lsChk">${t('ls_check')}</button></div><div class="fb" id="lsFb"></div>
+   <div class="row2"><button class="btn sm" id="lsHint">${t('ls_hint')}</button><button class="btn sm" id="lsSol">${t('ls_sol')}</button></div><div id="lsMore"></div><p style="font-size:11.5px;color:var(--mut);margin-top:8px">${t('ls_tol')}</p></div>
+  ${n.pre.length?`<div class="sec"><h4>${t('ls_pre')}</h4><div class="row2" style="margin:0">${n.pre.map(p=>{const q=LESSONS.find(x=>x.id===p);return `<button class="btn sm" data-ls="${p}">${L(q.t)}</button>`}).join('')}</div></div>`:''}
+  <div class="row2" style="margin-top:20px"><button class="btn pri sm" id="lsGo">${t('ls_go')}</button>${nx?`<button class="btn sm" data-ls="${nx.id}">${t('ls_next')}</button>`:''}</div>`;
+  el.classList.add('open');el.scrollTop=0;
+  const calc=()=>{const o={};$$('#lesson .calc input').forEach(i=>o[i.dataset.k]=parseFloat(i.value));const r=n.calc.f(o);$('#lsRes').textContent=`= ${fmt(r[0])} ${r[1]}${r[2]||''}`};calc();$$('#lesson .calc input').forEach(i=>i.oninput=calc);
+  $('#lsX').onclick=()=>{el.classList.remove('open');this.open=null};
+  const chk=()=>{const v=parseFloat(($('#lsAns').value||'').replace(/,/g,'').replace(/\s/g,''));const ok=!isNaN(v)&&Math.abs(v-n.a)<=Math.abs(n.a)*.02;const fb=$('#lsFb');fb.className='fb '+(ok?'ok':'no');fb.textContent=ok?t('ls_ok'):t('ls_no');if(ok&&!this.done[id]){this.done[id]=1;store.set('done',this.done);this.render()}};
+  $('#lsChk').onclick=chk;$('#lsAns').onkeydown=e=>{if(e.key==='Enter')chk()};
+  $('#lsHint').onclick=()=>{$('#lsMore').innerHTML=`<div class="solb">💡 ${L(n.h)}</div>`};$('#lsSol').onclick=()=>{$('#lsMore').innerHTML=`<div class="solb">${n.s}</div>`};
+  $('#lsGo').onclick=()=>go(n.go);$$('#lesson [data-ls]').forEach(b=>b.onclick=()=>this.show(b.dataset.ls))},
+ leave(){}
+};
+
+/*SIM-START*/
+const G0=9.80665,MU=3.986004418e14,RE=6371000,OMEGA=7.2921e-5;
+const PROPS={kerolox:{name:'RP-1 / LOX',isl:282,ivac:311,iup:348},hydrolox:{name:'LH2 / LOX',isl:366,ivac:410,iup:450},methalox:{name:'CH4 / LOX',isl:327,ivac:356,iup:380},solid:{name:'Solid (APCP)',isl:242,ivac:268,iup:290}};
+function parseProgram(src){const cmds=[],conds=[],errors=[];
+ src.split('\n').forEach((raw,i)=>{const line=raw.replace(/#.*$/,'').trim();if(!line)return;const w=line.toLowerCase().split(/\s+/);
+  if(w[0]==='at'){const time=parseFloat(w[1]),op=w[2];if(isNaN(time)){errors.push(i+1);return}
+   if(op==='pitch'||op==='throttle'){const v=parseFloat(w[3]);if(isNaN(v)){errors.push(i+1);return}cmds.push({time,op,v})}else if(['stage','cut','ignite'].includes(op))cmds.push({time,op});else errors.push(i+1)}
+  else if(w[0]==='when'){const v=w[1],cmp=w[2],val=parseFloat(w[3]),op=w[4];if(!['altitude','velocity','apoapsis','periapsis','vspeed'].includes(v)||!['>','<'].includes(cmp)||isNaN(val)||!['cut','ignite','stage'].includes(op)){errors.push(i+1);return}conds.push({v,cmp,val,op})}
+  else errors.push(i+1)});
+ cmds.sort((a,b)=>a.time-b.time);return {cmds,conds,errors}}
+function stageIsp(st,i){const P=PROPS[st.prop];return i===0?{isl:P.isl,ivac:P.ivac}:{isl:P.iup*.6,ivac:P.iup}}
+function deltaV(cfg){const S=cfg.stages;let out=[],tot=0;for(let i=0;i<S.length;i++){let m0=cfg.payload;for(let j=i;j<S.length;j++)m0+=S[j].pm+S[j].dm;const mf=m0-S[i].pm;const I=stageIsp(S[i],i);const isp=i===0?(I.isl+I.ivac)/2:I.ivac;const dv=isp*G0*Math.log(m0/mf);out.push(dv);tot+=dv}
+ const m0=cfg.payload+S.reduce((s,x)=>s+x.pm+x.dm,0);const I0=stageIsp(S[0],0);const twr=S[0].th*1000*(I0.isl/I0.ivac)/(m0*1000*G0);return {per:out,tot,twr}}
+function elements(x,y,vx,vy){const r=Math.hypot(x,y),v2=vx*vx+vy*vy,E=v2/2-MU/r,h=x*vy-y*vx;const e=Math.sqrt(Math.max(0,1+2*E*h*h/(MU*MU)));let a=-MU/(2*E);const rp=E<0?a*(1-e):h*h/MU/(1+e),ra=E<0?a*(1+e):Infinity;return {r,v:Math.sqrt(v2),rp,ra,e,h,vs:(x*vx+y*vy)/r}}
+function simulate(cfg,prog){
+ const S=cfg.stages.map(s=>({...s,pm:s.pm*1000,dm:s.dm*1000,th:s.th*1000}));let mass=cfg.payload*1000+S.reduce((a,s)=>a+s.pm+s.dm,0);
+ const prop=S.map(s=>s.pm);let si=0,x=0,y=RE,vx=OMEGA*RE,vy=0,t=0,dt=.2,thr=1,on=true;const Cd=.3,A=Math.PI*1.85*1.85;
+ const pk=prog.cmds.filter(c=>c.op==='pitch');if(!pk.length||pk[0].time>0)pk.unshift({time:0,v:90});
+ const done=new Set(),ci={i:0};const samples=[],events=[];let maxQ=0,maxQt=0,result=null,lastS=-1,el=elements(x,y,vx,vy),maxAlt=0;
+ const dS=()=>{if(si>=S.length)return;mass-=S[si].dm+prop[si];prop[si]=0;events.push({t,k:'ev_stage',s:si+1});si++};
+ const dv=deltaV(cfg);if(dv.twr<1)return {result:'r_twr',samples:[{t:0,alt:0,v:0,x,y,si:0}],events,maxQ:0,el,dv};
+ while(t<6000){
+  for(const c of prog.cmds){if(done.has(c)||c.time>t)continue;done.add(c);if(c.op==='throttle')thr=clamp(c.v/100,0,1);else if(c.op==='stage')dS();else if(c.op==='cut'){on=false;events.push({t,k:'ev_cut'})}else if(c.op==='ignite'){on=true;events.push({t,k:'ev_ignite'})}}
+  const r=Math.hypot(x,y),alt=r-RE;el=elements(x,y,vx,vy);maxAlt=Math.max(maxAlt,alt);
+  const cd=prog.conds[ci.i];if(cd){const val={altitude:alt/1000,velocity:el.v/1000,apoapsis:(el.ra-RE)/1000,periapsis:(el.rp-RE)/1000,vspeed:el.vs}[cd.v];if(cd.cmp==='>'?val>cd.val:val<cd.val){ci.i++;if(cd.op==='cut'){on=false;events.push({t,k:'ev_cut'})}else if(cd.op==='ignite'){on=true;events.push({t,k:'ev_ignite'})}else dS()}}
+  let p=pk[pk.length-1].v;for(let k=0;k<pk.length-1;k++){if(t>=pk[k].time&&t<pk[k+1].time){p=lerp(pk[k].v,pk[k+1].v,(t-pk[k].time)/(pk[k+1].time-pk[k].time));break}}
+  const pr=p*Math.PI/180,ux=x/r,uy=y/r,ex=uy,ey=-ux;const dx=Math.cos(pr)*ex+Math.sin(pr)*ux,dy=Math.cos(pr)*ey+Math.sin(pr)*uy;
+  const rho=alt<120000?1.225*Math.exp(-alt/8500):0,pf=rho/1.225;const rvx=vx-OMEGA*y,rvy=vy+OMEGA*x,rv=Math.hypot(rvx,rvy);const q=.5*rho*rv*rv;if(q>maxQ){maxQ=q;maxQt=t}
+  let ax=-MU*x/(r*r*r),ay=-MU*y/(r*r*r);if(rv>0){const D=q*Cd*A/mass;ax-=D*rvx/rv;ay-=D*rvy/rv}
+  let firing=false;if(on&&si<S.length&&prop[si]>0&&thr>0){const I=stageIsp(S[si],si),isp=I.ivac+(I.isl-I.ivac)*pf,md=S[si].th*thr/(I.ivac*G0);const use=Math.min(prop[si],md*dt);const T=md*isp*G0*(use/(md*dt));ax+=T/mass*dx;ay+=T/mass*dy;prop[si]-=use;mass-=use;firing=true;if(prop[si]<=1e-6){events.push({t,k:'ev_stage',s:si+1});if(si<S.length-1){mass-=S[si].dm;si++}else{si++}}}
+  if(t<1&&!firing&&alt<1){}
+  vx+=ax*dt;vy+=ay*dt;x+=vx*dt;y+=vy*dt;t+=dt;
+  if(Math.floor(t)!==lastS){lastS=Math.floor(t);samples.push({t,alt:alt/1000,v:Math.hypot(vx,vy)/1000,x,y,si:Math.min(si,S.length-1),q})}
+  const r2=Math.hypot(x,y);if(r2<RE&&t>3){result='r_crash';break}
+  const pending=ci.i<prog.conds.length||prog.cmds.some(c=>!done.has(c));const canFire=on&&si<S.length&&prop.slice(si).some(v=>v>0);
+  if(!canFire&&!pending||(!on&&!pending)||si>=S.length){const e2=elements(x,y,vx,vy);if(e2.rp>RE+100000){result='r_orbit';el=e2;break}if(e2.vs<0&&r2-RE<maxAlt-1000){result='r_sub';el=e2;break}}
+ }
+ if(!result)result='r_sub';
+ const ef=elements(x,y,vx,vy);el=ef;
+ if(maxQ>0)events.push({t:maxQt,k:'ev_maxq'});if(result==='r_orbit')events.push({t,k:'ev_orbit'});events.sort((a,b)=>a.t-b.t);
+ return {result,samples,events,maxQ,el,dv,final:{x,y,vx,vy,t},maxAlt}}
+/*SIM-END*/
+
+/* ============================ SIM VIEW ============================ */
+const PRESETS={
+ f9:{n:{ko:'중형 2단 (케로신)',en:'Medium 2-stage (kerolox)',mn:'Дунд 2 шат (керолокс)'},stages:[{prop:'kerolox',pm:395.7,dm:25.6,th:8400},{prop:'kerolox',pm:92.7,dm:3.9,th:981}],payload:10},
+ hydro:{n:{ko:'고효율 수소 2단',en:'High-Isp hydrogen 2-stage',mn:'Устөрөгчийн 2 шат'},stages:[{prop:'hydrolox',pm:250,dm:28,th:6400},{prop:'hydrolox',pm:60,dm:5,th:600}],payload:12},
+ small3:{n:{ko:'소형 3단',en:'Small 3-stage',mn:'Жижиг 3 шат'},stages:[{prop:'kerolox',pm:130,dm:18,th:3300},{prop:'kerolox',pm:35,dm:4,th:800},{prop:'kerolox',pm:8,dm:1.2,th:80}],payload:1.5},
+ single:{n:{ko:'1단만 (실패해 보기)',en:'Single stage (watch it fail)',mn:'Ганц шат (бүтэлгүйтэх)'},stages:[{prop:'kerolox',pm:420,dm:30,th:8400}],payload:10}};
+const DEFAULT_PROG=`# Flight program — gravity turn + circularization
+at 0 throttle 100
+at 0 pitch 90                # vertical liftoff
+at 10 pitch 75               # pitch-over starts the gravity turn
+at 45 pitch 45
+at 200 pitch 10
+at 350 pitch 0               # horizontal
+when apoapsis > 300 cut      # coast to apoapsis
+when vspeed < 30 ignite      # burn again near apoapsis
+when periapsis > 270 cut     # circular orbit!`;
+const Sim={
+ init(){this.cfg=JSON.parse(JSON.stringify(PRESETS.f9));this.cfg.three=false;this.view='a';this.res=null;this.play=0;$('#simProg').value=store.get('prog2',DEFAULT_PROG);
+  $('#simRun').onclick=()=>this.run();$('#sim3').onchange=e=>{this.readUI();if(e.target.checked&&this.cfg.stages.length<3)this.cfg.stages.push({prop:'kerolox',pm:8,dm:1.2,th:80});if(!e.target.checked)this.cfg.stages=this.cfg.stages.slice(0,2);this.build()};
+  $('#tvA').onclick=()=>{this.view='a';this.drawAll()};$('#tvF').onclick=()=>{this.view='f';this.drawAll()};window.addEventListener('resize',()=>{if(cur==='sim')this.drawAll()});this.build();this.run(true)},
+ lang(){this.readUI();this.build();this.showRes()},
+ build(){$('#presets').innerHTML=Object.keys(PRESETS).map(k=>`<button class="btn sm" data-pr="${k}">${L(PRESETS[k].n)}</button>`).join('');
+  $$('#presets button').forEach(b=>b.onclick=()=>{this.cfg=JSON.parse(JSON.stringify(PRESETS[b.dataset.pr]));this.build();this.run()});
+  $('#sim3').checked=this.cfg.stages.length>=3;$('#simPay').value=this.cfg.payload;
+  $('#stages').innerHTML=this.cfg.stages.map((s,i)=>`<div class="stg" data-i="${i}"><div class="stg-h">${t('sim_stage')} ${i+1}</div><div class="stg-g">
+   <label>${t('sim_prop')}<select data-k="prop">${Object.keys(PROPS).map(k=>`<option value="${k}" ${k===s.prop?'selected':''}>${PROPS[k].name}</option>`).join('')}</select></label>
+   <label>${t('sim_th')}<input type="number" step="any" data-k="th" value="${s.th}"></label>
+   <label>${t('sim_pm')}<input type="number" step="any" data-k="pm" value="${s.pm}"></label>
+   <label>${t('sim_dm')}<input type="number" step="any" data-k="dm" value="${s.dm}"></label></div></div>`).join('');
+  $$('#stages input,#stages select,#simPay').forEach(e=>e.oninput=()=>{this.readUI();this.kpis()});this.kpis()},
+ readUI(){$$('#stages .stg').forEach(d=>{const s=this.cfg.stages[+d.dataset.i];d.querySelectorAll('[data-k]').forEach(e=>{s[e.dataset.k]=e.dataset.k==='prop'?e.value:Math.max(0,parseFloat(e.value)||0)})});this.cfg.payload=Math.max(0,parseFloat($('#simPay').value)||0)},
+ kpis(){const d=deltaV(this.cfg);const ok=d.tot>9300;$('#kpis').innerHTML=`<div class="kpi"><small>${t('sim_dv')}</small><b style="color:${ok?'var(--ok)':'#ffcf6a'}">${(d.tot/1000).toFixed(2)} km/s</b></div><div class="kpi"><small>${t('sim_twr')}</small><b style="color:${d.twr>1.15?'var(--ok)':'var(--bad)'}">${d.twr.toFixed(2)}</b></div>`+d.per.map((v,i)=>`<div class="kpi"><small>Δv · ${t('sim_stage')} ${i+1}</small><b>${(v/1000).toFixed(2)} km/s</b></div>`).join('')+`<div class="kpi" style="grid-column:1/-1"><small>${t('sim_need')}</small></div>`},
+ run(silent){this.readUI();this.kpis();const src=$('#simProg').value;store.set('prog2',src);const P=parseProgram(src);
+  if(P.errors.length){this.res={err:P.errors};this.showRes();return}
+  this.res=simulate(this.cfg,P);this.play=silent?1:0;this.playStart=performance.now();this.showRes()},
+ showRes(){const r=this.res;if(!r)return;const v=$('#verdict');
+  if(r.err){v.innerHTML=`<div class="verdict no">${t('r_err')} ${r.err.join(', ')}</div>`;return}
+  const cls=r.result==='r_orbit'?'ok':r.result==='r_sub'?'mid':'no';const apo=isFinite(r.el.ra)?((r.el.ra-RE)/1000).toFixed(0)+' km':'∞';const peri=((r.el.rp-RE)/1000).toFixed(0)+' km';
+  v.innerHTML=`<div class="verdict ${cls}">${t(r.result)}</div><div class="kpis"><div class="kpi"><small>${t('sim_apo')}</small><b>${r.result==='r_orbit'?apo:(r.maxAlt/1000).toFixed(0)+' km'}</b></div><div class="kpi"><small>${t('sim_peri')}</small><b>${r.result==='r_orbit'?peri:'—'}</b></div><div class="kpi"><small>${t('sim_maxq')}</small><b>${(r.maxQ/1000).toFixed(1)} kPa</b></div><div class="kpi"><small>${t('sim_time')}</small><b>${r.samples.length?r.samples[r.samples.length-1].t.toFixed(0):0} s</b></div></div>`;
+  $('#evlog').innerHTML=r.events.map(e=>`T+${e.t.toFixed(0).padStart(4,' ')} s · ${t(e.k)}${e.s?' '+e.s:''}`).join('<br>');this.drawAll()},
+ enter(){this.drawAll()},
+ frame(){if(this.res&&!this.res.err&&this.play<1){this.play=Math.min(1,(performance.now()-this.playStart)/5000);this.drawAll()}},
+ drawAll(){if(!this.res||this.res.err||cur!=='sim')return;this.drawTraj();this.chart($('#chAlt'),'alt',t('sim_alt'),'#5ad1ff');this.chart($('#chVel'),'v',t('sim_spd'),'#ff8a3d')},
+ fit(cv){const r=cv.getBoundingClientRect(),d=Math.min(devicePixelRatio||1,2);cv.width=Math.max(1,r.width*d);cv.height=Math.max(1,r.height*d);const x=cv.getContext('2d');x.setTransform(d,0,0,d,0,0);return [x,r.width,r.height]},
+ drawTraj(){const [x,w,h]=this.fit($('#trajCv')),r=this.res,S=r.samples;const n=Math.max(1,Math.floor(S.length*this.play));
+  x.fillStyle='#02040b';x.fillRect(0,0,w,h);for(let i=0;i<120;i++){x.fillStyle=`rgba(255,255,255,${hash3(i,2,3)*.6})`;x.fillRect(hash3(i,1,1)*w,hash3(i,5,1)*h,1,1)}
+  let cx,cy,sc;if(this.view==='f'){const maxR=Math.max(RE*1.15,Math.min(isFinite(r.el.ra)?r.el.ra:RE*2,RE*4));sc=Math.min(w,h)*.44/maxR;cx=w/2;cy=h/2}
+  else{let x0=1e18,x1=-1e18,y0=1e18,y1=-1e18;const ce=r.events.find(e=>e.k==='ev_cut');const tl=ce?ce.t+40:1e9;S.filter(s=>s.t<=tl).forEach(s=>{x0=Math.min(x0,s.x);x1=Math.max(x1,s.x);y0=Math.min(y0,s.y);y1=Math.max(y1,s.y)});y0=Math.min(y0,RE-40000);const sx=(x1-x0)||1,sy=(y1-y0)||1;sc=Math.min(w*.85/sx,h*.75/sy);cx=w/2-((x0+x1)/2)*sc;cy=h/2+((y0+y1)/2)*sc}
+  const P=(px,py)=>[cx+px*sc,cy-py*sc];const ec=P(0,0);
+  const g=x.createRadialGradient(ec[0],ec[1]-RE*sc*.3,RE*sc*.1,ec[0],ec[1],RE*sc);g.addColorStop(0,'#3d7be0');g.addColorStop(1,'#123a8a');x.fillStyle=g;x.beginPath();x.arc(ec[0],ec[1],RE*sc,0,7);x.fill();
+  x.strokeStyle='rgba(120,180,255,.35)';x.lineWidth=1;x.setLineDash([3,4]);x.beginPath();x.arc(ec[0],ec[1],(RE+100000)*sc,0,7);x.stroke();x.setLineDash([]);
+  if(r.result==='r_orbit'&&this.play>=1){const f=r.final;const rr=Math.hypot(f.x,f.y),v2=f.vx*f.vx+f.vy*f.vy,rv=f.x*f.vx+f.y*f.vy;const exv=((v2-MU/rr)*f.x-rv*f.vx)/MU,eyv=((v2-MU/rr)*f.y-rv*f.vy)/MU,e=Math.hypot(exv,eyv),hh=f.x*f.vy-f.y*f.vx,p=hh*hh/MU,w0=Math.atan2(eyv,exv);
+   x.strokeStyle='rgba(75,227,154,.85)';x.setLineDash([6,5]);x.lineWidth=1.5;x.beginPath();for(let i=0;i<=200;i++){const th=i/200*Math.PI*2,rad=p/(1+e*Math.cos(th-w0));const q=P(rad*Math.cos(th),rad*Math.sin(th));i?x.lineTo(q[0],q[1]):x.moveTo(q[0],q[1])}x.stroke();x.setLineDash([])}
+  const cols=['#ff8a3d','#5ad1ff','#c08cff'];x.lineWidth=2.2;for(let i=1;i<n;i++){const a=P(S[i-1].x,S[i-1].y),b=P(S[i].x,S[i].y);x.strokeStyle=cols[S[i].si%3];x.beginPath();x.moveTo(a[0],a[1]);x.lineTo(b[0],b[1]);x.stroke()}
+  const cs=S[n-1];if(cs){const q=P(cs.x,cs.y);x.fillStyle='#fff';x.shadowColor='#fff';x.shadowBlur=12;x.beginPath();x.arc(q[0],q[1],3.5,0,7);x.fill();x.shadowBlur=0;$('#tele').innerHTML=`T+${cs.t.toFixed(0)} s<br>${cs.alt.toFixed(1)} km<br>${cs.v.toFixed(2)} km/s<br>q ${(cs.q/1000).toFixed(1)} kPa`}},
+ chart(cv,key,label,col){const [x,w,h]=this.fit(cv),S=this.res.samples;x.fillStyle='#02040b';x.fillRect(0,0,w,h);if(!S.length)return;const pad={l:40,r:10,t:22,b:20};const tm=S[S.length-1].t||1,vm=Math.max(...S.map(s=>s[key]))*1.1||1;
+  x.strokeStyle='rgba(255,255,255,.08)';x.fillStyle='#9aa6c8';x.font='10px system-ui';x.textAlign='right';for(let i=0;i<=4;i++){const y=pad.t+(h-pad.t-pad.b)*i/4;x.beginPath();x.moveTo(pad.l,y);x.lineTo(w-pad.r,y);x.stroke();x.fillText(fmt(vm*(1-i/4)),pad.l-4,y+3)}
+  x.textAlign='left';x.fillStyle='#e8eeff';x.font='600 11px system-ui';x.fillText(label,pad.l,14);x.fillStyle='#9aa6c8';x.textAlign='right';x.font='10px system-ui';x.fillText(tm.toFixed(0)+' s',w-pad.r,h-5);
+  const X=tt=>pad.l+(w-pad.l-pad.r)*tt/tm,Y=v=>pad.t+(h-pad.t-pad.b)*(1-v/vm);const n=Math.max(1,Math.floor(S.length*this.play));
+  const gr=x.createLinearGradient(0,pad.t,0,h-pad.b);gr.addColorStop(0,col+'55');gr.addColorStop(1,col+'00');x.fillStyle=gr;x.beginPath();x.moveTo(X(S[0].t),Y(0));for(let i=0;i<n;i++)x.lineTo(X(S[i].t),Y(S[i][key]));x.lineTo(X(S[n-1].t),Y(0));x.fill();
+  x.strokeStyle=col;x.lineWidth=2;x.beginPath();for(let i=0;i<n;i++){const px=X(S[i].t),py=Y(S[i][key]);i?x.lineTo(px,py):x.moveTo(px,py)}x.stroke();
+  this.res.events.forEach(e=>{if(e.t>S[n-1].t)return;x.strokeStyle='rgba(255,255,255,.25)';x.setLineDash([2,3]);x.beginPath();x.moveTo(X(e.t),pad.t);x.lineTo(X(e.t),h-pad.b);x.stroke();x.setLineDash([])})}
+};
+
+/* ============================ SOLAR SYSTEM ============================ */
+const PLANETS=[
+ {id:'mercury',n:{ko:'수성',en:'Mercury',mn:'Буд'},a:.387,P:87.97,rad:2439.7,g:3.7,ve:4.25,col:[175,165,155],s:.32,d:{ko:'태양에 가장 가까운 행성. 대기가 거의 없어 낮과 밤의 온도 차가 약 600 °C에 이릅니다.',en:'Closest to the Sun. With almost no atmosphere, day–night temperatures differ by about 600 °C.',mn:'Нарт хамгийн ойр гараг. Агаар мандал бараг байхгүй тул өдөр, шөнийн температурын зөрүү 600 °C орчим.'}},
+ {id:'venus',n:{ko:'금성',en:'Venus',mn:'Сугар'},a:.723,P:224.7,rad:6051.8,g:8.87,ve:10.36,col:[226,192,124],s:.55,d:{ko:'두꺼운 이산화탄소 대기의 온실효과로 표면이 약 465 °C인, 태양계에서 가장 뜨거운 행성입니다.',en:'A thick CO₂ atmosphere’s greenhouse effect keeps the surface near 465 °C — the hottest planet.',mn:'Нүүрсхүчлийн хийн өтгөн агаар мандлын хүлэмжийн нөлөөгөөр гадаргуу нь 465 °C орчим — хамгийн халуун гараг.'}},
+ {id:'earth',n:{ko:'지구',en:'Earth',mn:'Дэлхий'},a:1,P:365.26,rad:6371,g:9.81,ve:11.19,col:[70,130,220],s:.58,d:{ko:'액체 상태의 물과 생명이 확인된 유일한 행성이며, 모든 로켓 발사의 출발점입니다.',en:'The only world known to have liquid surface water and life — the starting point of every launch.',mn:'Шингэн ус, амьдрал байгаа нь батлагдсан цорын ганц гараг, бүх хөөргөлтийн эхлэл.'}},
+ {id:'mars',n:{ko:'화성',en:'Mars',mn:'Ангараг'},a:1.524,P:686.98,rad:3389.5,g:3.72,ve:5.03,col:[212,104,62],s:.42,d:{ko:'산화철 먼지로 붉게 보입니다. 지구에서 호만 전이로 가면 약 8~9개월이 걸립니다.',en:'Red from iron-oxide dust. A Hohmann transfer from Earth takes about 8–9 months.',mn:'Төмрийн исэлтэй тоосноос болж улаан харагдана. Дэлхийгээс Хоманы шилжилтээр 8–9 сар орчим явна.'}},
+ {id:'jupiter',n:{ko:'목성',en:'Jupiter',mn:'Бархасбадь'},a:5.203,P:4332.6,rad:69911,g:24.79,ve:59.5,col:[214,178,140],s:1.3,band:true,d:{ko:'태양계 최대 행성. 강한 중력 때문에 탐사선의 중력 도움(스윙바이)에 자주 이용됩니다.',en:'The largest planet; its strong gravity is often used for spacecraft gravity assists.',mn:'Нарны аймгийн хамгийн том гараг; хүчтэй таталцлыг нь сансрын хөлгүүд таталцлын тусламжид ашигладаг.'}},
+ {id:'saturn',n:{ko:'토성',en:'Saturn',mn:'Санчир'},a:9.537,P:10759,rad:58232,g:10.44,ve:35.5,col:[226,202,142],s:1.1,band:true,ring:true,d:{ko:'얼음과 암석 입자로 된 거대한 고리를 가진 가스 행성으로, 평균 밀도가 물보다 낮습니다.',en:'A gas giant with vast rings of ice and rock; its mean density is lower than water.',mn:'Мөс, чулуун бөөмсөөс тогтсон асар том цагирагтай хийн аварга; дундаж нягт нь уснаас бага.'}},
+ {id:'uranus',n:{ko:'천왕성',en:'Uranus',mn:'Тэнгэрийн ван'},a:19.19,P:30687,rad:25362,g:8.87,ve:21.3,col:[150,216,230],s:.8,d:{ko:'자전축이 약 98° 기울어져 옆으로 누운 채 공전하는 얼음 거인입니다.',en:'An ice giant tilted about 98°, rolling around the Sun on its side.',mn:'Эргэлтийн тэнхлэг нь 98° орчим хазайсан тул хажуугаараа хэвтэж эргэдэг мөсөн аварга.'}},
+ {id:'neptune',n:{ko:'해왕성',en:'Neptune',mn:'Далайн ван'},a:30.07,P:60190,rad:24622,g:11.15,ve:23.5,col:[80,122,232],s:.78,d:{ko:'초속 500 m가 넘는 태양계에서 가장 강한 바람이 부는 얼음 거인입니다.',en:'An ice giant with the fastest winds in the Solar System, exceeding 500 m/s.',mn:'Секундэд 500 м-ээс хэтэрсэн хамгийн хүчтэй салхитай мөсөн аварга.'}}];
+const Solar={
+ init(){this.R=new R3D($('#solarCv'));this.stars=makeStars(900);this.days=0;this.sel=null;this.sun=sphere(2.6,24,16,[255,206,96]);
+  PLANETS.forEach(p=>{p.dv=5+Math.sqrt(p.a)*8;p.ph=hash3(p.a*10,1,2)*Math.PI*2;p.mesh=p.id==='earth'?planetMesh(1,22,14,earthCol):planetMesh(1,20,12,c=>{if(p.band){const k=.82+.18*Math.sin(c[1]*14+noise3(c[0]*3,c[1]*3,c[2]*3)*1.5);return mul(p.col,k)}const k=.85+.15*noise3(c[0]*4,c[1]*4,c[2]*4);return mul(p.col,k)});if(p.ring)p.rm=annulus(1.4,2.3,40,[214,196,150]);p.orbit=[];for(let i=0;i<120;i++){const a=i/120*Math.PI*2;p.orbit.push([Math.cos(a)*p.dv,0,Math.sin(a)*p.dv])}});
+  this.o={yaw:.3,pitch:.55,dist:70,min:3,max:140,idle:0,onTap:(x,y)=>{const id=this.R.pick(x,y);if(id)this.select(id)}};orbitCtl($('#solarCv'),this.o);this.tg=[0,0,0];
+  $('#soSpd').oninput=e=>$('#soSpdV').textContent=e.target.value;$('#soAll').onclick=()=>{this.sel=null;this.o.dist=70;this.lang()};this.lang()},
+ select(id){this.sel=id;this.o.idle=0;const p=PLANETS.find(x=>x.id===id);if(p)this.o.dist=Math.max(4,p.s*7);else if(id==='sun')this.o.dist=14;this.lang()},
+ lang(){const el=$('#soInfo');const p=PLANETS.find(x=>x.id===this.sel);if(this.sel==='sun'){el.innerHTML=`<h3>${L({ko:'태양',en:'Sun',mn:'Нар'})}</h3><p>${L({ko:'표면 온도 약 5,772 K. 태양계 전체 질량의 99.8%를 차지하며, 중심부의 핵융합으로 빛납니다.',en:'Surface about 5,772 K. Holds 99.8% of the Solar System’s mass and shines by core nuclear fusion.',mn:'Гадаргын температур 5,772 K орчим. Нарны аймгийн массын 99.8%-ийг эзэлдэг бөгөөд цөмийн нийлэгжилтээр гэрэлтдэг.'})}</p>`;return}
+  if(!p){el.innerHTML=`<p style="color:var(--mut)">${t('so_hint')}</p>`;return}
+  el.innerHTML=`<h3>${L(p.n)}</h3><p>${L(p.d)}</p><div class="kpis" style="margin-top:12px"><div class="kpi"><small>${t('so_a')}</small><b>${p.a} AU</b></div><div class="kpi"><small>${t('so_period')}</small><b>${fmt(p.P)} ${t('so_day')}</b></div><div class="kpi"><small>${t('so_radius')}</small><b>${fmt(p.rad)} km</b></div><div class="kpi"><small>${t('so_g')}</small><b>${p.g} m/s²</b></div><div class="kpi"><small>${t('so_vesc')}</small><b>${p.ve} km/s</b></div></div>`},
+ enter(){this.R.resize()},
+ pos(p){const a=p.ph+this.days/p.P*Math.PI*2;return [Math.cos(a)*p.dv,0,-Math.sin(a)*p.dv]},
+ frame(dt){const R=this.R;R.resize();this.days+=dt*+$('#soSpd').value;this.o.idle+=dt;if(this.o.idle>3)this.o.yaw+=dt*.04;
+  const sp=PLANETS.find(x=>x.id===this.sel);const want=sp?this.pos(sp):[0,0,0];this.tg=vlerp(this.tg,want,1-Math.exp(-dt*5));
+  R.cam.pos=orbitPos(this.o,this.tg);R.cam.target=this.tg;R.cam.up=[0,1,0];R.cam.fov=50;R.begin();R.ctx.clearRect(0,0,R.W,R.H);R.stars(this.stars,1);
+  PLANETS.forEach(p=>R.line3(p.orbit,p.id===this.sel?'rgba(90,209,255,.55)':'rgba(150,180,255,.16)',1,true));
+  R.add({mesh:this.sun,id:'sun',emis:true});
+  PLANETS.forEach(p=>{const ps=this.pos(p),rot=M3.ry(this.days*.05);R.add({mesh:p.mesh,pos:ps,rot:p.id==='uranus'?M3.mul(M3.rz(1.7),rot):rot,scale:p.s,id:p.id,lightPos:[0,0,0],glowK:p.id===this.sel?.08:0});if(p.rm)R.add({mesh:p.rm,pos:ps,rot:M3.rx(.45),scale:p.s,double:true,alpha:.8,lightPos:[0,0,0],id:p.id})});
+  R.draw();R.spr([0,0,0],9,'255,190,90',.9);R.spr([0,0,0],4.5,'255,240,200',.9);
+  PLANETS.forEach(p=>{const ps=this.pos(p);R.label(add(ps,[0,p.s,0]),L(p.n),p.id===this.sel?'#5ad1ff':'rgba(232,238,255,.85)',12,-8)})}
+};
+
+/* ============================ CAMERA MOTION (shared) ============================ */
+const Motion={active:false,stream:null,vid:null,prev:null,cx:.5,cy:.5,energy:0,top:0,
+ async start(vid){if(this.active){if(vid&&vid!==this.vid){vid.srcObject=this.stream;await vid.play().catch(()=>{});this.vid=vid}return}
+  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia)throw new Error('nocam');
+  this.stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'user',width:{ideal:640},height:{ideal:480}},audio:false});
+  this.vid=vid;vid.srcObject=this.stream;vid.muted=true;vid.setAttribute('playsinline','');await vid.play().catch(()=>{});
+  this.cv=document.createElement('canvas');this.cv.width=64;this.cv.height=48;this.ctx=this.cv.getContext('2d',{willReadFrequently:true});this.prev=null;this.active=true},
+ stop(){if(this.stream)this.stream.getTracks().forEach(k=>k.stop());this.stream=null;this.active=false;if(this.vid)this.vid.srcObject=null;this.vid=null},
+ update(){if(!this.active||!this.vid||this.vid.readyState<2)return;const c=this.ctx;c.drawImage(this.vid,0,0,64,48);const d=c.getImageData(0,0,64,48).data,n=3072,cur=new Float32Array(n);let sx=0,sy=0,cnt=0,top=0;
+  for(let i=0;i<n;i++){const l=d[i*4]*.3+d[i*4+1]*.59+d[i*4+2]*.11;cur[i]=l;if(this.prev&&Math.abs(l-this.prev[i])>26){const x=i%64,y=(i/64)|0;sx+=63-x;sy+=y;cnt++;if(y<16)top++}}
+  this.prev=cur;this.energy=lerp(this.energy,cnt/n,.3);this.top=lerp(this.top,top/1024,.4);if(cnt>10){this.cx=lerp(this.cx,sx/cnt/63,.25);this.cy=lerp(this.cy,sy/cnt/47,.25)}}};
+
+/* ============================ GAME ============================ */
+const Game={
+ init(){this.R=new R3D($('#gameCv'));this.stars=makeStars(1000);this.ship=shipMesh();this.astM=[0,1,2,3,4].map(asteroidMesh);this.ring=torus(4,.3,24,6,[90,209,255]);this.fuelM=octa(1,[80,255,160]);this.ps=new PS();this.level=1;this.best=store.get('best',0);this.state='menu';this.keys={};this.joy={x:0,y:0};this.tb={th:false,br:false};this.shake=0;
+  this.dust=[];for(let i=0;i<140;i++)this.dust.push([rnd(-40,40),rnd(-40,40),rnd(-40,40)]);
+  window.addEventListener('keydown',e=>{if(cur!=='game')return;this.keys[e.code]=true;if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space'].includes(e.code))e.preventDefault()});window.addEventListener('keyup',e=>{this.keys[e.code]=false});
+  const joy=$('#joy'),knob=joy.querySelector('i');let jid=null;const jm=e=>{const r=joy.getBoundingClientRect();let dx=(e.clientX-r.left-r.width/2)/(r.width/2),dy=(e.clientY-r.top-r.height/2)/(r.height/2);const l=Math.hypot(dx,dy);if(l>1){dx/=l;dy/=l}this.joy={x:dx,y:dy};knob.style.transform=`translate(${dx*36}px,${dy*36}px)`};
+  joy.addEventListener('pointerdown',e=>{jid=e.pointerId;joy.setPointerCapture(e.pointerId);jm(e)});joy.addEventListener('pointermove',e=>{if(e.pointerId===jid)jm(e)});const je=()=>{jid=null;this.joy={x:0,y:0};knob.style.transform=''};joy.addEventListener('pointerup',je);joy.addEventListener('pointercancel',je);
+  const hold=(el,k)=>{el.addEventListener('pointerdown',e=>{e.preventDefault();this.tb[k]=true});['pointerup','pointercancel','pointerleave'].forEach(ev=>el.addEventListener(ev,()=>this.tb[k]=false))};hold($('#tTh'),'th');hold($('#tBr'),'br');
+  $('#gStart').onclick=()=>{if(this.state==='over')this.level=1;this.start()};$('#gNext').onclick=()=>{this.level++;this.start()};
+  $('#gCamSteer').onchange=async e=>{if(e.target.checked){try{await Motion.start($('#gVid'));$('#gVid').classList.remove('hidden')}catch(err){e.target.checked=false;alert(t('c_nocam'))}}else{Motion.stop();$('#gVid').classList.add('hidden')}};
+  $('#gBest').textContent=this.best},
+ start(){const s=this.s={pos:[0,0,0],vel:[0,0,14],f:[0,0,1],u:[0,1,0],r:[-1,0,0]};this.fuel=100;this.hull=100;if(this.level===1||this.state==='over')this.score=0;this.newton=$('#gNewton').checked;
+  const pal=[[[200,90,60],[230,160,110]],[[110,180,230],[230,245,255]],[[200,150,230],[120,90,200]],[[120,200,120],[40,90,180]]][(this.level-1)%4];
+  this.planet={pos:[0,0,1700+this.level*500],r:55+this.level*5,GM:150000+this.level*25000,mesh:planetMesh(1,30,20,c=>{const n=noise3(c[0]*3+this.level,c[1]*3,c[2]*3)+.5*noise3(c[0]*7,c[1]*7,c[2]*7);return mixc(pal[0],pal[1],clamp(.5+n*.7,0,1))})};
+  this.objs=[];const N=26+this.level*4;for(let i=0;i<N;i++){const o={};this.spawn(o,rnd(40,460));this.objs.push(o)}
+  this.state='play';this.t=0;$('#gMenu').classList.add('hidden');this.ps.a=[]},
+ spawn(o,dist){const s=this.s;for(let k=0;k<6;k++){const r=Math.random();o.kind=r<.55?'ast':r<.85?'ring':'fuel';const spread=o.kind==='ring'?22:45;o.pos=add(add(add(s.pos,mul(s.f,dist||rnd(320,470))),mul(s.r,rnd(-spread,spread))),mul(s.u,rnd(-spread,spread)));if(len(sub(o.pos,this.planet.pos))>this.planet.r+25)break}
+  o.passed=false;o.hit=0;o.a=rnd(0,6);o.w=rnd(-.8,.8);o.sz=o.kind==='ast'?rnd(1.5,5.5):1;o.m=this.astM[(Math.random()*5)|0];o.rot=M3.basis(s.r,s.u,s.f)},
+ over(k){this.state='over';$('#gMenu').classList.remove('hidden');$('#gMt').textContent=t('g_over');$('#gMp').textContent=t(k);$('#gStart').textContent=t('g_retry');$('#gNext').classList.add('hidden');this.saveBest()},
+ win(){this.state='win';const bonus=1000*this.level+Math.round(this.fuel*10);this.score+=bonus;$('#gMenu').classList.remove('hidden');$('#gMt').textContent=t('g_win');$('#gMp').textContent=`${t('g_winmsg')} +${bonus}`;$('#gStart').textContent=t('g_retry');$('#gNext').classList.remove('hidden');this.saveBest()},
+ saveBest(){if(this.score>this.best){this.best=Math.round(this.score);store.set('best',this.best)}$('#gBest').textContent=this.best},
+ lang(){if(this.state==='menu'){$('#gMt').textContent=t('g_title');$('#gMp').textContent=t('g_how');$('#gStart').textContent=t('g_start')}},
+ enter(){this.R.resize()},leave(){this.keys={};if($('#gCamSteer').checked){$('#gCamSteer').checked=false;Motion.stop();$('#gVid').classList.add('hidden')}},
+ frame(dt){const R=this.R;R.resize();const s=this.s,K=this.keys;
+  if(this.state==='play'){this.t+=dt;
+   let pitch=(K.ArrowUp?1:0)-(K.ArrowDown?1:0)-this.joy.y,yaw=(K.ArrowRight?1:0)-(K.ArrowLeft?1:0)+this.joy.x,roll=(K.KeyE?1:0)-(K.KeyQ?1:0);
+   let th=K.Space||K.KeyW||this.tb.th,br=K.KeyS||this.tb.br;
+   if(Motion.active&&$('#gCamSteer').checked){Motion.update();yaw+=clamp((Motion.cx-.5)*2.6,-1,1);pitch+=clamp((.5-Motion.cy)*2.6,-1,1);th=th||Motion.energy>.012}
+   const rs=1.7*dt;if(yaw){s.f=norm(add(s.f,mul(s.r,yaw*rs)));s.r=norm(cross(s.f,s.u));s.u=cross(s.r,s.f)}if(pitch){s.f=norm(add(s.f,mul(s.u,pitch*rs)));s.u=norm(cross(s.r,s.f));s.r=norm(cross(s.f,s.u))}if(roll){s.u=norm(add(s.u,mul(s.r,roll*rs)));s.r=norm(cross(s.f,s.u));s.u=cross(s.r,s.f)}
+   if(th&&this.fuel>0){s.vel=add(s.vel,mul(s.f,34*dt));this.fuel-=7*dt;const ex=add(s.pos,mul(s.f,-1.7));for(let i=0;i<3;i++)this.ps.emit(ex,add(add(s.vel,mul(s.f,-26)),[rnd(-3,3),rnd(-3,3),rnd(-3,3)]),.35,.45,i?'255,140,60':'255,220,150',1.6)}
+   if(br&&this.fuel>0){s.vel=add(s.vel,mul(s.f,-24*dt));this.fuel-=5*dt;const ex=add(s.pos,mul(s.f,1.5));this.ps.emit(add(ex,mul(s.r,.7)),add(s.vel,mul(s.f,12)),.25,.3,'160,210,255',1);this.ps.emit(add(ex,mul(s.r,-.7)),add(s.vel,mul(s.f,12)),.25,.3,'160,210,255',1)}
+   this.fuel=Math.max(0,this.fuel);
+   const P=this.planet,dp=sub(P.pos,s.pos),dd=len(dp);s.vel=add(s.vel,mul(norm(dp),P.GM/(dd*dd)*dt));
+   if(!this.newton){s.vel=mul(s.vel,Math.exp(-.55*dt));const sp=len(s.vel);if(sp>110)s.vel=mul(s.vel,110/sp)}
+   s.pos=add(s.pos,mul(s.vel,dt));const speed=len(s.vel);this.score+=speed*dt*.1;
+   for(const o of this.objs){o.a+=o.w*dt;const rel=sub(o.pos,s.pos),d=len(rel);
+    if(o.kind==='ast'&&d<o.sz*.95+1.1&&o.hit<=0){this.hull-=20;o.hit=1;this.shake=1;const n=norm(mul(rel,-1));const vn=dot(s.vel,n);if(vn<0)s.vel=sub(s.vel,mul(n,1.8*vn));s.pos=add(o.pos,mul(n,o.sz*.95+1.2));for(let i=0;i<20;i++)this.ps.emit(s.pos,add(s.vel,[rnd(-12,12),rnd(-12,12),rnd(-12,12)]),.8,.35,'255,180,120',1)}
+    if(o.hit>0)o.hit-=dt;
+    if(o.kind==='ring'&&!o.passed&&d<3.6){o.passed=true;this.score+=100;for(let i=0;i<24;i++){const a=i/24*Math.PI*2;this.ps.emit(o.pos,add(mul(M3.ap(o.rot,[Math.cos(a),Math.sin(a),0]),10),s.vel),.6,.4,'90,209,255',1)}}
+    if(o.kind==='fuel'&&d<2.8){this.fuel=Math.min(100,this.fuel+30);this.score+=50;for(let i=0;i<16;i++)this.ps.emit(o.pos,add(s.vel,[rnd(-8,8),rnd(-8,8),rnd(-8,8)]),.6,.4,'80,255,160',1);this.spawn(o)}
+    if(dot(rel,s.f)<-35||d>540)this.spawn(o)}
+   if(this.hull<=0){this.hull=0;this.over('g_broken')}
+   else if(dd<P.r+1.5)this.over('g_crash');
+   else if(dd<P.r*1.75&&speed<45)this.win();
+   else if(this.fuel<=0&&speed<4)this.over('g_nofuel');
+   $('#gWarn').textContent=dd<P.r*4&&speed>45&&this.state==='play'?t('g_slow'):'';
+  }
+  this.ps.step(dt,.4);this.shake=Math.max(0,this.shake-dt*2);
+  // camera
+  if(!s){this.idle(dt);return}
+  const want=add(add(s.pos,mul(s.f,-9)),mul(s.u,2.8));this.cp=this.cp?vlerp(this.cp,want,1-Math.exp(-dt*6)):want;this.cu=this.cu?norm(vlerp(this.cu,s.u,1-Math.exp(-dt*5))):s.u;
+  const sh=this.shake*.6;R.cam.pos=add(this.cp,[rnd(-sh,sh),rnd(-sh,sh),rnd(-sh,sh)]);R.cam.target=add(s.pos,mul(s.f,8));R.cam.up=this.cu;R.cam.fov=62;R.fog=600;R.light=norm([.4,.7,-.6]);R.begin();
+  const x=R.ctx;x.fillStyle='#000206';x.fillRect(0,0,R.W,R.H);R.stars(this.stars,1);
+  // dust streaks
+  x.strokeStyle='rgba(180,210,255,.35)';x.lineWidth=R.dpr;x.beginPath();for(const d of this.dust){for(let k=0;k<3;k++){d[k]=((d[k]-(s.pos[k]))%80+120)%80-40+s.pos[k]}const a=R.project(d),b=R.project(sub(d,mul(s.vel,.04)));if(a&&b){x.moveTo(a[0],a[1]);x.lineTo(b[0],b[1])}}x.stroke();
+  const P=this.planet;R.add({mesh:P.mesh,pos:P.pos,scale:P.r,rot:M3.ry(this.t*.02),zb:0});
+  for(const o of this.objs){if(len(sub(o.pos,s.pos))>600)continue;if(o.kind==='ast')R.add({mesh:o.m,pos:o.pos,scale:o.sz,rot:M3.mul(M3.ry(o.a),M3.rx(o.a*.7))});else if(o.kind==='ring')R.add({mesh:this.ring,pos:o.pos,rot:o.rot,color:o.passed?[60,90,120]:[90,209,255],glowK:o.passed?0:.25});else R.add({mesh:this.fuelM,pos:o.pos,rot:M3.ry(o.a*3),emis:true})}
+  const SR=M3.basis(s.r,s.f,s.u);for(const pt of this.ship)R.add({mesh:pt.mesh,pos:add(s.pos,M3.ap(SR,mul(pt.pos,.6))),rot:M3.mul(SR,pt.rot||MI),scale:.6});
+  R.draw();const sr=R.screenR(P.pos,P.r);if(sr){const g=x.createRadialGradient(sr[0],sr[1],sr[2]*.95,sr[0],sr[1],sr[2]*1.15);g.addColorStop(0,'rgba(140,190,255,.35)');g.addColorStop(1,'rgba(140,190,255,0)');x.globalCompositeOperation='lighter';x.fillStyle=g;x.beginPath();x.arc(sr[0],sr[1],sr[2]*1.15,0,7);x.fill();x.globalCompositeOperation='source-over'}
+  for(const o of this.objs)if(o.kind==='fuel')R.spr(o.pos,2.6,'80,255,160',.6);
+  this.ps.draw(R);this.arrow();
+  $('#gLv').textContent=this.level;$('#gSc').textContent=Math.round(this.score);$('#gSp').textContent=len(s.vel).toFixed(0);$('#gTg').textContent=Math.max(0,len(sub(P.pos,s.pos))-P.r).toFixed(0);$('#gFu').style.width=this.fuel+'%';$('#gHu').style.width=this.hull+'%';$('#gFu').style.background=this.fuel<25?'var(--bad)':'var(--ok)'},
+ arrow(){const R=this.R,P=this.planet,c=R.toCam(P.pos);const x=R.ctx;let sx,sy,on=false;if(c[2]>0){[sx,sy]=R.sp(c);on=sx>0&&sy>0&&sx<R.W&&sy<R.H}if(on)return;let ang=Math.atan2(-c[1],c[0]);if(c[2]<0&&Math.abs(c[0])<1e-3&&Math.abs(c[1])<1e-3)ang=Math.PI/2;
+  const rx=R.W/2-40*R.dpr,ry=R.H/2-40*R.dpr,k=Math.min(rx/Math.abs(Math.cos(ang)||1e-6),ry/Math.abs(Math.sin(ang)||1e-6));const px=R.W/2+Math.cos(ang)*k,py=R.H/2+Math.sin(ang)*k;
+  x.save();x.translate(px,py);x.rotate(ang);x.fillStyle='rgba(255,207,106,.9)';x.beginPath();const s=14*R.dpr;x.moveTo(s,0);x.lineTo(-s*.6,s*.7);x.lineTo(-s*.6,-s*.7);x.closePath();x.fill();x.restore()},
+ idle(dt){const R=this.R;this.it=(this.it||0)+dt;R.cam.pos=[Math.sin(this.it*.1)*30,8,Math.cos(this.it*.1)*30];R.cam.target=[0,0,0];R.cam.up=[0,1,0];R.cam.fov=55;R.fog=0;R.begin();R.camLight();const x=R.ctx;x.fillStyle='#000206';x.fillRect(0,0,R.W,R.H);R.stars(this.stars,1);
+  for(let i=0;i<6;i++)R.add({mesh:this.astM[i%5],pos:[Math.cos(i*1.1+this.it*.05)*16,Math.sin(i*2.1)*6,Math.sin(i*1.1+this.it*.05)*16],scale:1.5+i%3,rot:M3.ry(this.it*.3+i)});
+  R.add({mesh:this.ring,pos:[0,0,0],rot:M3.mul(M3.ry(this.it*.4),M3.rx(.3)),glowK:.25});for(const pt of this.ship)R.add({mesh:pt.mesh,pos:add([0,Math.sin(this.it)*.4,0],pt.pos),rot:M3.mul(M3.ry(this.it*.6),pt.rot||MI)});R.draw()}
+};
+
+/* ============================ CAMERA PLAYGROUND ============================ */
+const Cam={
+ init(){this.R=new R3D($('#camCv'));this.rocket=buildRocket(16).filter(p=>p.id!=='turbopump'&&p.id!=='feedline');this.ps=new PS();this.mode=1;this.rx=0;this.ry=-4.5;this.vy=0;this.flying=false;this.count=0;this.cool=0;this.ptr=null;this.stars=makeStars(400);
+  this.parts2=[];for(let i=0;i<220;i++)this.parts2.push({x:Math.random(),y:Math.random(),vx:rnd(-.05,.05),vy:rnd(-.05,.05),h:rnd(180,280)});
+  $('#cStart').onclick=()=>Motion.active?this.stopCam():this.startCam();$$('#v-cam .seg button').forEach(b=>b.onclick=()=>{this.mode=+b.dataset.m;$$('#v-cam .seg button').forEach(c=>c.classList.toggle('on',c===b));$('#cHint').innerHTML=t('c_hint'+this.mode);$('#cHint').dataset.i18n='c_hint'+this.mode});
+  $('#cSnap').onclick=()=>this.snap();const cv=$('#camCv');
+  cv.addEventListener('pointermove',e=>{const r=cv.getBoundingClientRect();this.ptr={x:(e.clientX-r.left)/r.width,y:(e.clientY-r.top)/r.height,t:performance.now()}});
+  cv.addEventListener('pointerdown',e=>{const r=cv.getBoundingClientRect();this.ptr={x:(e.clientX-r.left)/r.width,y:(e.clientY-r.top)/r.height,t:performance.now()};if(!Motion.active&&this.ptr.y<.4)this.fire()})},
+ async startCam(){try{await Motion.start($('#camVid'));$('#cStart').textContent=t('c_stop');$('#cStart').dataset.i18n='c_stop';$('#cMsg').textContent=t('c_priv')}catch(e){$('#cMsg').textContent=t('c_nocam')}},
+ stopCam(){Motion.stop();$('#cStart').textContent=t('c_start');$('#cStart').dataset.i18n='c_start'},
+ enter(){this.R.resize()},leave(){if(Motion.active&&!$('#gCamSteer').checked)this.stopCam()},
+ fire(){if(this.flying||this.cool>0)return;this.flying=true;this.vy=0},
+ snap(){const R=this.R,c=document.createElement('canvas');c.width=R.W;c.height=R.H;const x=c.getContext('2d');const v=$('#camVid');
+  if(Motion.active&&v.videoWidth){const s=Math.max(c.width/v.videoWidth,c.height/v.videoHeight),w=v.videoWidth*s,h=v.videoHeight*s;x.save();x.translate(c.width,0);x.scale(-1,1);x.drawImage(v,(c.width-w)/2,(c.height-h)/2,w,h);x.restore()}else{x.fillStyle='#02040b';x.fillRect(0,0,c.width,c.height)}
+  x.drawImage(R.cv,0,0);x.fillStyle='rgba(255,255,255,.85)';x.font=`700 ${18*R.dpr}px system-ui`;x.fillText('ORBIT LAB',16*R.dpr,c.height-18*R.dpr);
+  try{const a=document.createElement('a');a.href=c.toDataURL('image/png');a.download='orbit-lab.png';document.body.appendChild(a);a.click();a.remove()}catch(e){}},
+ frame(dt){const R=this.R;R.resize();Motion.update();const live=Motion.active;let cx=.5,cy=.5,en=0,top=0;
+  if(live){cx=Motion.cx;cy=Motion.cy;en=Motion.energy;top=Motion.top}else if(this.ptr&&performance.now()-this.ptr.t<1500){cx=this.ptr.x;cy=this.ptr.y;en=.03}
+  $('#cMeter').style.width=Math.min(100,en*1500)+'%';$('#cCount').textContent=this.count;
+  const x=R.ctx;x.clearRect(0,0,R.W,R.H);
+  if(!live){const g=x.createLinearGradient(0,0,0,R.H);g.addColorStop(0,'#050a1e');g.addColorStop(1,'#140a26');x.fillStyle=g;x.fillRect(0,0,R.W,R.H)}
+  R.cam.pos=[0,5,22];R.cam.target=[0,5,0];R.cam.up=[0,1,0];R.cam.fov=50;R.begin();R.camLight();if(!live)R.stars(this.stars,.9);
+  if(this.mode===1){const halfW=22*Math.tan(25*Math.PI/180)*R.W/R.H;this.rx=lerp(this.rx,(cx-.5)*2*halfW*.75,1-Math.exp(-dt*5));this.cool=Math.max(0,this.cool-dt);
+   if(live&&top>.07)this.fire();
+   if(this.flying){this.vy+=16*dt;this.ry+=this.vy*dt;for(let i=0;i<4;i++){const e=[this.rx+rnd(-.3,.3)*.55,this.ry-.1,0];this.ps.emit(e,[rnd(-1,1),-14-this.vy*.3,rnd(-1,1)],.45,.45,i%2?'255,140,60':'255,220,150',1.8)}
+    if(this.ry>26){this.flying=false;this.count++;this.ry=-16;this.cool=1}}else{this.ry=lerp(this.ry,-4.5,1-Math.exp(-dt*3))}
+   const sc=.55,rot=M3.ry(performance.now()/1000*.6);for(const p of this.rocket)R.add({mesh:p.mesh,pos:add([this.rx,this.ry,0],M3.ap(rot,mul(p.pos,sc))),rot:M3.mul(rot,p.rot),scale:sc,double:p.double});
+   R.draw();this.ps.step(dt,.5);this.ps.draw(R);
+   if(!this.flying){x.fillStyle='rgba(255,255,255,.18)';x.fillRect(0,R.H*.33,R.W,1*R.dpr)}}
+  else{const ax=cx*R.cssW,ay=cy*R.cssH,G=600+en*90000,W=R.cssW,H=R.cssH,d=R.dpr;x.globalCompositeOperation='lighter';
+   for(const p of this.parts2){const px=p.x*W,py=p.y*H,dx=ax-px,dy=ay-py,r2=dx*dx+dy*dy+900,r=Math.sqrt(r2);const a=G/r2;p.vx+=dx/r*a*dt;p.vy+=dy/r*a*dt;p.x+=p.vx*dt/W*60;p.y+=p.vy*dt/H*60;
+    if(p.x<-.1||p.x>1.1||p.y<-.1||p.y>1.1){p.x=Math.random();p.y=Math.random()<.5?-.05:1.05;p.vx=rnd(-1,1);p.vy=rnd(-1,1)}
+    x.fillStyle=`hsla(${p.h},90%,70%,.8)`;x.fillRect(p.x*W*d,p.y*H*d,2.2*d,2.2*d)}
+   const gs=sprite('255,200,120');const rr=(30+en*900)*d;x.drawImage(gs,ax*d-rr,ay*d-rr,rr*2,rr*2);x.globalCompositeOperation='source-over'}}
+};
+
+/* ============================ ROUTER ============================ */
+const VIEWS={home:Home,struct:Struct,learn:Learn,sim:Sim,solar:Solar,game:Game,cam:Cam};
+let cur='home';
+function go(v){if(!VIEWS[v])return;if(v!==cur){VIEWS[cur].leave&&VIEWS[cur].leave();$('#v-'+cur).classList.remove('active');cur=v;$('#v-'+v).classList.add('active')}
+ $$('.tab').forEach(b=>b.classList.toggle('on',b.dataset.v===v));if($('#lesson'))$('#lesson').classList.remove('open');Learn.open=null;
+ requestAnimationFrame(()=>VIEWS[v].enter&&VIEWS[v].enter());try{history.replaceState(null,'','#'+v)}catch(e){}}
+let lastT=performance.now();
+function loop(now){const dt=Math.min(.05,Math.max(0,(now-lastT)/1000));lastT=now;try{const V=VIEWS[cur];V.frame&&V.frame(dt)}catch(e){console.error(e)}requestAnimationFrame(loop)}
+function boot(){Object.values(VIEWS).forEach(v=>v.init&&v.init());
+ $$('.tab').forEach(b=>b.onclick=()=>go(b.dataset.v));$$('[data-go]').forEach(b=>b.addEventListener('click',()=>go(b.dataset.go)));
+ $('#lang').onchange=e=>{LANG=e.target.value;store.set('lang',LANG);applyLang()};applyLang();
+ window.addEventListener('resize',()=>{const V=VIEWS[cur];V.R&&V.R.resize()});
+ const h=(location.hash||'').slice(1);go(VIEWS[h]?h:'home');requestAnimationFrame(loop)}
+boot();
+</script>
+</body>
+</html>

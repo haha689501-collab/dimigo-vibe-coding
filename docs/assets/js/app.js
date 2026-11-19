@@ -620,10 +620,14 @@
   // 로컬에서만 링크가 보이고, 나눠 줄 때는 tools/build-offline.py 로 만든 한 파일을 씁니다.
   var studentsLink = document.getElementById('studentsLink');
   if (studentsLink) {
+    // 이 컴퓨터에서 열면 원본 갤러리(students/), 인터넷에서는 이름을 가린 공개판(gallery/)
     if (location.protocol === 'file:') studentsLink.hidden = false;
-    else fetch('students/index.html', { method: 'HEAD' })
-      .then(function (r) { if (r.ok) studentsLink.hidden = false; })
-      .catch(function () {});
+    else {
+      studentsLink.setAttribute('href', 'gallery/');
+      fetch('gallery/index.html', { method: 'HEAD' })
+        .then(function (r) { if (r.ok) studentsLink.hidden = false; })
+        .catch(function () {});
+    }
   }
 
   window.addEventListener('hashchange', route);

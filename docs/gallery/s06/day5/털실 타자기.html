@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="author" content="LCH">
+<title>털실 타자기</title>
+<style>
+:root{
+  color-scheme: light;
+  --cloth:#e4ddcc;        /* set from the chosen cloth */
+  --chip:#3f3c37;         /* tool chips */
+  --chip-hover:#4c4943;
+  --chip-on:#f1ede2;      /* chip whose panel is open */
+  --panel:#2c2b27;
+  --panel-line:#46433d;
+  --panel-deep:#1f1e1b;
+  --txt:#f4efe6;
+  --txt-soft:#b3ada2;
+  --hint:#6f6a60;         /* hint/credit on light cloth; swapped on dark cloth */
+  --ui:"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR","Noto Sans CJK KR",system-ui,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--cloth);font-family:var(--ui);overflow:hidden;-webkit-tap-highlight-color:transparent;
+  user-select:none;-webkit-user-select:none;overscroll-behavior:none}
+canvas#cv{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:manipulation;cursor:text}
+#ta{position:fixed;left:0;top:0;width:2px;height:20px;opacity:0;border:0;padding:0;margin:0;resize:none;
+  font-size:16px;pointer-events:none;background:transparent;color:transparent;caret-color:transparent;outline:none}
+
+.bar{position:fixed;top:24px;display:flex;gap:8px;z-index:5}
+.bar.l{left:12px}.bar.r{right:12px}
+.chip{height:34px;font:700 13px/1 var(--ui);color:var(--txt);background:var(--chip);border:0;border-radius:999px;
+  padding:0 13px;display:inline-flex;align-items:center;gap:7px;cursor:pointer;box-shadow:0 1px 0 rgba(255,255,255,.06) inset,0 2px 6px rgba(0,0,0,.18)}
+.chip:hover{background:var(--chip-hover)}
+.chip[aria-expanded="true"]{background:var(--chip-on);color:#2c2b27}
+.pie{width:16px;height:16px;border-radius:50%;flex:none;box-shadow:0 0 0 1px rgba(255,255,255,.25)}
+
+.panel{position:fixed;top:72px;left:50%;transform:translateX(-50%);z-index:6;background:var(--panel);color:var(--txt);
+  border-radius:16px;padding:14px 14px 16px;width:min(380px,calc(100vw - 24px));max-height:calc(100% - 90px);overflow:auto;
+  box-shadow:0 16px 40px rgba(0,0,0,.32);display:none;flex-direction:column;gap:10px}
+.panel.open{display:flex}
+.panel h2{font:700 11px/1.2 var(--ui);letter-spacing:.06em;margin:2px 0 0;color:var(--txt-soft)}
+.panel p{font:500 11.5px/1.5 var(--ui);margin:0;color:var(--txt-soft)}
+.grid{display:grid;grid-template-columns:repeat(6,1fr);row-gap:10px}
+.sw{background:none;border:0;padding:0;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:5px;
+  font:500 10.5px/1 var(--ui);color:var(--txt-soft)}
+.sw i{display:block;width:30px;height:30px;border-radius:50%;box-shadow:0 0 0 1px rgba(255,255,255,.14) inset}
+.sw[aria-pressed="true"]{color:var(--txt);font-weight:800}
+.sw[aria-pressed="true"] i{box-shadow:0 0 0 2px var(--panel),0 0 0 4px var(--txt)}
+.motifs{display:grid;grid-template-columns:repeat(6,1fr);gap:8px}
+.motif{height:46px;background:#36342f;border:1px solid var(--panel-line);border-radius:10px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;padding:0}
+.motif:hover{background:#403d37}
+.row{display:flex;align-items:center;gap:12px;font:600 12.5px/1.2 var(--ui);color:#ddd7cb;min-height:34px}
+.row .lab{flex:none;width:58px}
+.seg{display:inline-flex;gap:6px}
+.seg button{font:700 12.5px/1 var(--ui);color:var(--txt);background:var(--panel-deep);border:1px solid var(--panel-line);
+  border-radius:999px;padding:8px 11px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--chip-on);color:#2c2b27;border-color:var(--chip-on)}
+.range{flex:1;display:flex;align-items:center;gap:12px;min-width:0}
+.range output{width:24px;text-align:right;font:600 11.5px/1 var(--ui);color:var(--txt-soft)}
+input[type=range]{-webkit-appearance:none;appearance:none;flex:1;min-width:0;height:18px;background:transparent;margin:0;cursor:pointer;
+  --p:30%}
+input[type=range]::-webkit-slider-runnable-track{height:6px;border-radius:99px;
+  background:linear-gradient(90deg,var(--txt) var(--p),#3d3b37 var(--p))}
+input[type=range]::-moz-range-track{height:6px;border-radius:99px;background:#3d3b37}
+input[type=range]::-moz-range-progress{height:6px;border-radius:99px;background:var(--txt)}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--chip-on);
+  margin-top:-5px;box-shadow:0 1px 3px rgba(0,0,0,.4)}
+input[type=range]::-moz-range-thumb{width:16px;height:16px;border:0;border-radius:50%;background:var(--chip-on);box-shadow:0 1px 3px rgba(0,0,0,.4)}
+.wide{font:700 12.5px/1 var(--ui);background:var(--panel-deep);color:var(--txt);border:1px solid var(--panel-line);border-radius:999px;
+  padding:10px 13px;cursor:pointer}
+.chip:focus-visible,.sw:focus-visible,.seg button:focus-visible,.motif:focus-visible,.wide:focus-visible,input[type=range]:focus-visible{
+  outline:2px solid #f2b632;outline-offset:2px}
+
+#hint{position:fixed;left:16px;right:16px;bottom:24px;text-align:center;font:500 12px/1.55 var(--ui);color:var(--hint);
+  pointer-events:none;transition:opacity .4s;z-index:3}
+#hint.off{opacity:0}
+#credit{position:fixed;right:14px;bottom:12px;font:600 11px/1 var(--ui);color:var(--hint);letter-spacing:.02em;pointer-events:none;z-index:4}
+#toast{position:fixed;left:50%;bottom:84px;transform:translate(-50%,8px);z-index:8;background:var(--panel);color:var(--txt);
+  font:700 12.5px/1 var(--ui);padding:10px 15px;border-radius:999px;opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;
+  box-shadow:0 6px 18px rgba(0,0,0,.25);white-space:nowrap}
+#toast.show{opacity:1;transform:translate(-50%,0)}
+@media (prefers-reduced-motion:reduce){#hint,#toast{transition:none}}
+</style>
+</head>
+<body>
+<canvas id="cv" aria-label="뜨개 천. 누르고 타자를 치면 글자가 실로 떠집니다."></canvas>
+<textarea id="ta" aria-label="뜰 글자 입력" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"></textarea>
+
+<div class="bar l">
+  <button class="chip" id="bYarn" aria-expanded="false" aria-controls="pYarn"><span class="pie" id="yarnPie"></span>실</button>
+  <button class="chip" id="bMotif" aria-expanded="false" aria-controls="pMotif">무늬</button>
+</div>
+<div class="bar r">
+  <button class="chip" id="bCloth" aria-expanded="false" aria-controls="pCloth">천</button>
+  <button class="chip" id="bSave">저장</button>
+</div>
+
+<div class="panel" id="pYarn" role="dialog" aria-label="실 고르기">
+  <h2>단색 실</h2>
+  <div class="grid" id="solidList"></div>
+  <h2>단계 염색 실</h2>
+  <div class="grid" id="dyeList"></div>
+</div>
+
+<div class="panel" id="pMotif" role="dialog" aria-label="무늬 넣기">
+  <h2>무늬 넣기</h2>
+  <div class="motifs" id="motifList"></div>
+  <p>지금 고른 실로 떠져요. 단계 염색 실이면 무늬마다 색이 바뀌어요.</p>
+</div>
+
+<div class="panel" id="pCloth" role="dialog" aria-label="천 설정">
+  <h2>천</h2>
+  <div class="grid" id="clothList"></div>
+  <div class="row"><span class="lab">글자 크기</span>
+    <div class="seg" id="sizeSeg">
+      <button data-size="s" aria-pressed="false">작게</button>
+      <button data-size="m" aria-pressed="true">보통</button>
+      <button data-size="l" aria-pressed="false">크게</button>
+    </div>
+  </div>
+  <div class="row"><label class="lab" for="fuzz">보풀</label><div class="range"><input type="range" id="fuzz" min="0" max="100" value="30"><output id="fuzzV">30</output></div></div>
+  <div class="row"><label class="lab" for="loose">실밥</label><div class="range"><input type="range" id="loose" min="0" max="100" value="55"><output id="looseV">55</output></div></div>
+  <div class="row"><span class="lab">소리</span>
+    <div class="seg" id="soundSeg">
+      <button data-sound="1" aria-pressed="true">켜기</button>
+      <button data-sound="0" aria-pressed="false">끄기</button>
+    </div>
+  </div>
+  <div class="row"><span class="lab">새 천</span><button class="wide" id="reset">다 풀고 새로 뜨기</button></div>
+</div>
+
+<div id="hint">천을 톡 누르고 타자를 치면 실로 떠져요<br>지우면 실밥이 남아요</div>
+<div id="toast" role="status" aria-live="polite"></div>
+<div id="credit">made by LCH</div>
+
+<script>
+(() => {
+'use strict';
+const $ = id => document.getElementById(id);
+const cv = $('cv'), ctx = cv.getContext('2d'), ta = $('ta');
+const FONT = getComputedStyle(document.documentElement).getPropertyValue('--ui').trim();
+const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const FINE = matchMedia('(pointer: fine)').matches;
+
+/* ---------------- palettes ---------------- */
+const SOLIDS = [
+  ['빨강','#bb3c36'],['주황','#d7703b'],['겨자','#d1a53e'],['초록','#498b5f'],['청록','#408585'],['파랑','#3a5ead'],
+  ['보라','#7450af'],['분홍','#de749e'],['밤색','#714d32'],['크림','#f2e9dd'],['회색','#8b8a86'],['먹색','#262523']
+];
+/* stages in knitting order; the swatch pie shows them clockwise from the top */
+const DYES = [
+  ['무지개',['#d24f3c','#e3903f','#e9c151','#65ac70','#418ecf','#715ab0']],
+  ['노을',  ['#c94f3b','#e08242','#e7b960','#d8739b']],
+  ['바다',  ['#3e7d83','#395fad','#9ac7ce','#f1eae8']],
+  ['숲길',  ['#3e6947','#82a346','#c8b264','#764a30']],
+  ['사탕',  ['#e393b0','#f0f0e7','#8dcdba','#f0c471']],
+  ['먹물',  ['#262521','#53524c','#8a8984','#3d4a68']]
+];
+const CLOTHS = [
+  ['크림','#e4ddcc'],['오트밀','#c6b9a1'],['테라코타','#b85f35'],['차콜','#2e2d2b'],['네이비','#26324b'],['숲','#35493d'],
+  ['분홍','#dda7b5'],['하늘','#b0c1cf'],['버터','#e5d78e'],['와인','#652833'],['회색','#999893'],['검정','#1c1b19']
+];
+const STAGE = 7;             // stitches per dye stage
+const CW = 7, CH = 6;        // one stitch cell in CSS px, same on every screen
+const EM = {s:10, m:13, l:17};   // letter height in stitch rows
+
+/* ---------------- colour helpers ---------------- */
+const hex2 = h => [parseInt(h.slice(1,3),16),parseInt(h.slice(3,5),16),parseInt(h.slice(5,7),16)];
+const toHex = a => '#'+a.map(v=>Math.max(0,Math.min(255,Math.round(v))).toString(16).padStart(2,'0')).join('');
+const mix = (a,b,t) => { const x=hex2(a),y=hex2(b); return toHex([0,1,2].map(i=>x[i]+(y[i]-x[i])*t)); };
+const lum = h => { const [r,g,b]=hex2(h); return (0.299*r+0.587*g+0.114*b)/255; };
+function rng(seed){ let a=seed>>>0; return () => { a|=0; a=a+0x6D2B79F5|0; let t=Math.imul(a^a>>>15,1|a); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
+const hash = (a,b,c) => (Math.imul(a+1,73856093) ^ Math.imul(b+7,19349663) ^ Math.imul(c+13,83492791))>>>0;
+
+/* ---------------- state ---------------- */
+let yarn = DYES[1][1].slice();      // 노을 by default
+let yarnKey = 'd1';
+let cloth = CLOTHS[0][1], clothKey = 0;
+let size = 'm', fuzz = 30, loose = 55, soundOn = true;
+let seq = 0, motifTurn = 0;
+let tokens = [];                    // {k:'c',ch,yarn,seq0} | {k:'n'} | {k:'m',id,color}
+let threads = [];                   // settled loose threads, CSS px
+const yarnAt = (y, i) => y.length===1 ? y[0] : y[Math.floor(i/STAGE)%y.length];
+
+/* ---------------- canvases ---------------- */
+let W=0, H=0, dpr=1;
+const stat = document.createElement('canvas'), sctx = stat.getContext('2d');   // cloth + finished stitches + settled threads
+const sprites = new Map();
+
+/* one knit stitch (a "V") as a sprite; cell is CW x CH, legs reach a little below */
+const SP_PAD = 2, SP_W = CW + SP_PAD*2, SP_H = CH*2 + SP_PAD;
+function sprite(col){
+  const key = col+'@'+dpr; let s = sprites.get(key); if(s) return s;
+  s = document.createElement('canvas'); s.width = Math.ceil(SP_W*dpr); s.height = Math.ceil(SP_H*dpr);
+  const c = s.getContext('2d'); c.scale(dpr,dpr); c.translate(SP_PAD, SP_PAD);
+  const lt = mix(col,'#ffffff',.22), dk = mix(col,'#120f0c',.38), edge = mix(col,'#120f0c',.6);
+  for(const g of [-1,1]){
+    c.save();
+    c.translate(CW/2 + g*1.62, CH*0.62);
+    c.rotate(g*0.42);
+    const gr = c.createLinearGradient(0,-4.6,0,4.2);
+    gr.addColorStop(0, lt); gr.addColorStop(.42, col); gr.addColorStop(1, dk);
+    c.beginPath();
+    // a leaf: rounded top, tapering bottom
+    c.moveTo(0,-4.5);
+    c.bezierCurveTo( 2.25,-4.4, 2.0, 1.6, 0.25, 4.3);
+    c.bezierCurveTo(-2.0, 1.6,-2.25,-4.4, 0,-4.5);
+    c.fillStyle = gr; c.fill();
+    c.lineWidth = .5; c.strokeStyle = edge; c.globalAlpha = .55; c.stroke();
+    // twist of the ply
+    c.globalAlpha = .22; c.strokeStyle = dk; c.lineWidth = .45; c.beginPath();
+    for(const t of [-2.4,-.6,1.2]){ c.moveTo(-1.3*g, t-.7); c.lineTo(1.3*g, t+.7); }
+    c.stroke();
+    c.globalAlpha = .35; c.strokeStyle = lt; c.lineWidth = .5; c.beginPath(); c.moveTo(-.55,-3.6); c.quadraticCurveTo(-.9,-1,-.3,1.4); c.stroke();
+    c.restore();
+  }
+  sprites.set(key, s); return s;
+}
+const stamp = (c,col,x,y) => c.drawImage(sprite(col), x-SP_PAD, y-SP_PAD, SP_W, SP_H);
+
+/* fuzz: loose fibres over stitches */
+function fibres(c, cells, seed){   // cells: [x,y,col]
+  if(fuzz<=0) return;
+  const r = rng(seed), p = fuzz/100, groups = new Map();
+  for(const [x,y,col] of cells){
+    const n = (r()<p*1.6?1:0) + (r()<p*.7?1:0); if(!n) continue;
+    let path = groups.get(col); if(!path){ path=new Path2D(); groups.set(col,path); }
+    for(let i=0;i<n;i++){
+      const x0=x+r()*CW, y0=y+r()*CH, a=r()*6.283, l=1.8+r()*3.6;
+      path.moveTo(x0,y0); path.quadraticCurveTo(x0+Math.cos(a+1)*l*.5, y0+Math.sin(a+1)*l*.5, x0+Math.cos(a)*l, y0+Math.sin(a)*l);
+    }
+  }
+  c.lineWidth=.55; c.globalAlpha=.25+p*.3;
+  for(const [col,path] of groups){ c.strokeStyle=mix(col,'#ffffff',.45); c.stroke(path); }
+  c.globalAlpha=1;
+}
+
+let cols=0, rows=0, clothDirty=true;
+const clothCv = document.createElement('canvas'), cctx = clothCv.getContext('2d');
+function drawCloth(){
+  if(clothDirty){
+    clothDirty=false;
+    clothCv.width=stat.width; clothCv.height=stat.height;
+    cctx.setTransform(dpr,0,0,dpr,0,0); cctx.globalAlpha=1;
+    cctx.fillStyle = mix(cloth,'#16130f',.62); cctx.fillRect(0,0,W,H);
+    const cells=[];
+    for(let r=-1;r<=rows;r++) for(let q=0;q<=cols;q++){ stamp(cctx,cloth,q*CW,r*CH); if(r>=0) cells.push([q*CW,r*CH,cloth]); }
+    fibres(cctx,cells,7);
+    if(fuzz>0){ cctx.globalAlpha=fuzz/100*.08; cctx.fillStyle=mix(cloth,'#ffffff',.5); cctx.fillRect(0,0,W,H); cctx.globalAlpha=1; }
+  }
+  sctx.setTransform(1,0,0,1,0,0); sctx.drawImage(clothCv,0,0); sctx.setTransform(dpr,0,0,dpr,0,0);
+}
+
+/* ---------------- glyphs ---------------- */
+const gcv = document.createElement('canvas'), gctx = gcv.getContext('2d',{willReadFrequently:true});
+const gcache = new Map();
+const baseRow = em => Math.round(em*0.82);
+/* letter -> stitch cells, by drawing the letter on the stitch grid and keeping well-covered cells */
+function glyph(ch, em){
+  const key = em+'|'+ch; let g = gcache.get(key); if(g) return g;
+  if(/\s/.test(ch)){ g={w:Math.max(2,Math.round(em*.38)),cells:[]}; gcache.set(key,g); return g; }
+  const k=3, rowsN = em+Math.ceil(em*.28), Wpx = em*CH*2*k, Hpx = rowsN*CH*k;
+  gcv.width=Wpx; gcv.height=Hpx; gctx.clearRect(0,0,Wpx,Hpx);
+  gctx.font = `800 ${Math.round(em*CH*1.02*k)}px ${FONT}`; gctx.textBaseline='alphabetic'; gctx.fillStyle='#000';
+  gctx.fillText(ch, CW*k, baseRow(em)*CH*k);
+  const d = gctx.getImageData(0,0,Wpx,Hpx).data;
+  const cw=CW*k, chh=CH*k, ncol=Math.floor(Wpx/cw);
+  const raw=[];
+  for(let y=0;y<rowsN;y++) for(let x=0;x<ncol;x++){
+    let s=0, n=0;
+    for(let j=1;j<chh;j+=2) for(let i=1;i<cw;i+=2){ s+=d[((y*chh+j)*Wpx+(x*cw+i))*4+3]; n++; }
+    if(s/n > 255*.44) raw.push([x,y]);
+  }
+  if(!raw.length){ g={w:Math.max(2,Math.round(em*.4)),cells:[]}; gcache.set(key,g); return g; }
+  let mn=1e9,mx=-1; for(const [x] of raw){ if(x<mn)mn=x; if(x>mx)mx=x; }
+  g = {w:mx-mn+1, cells:raw.map(([x,y])=>[x-mn,y])};
+  gcache.set(key,g); return g;
+}
+
+/* knitting order: piece by piece (connected parts), each from the bottom row up, needle going back and forth */
+function knitOrder(cells){
+  const set = new Map(cells.map(c=>[c[0]+','+c[1],c])), seen=new Set(), parts=[];
+  for(const c of cells){
+    const k=c[0]+','+c[1]; if(seen.has(k)) continue;
+    const part=[], st=[c]; seen.add(k);
+    while(st.length){ const p=st.pop(); part.push(p);
+      for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){ const kk=(p[0]+dx)+','+(p[1]+dy); if(set.has(kk)&&!seen.has(kk)){ seen.add(kk); st.push(set.get(kk)); } } }
+    parts.push(part);
+  }
+  const minX = p => Math.min(...p.map(c=>c[0])), maxY = p => Math.max(...p.map(c=>c[1]));
+  parts.sort((a,b)=> minX(a)-minX(b) || maxY(b)-maxY(a));
+  const out=[], joins=[];
+  for(const part of parts){
+    const byRow=new Map(); for(const c of part){ if(!byRow.has(c[1])) byRow.set(c[1],[]); byRow.get(c[1]).push(c); }
+    const ys=[...byRow.keys()].sort((a,b)=>b-a); let flip=false;
+    if(out.length){ // a float from the closest stitch already knitted to this part
+      let best=null, bd=1e9;
+      for(const a of out) for(const b of part){ const dd=(a[0]-b[0])**2+(a[1]-b[1])**2; if(dd<bd){ bd=dd; best=[a,b]; } }
+      if(best && bd>2 && bd<40) joins.push(best);
+    }
+    for(const y of ys){ const r=byRow.get(y).sort((a,b)=>a[0]-b[0]); if(flip) r.reverse(); flip=!flip; out.push(...r); }
+  }
+  return {order:out, joins};
+}
+
+/* ---------------- motifs ---------------- */
+const MOTIFS = [
+  {id:'heart', name:'하트', rows:[
+    '.XXX.XXX.',
+    'XXXXXXXXX',
+    'XXXXXXXXX',
+    'XXXXXXXXX',
+    '.XXXXXXX.',
+    '..XXXXX..',
+    '...XXX...',
+    '....X....']},
+  {id:'snow', name:'눈꽃', rows:[
+    '.....X.....',
+    '.X...X...X.',
+    '..X.XXX.X..',
+    '...X.X.X...',
+    '..XXXXXXX..',
+    'XXXXXXXXXXX',
+    '..XXXXXXX..',
+    '...X.X.X...',
+    '..X.XXX.X..',
+    '.X...X...X.',
+    '.....X.....']},
+  {id:'diamond', name:'마름모', rows:[
+    '....X....',
+    '...XXX...',
+    '..XX.XX..',
+    '.XX...XX.',
+    'XX..X..XX',
+    '.XX...XX.',
+    '..XX.XX..',
+    '...XXX...',
+    '....X....']},
+  {id:'star', name:'별', rows:[
+    '.....X.....',
+    '....XXX....',
+    '....XXX....',
+    'XXXXXXXXXXX',
+    '.XXXXXXXXX.',
+    '..XXXXXXX..',
+    '..XXXXXXX..',
+    '.XXXX.XXXX.',
+    '.XXX...XXX.',
+    'XX.......XX']},
+  {id:'flower', name:'꽃', rows:[
+    '..XX.XX..',
+    '.XXXXXXX.',
+    'XXXX.XXXX',
+    'XXX...XXX',
+    '.X.....X.',
+    'XXX...XXX',
+    'XXXX.XXXX',
+    '.XXXXXXX.',
+    '..XX.XX..']},
+  {id:'tree', name:'나무', rows:[
+    '....X....',
+    '...XXX...',
+    '..XXXXX..',
+    '...XXX...',
+    '..XXXXX..',
+    '.XXXXXXX.',
+    'XXXXXXXXX',
+    '....X....',
+    '....X....']}
+];
+const MBYID = Object.fromEntries(MOTIFS.map(m=>[m.id,m]));
+
+/* ---------------- layout ---------------- */
+let L = [];              // placed tokens: {tok, x,y (px), cells:[{x,y,col,k}], joins, w}
+let caret = {x:0,y:0,line:0};
+let originX=0, originY=0, lineCols=0;
+
+function shape(tok, em){
+  if(tok.k==='m'){
+    const m = MBYID[tok.id], w=m.rows[0].length, h=m.rows.length;
+    const off = baseRow(em) - Math.round(em*.36) - Math.floor(h/2);
+    const raw=[]; m.rows.forEach((line,y)=>{ for(let x=0;x<w;x++) if(line[x]==='X') raw.push([x,y+off]); });
+    return {w, raw};
+  }
+  const g = glyph(tok.ch, em); return {w:g.w, raw:g.cells};
+}
+function layout(){
+  const em = EM[size], lp = em + 5;
+  const pad = W<480 ? 16 : 24, maxW = 820;
+  const contentW = Math.min(W - pad*2, maxW);
+  originX = Math.round(((W-contentW)/2)/CW)*CW;
+  originY = Math.round((W<480 ? 54 : 84)/CH)*CH - Math.round(em*.1)*CH;
+  lineCols = Math.max(8, Math.floor(contentW/CW));
+  const out=[]; let col=0, line=0;
+  const shapes = tokens.map(t=> t.k==='n' ? null : shape(t,em));
+  const isSpace = t => t.k==='c' && /\s/.test(t.ch);
+  let i=0;
+  while(i<tokens.length){
+    const t=tokens[i];
+    if(t.k==='n'){ out.push({tok:t,line,col,w:0}); line++; col=0; i++; continue; }
+    if(isSpace(t)){ if(col>0){ out.push({tok:t,line,col,w:shapes[i].w}); col+=shapes[i].w; } else out.push({tok:t,line,col,w:0}); i++; continue; }
+    // a word: letters until a space/newline; a motif is a word of its own
+    let j=i, ww=0;
+    if(t.k==='m'){ ww=shapes[i].w+1; j=i+1; }
+    else { while(j<tokens.length && tokens[j].k==='c' && !isSpace(tokens[j])){ ww+=shapes[j].w+1; j++; } }
+    if(col>0 && col+ww-1>lineCols){ line++; col=0; }
+    for(let q=i;q<j;q++){
+      const w=shapes[q].w;
+      if(col>0 && col+w>lineCols){ line++; col=0; }
+      out.push({tok:tokens[q],line,col,w,raw:shapes[q].raw}); col+=w+1;
+    }
+    i=j;
+  }
+  // stitches with colours
+  let prev=null;
+  for(const p of out){
+    p.x = originX + p.col*CW; p.y = originY + p.line*lp*CH;
+    if(!p.raw || !p.raw.length){ p.cells=[]; p.joins=[]; continue; }
+    const {order, joins} = knitOrder(p.raw);
+    const t=p.tok;
+    p.cells = order.map((c,k)=>({x:p.x+c[0]*CW, y:p.y+c[1]*CH, k, col: t.k==='m' ? t.color : yarnAt(t.yarn, t.seq0+k)}));
+    const at = c => p.cells.find(s=>s.x===p.x+c[0]*CW && s.y===p.y+c[1]*CH);
+    p.joins = joins.map(([a,b])=>[at(a),at(b)]).filter(j=>j[0]&&j[1]);
+    // float from the previous piece on the same line
+    p.float = null;
+    if(prev && prev.line===p.line && prev.cells.length){
+      const mid = p.y + (baseRow(em)-Math.round(em*.3))*CH;
+      const near = (cells,right) => cells.reduce((b,c)=>{ const s=Math.abs(c.y-mid)*2 + (right? -c.x : c.x)*.6; return (!b||s<b.s)?{c,s}:b; },null).c;
+      p.float = [near(prev.cells,true), near(p.cells,false)];
+    }
+    prev = p;
+    if(t.k==='n') prev=null;
+  }
+  // caret after the last token
+  let cl=line, cc=col;
+  if(cc>lineCols){ cl++; cc=0; }
+  caret = {x:originX+cc*CW, y:originY+cl*lp*CH, line:cl, em};
+  return out;
+}
+
+/* ---------------- drawing pieces ---------------- */
+function strand(c, pts, col, w){
+  const path = new Path2D(); path.moveTo(pts[0][0],pts[0][1]);
+  for(let i=1;i<pts.length-1;i++){ const mx=(pts[i][0]+pts[i+1][0])/2, my=(pts[i][1]+pts[i+1][1])/2; path.quadraticCurveTo(pts[i][0],pts[i][1],mx,my); }
+  const e=pts[pts.length-1]; path.lineTo(e[0],e[1]);
+  c.lineCap='round'; c.lineJoin='round';
+  c.strokeStyle=mix(col,'#120f0c',.5); c.globalAlpha=.75; c.lineWidth=w+0.9; c.stroke(path);
+  c.globalAlpha=1; c.strokeStyle=col; c.lineWidth=w; c.stroke(path);
+  c.strokeStyle=mix(col,'#ffffff',.4); c.globalAlpha=.45; c.lineWidth=Math.max(.4,w*.32); c.stroke(path); c.globalAlpha=1;
+}
+function sag(a,b,amt){
+  const ax=a.x+CW*.5, ay=a.y+CH*.55, bx=b.x+CW*.5, by=b.y+CH*.55;
+  const d=Math.hypot(bx-ax,by-ay), s=amt + d*.06;
+  return [[ax,ay],[(ax*2+bx)/3,(ay*2+by)/3+s],[(ax+bx*2)/3,(ay+by*2)/3+s],[bx,by]];
+}
+function drawPiece(c, p, upto){
+  const n = upto===undefined ? p.cells.length : upto;
+  // stitches in rows, top to bottom so the V tips overlap the row below
+  const cs = p.cells.filter(s=>s.k<n).sort((a,b)=>a.y-b.y||a.x-b.x);
+  for(const s of cs) stamp(c,s.col,s.x,s.y);
+  if(upto===undefined || upto>=p.cells.length){
+    for(const [a,b] of p.joins) strand(c, sag(a,b,1.2), a.col, 1.1);
+    if(p.float) strand(c, sag(p.float[0],p.float[1],2.2), p.float[1].col, 1.15);
+    fibres(c, cs.map(s=>[s.x,s.y,s.col]), hash(p.x,p.y,7));
+  }
+}
+function drawThread(c, t, k=1, ox=0, oy=0, rot=0){
+  const pts = t.pts.map(([x,y])=>{ const cx=x*Math.cos(rot)-y*Math.sin(rot), cy=x*Math.sin(rot)+y*Math.cos(rot); return [t.x+ox+cx*k, t.y+oy+cy*k]; });
+  strand(c, pts, t.col, 1.25);
+}
+function tail(c, p){   // the cast-on end hanging from the first stitch
+  const s = p.cells[0]; if(!s) return;
+  const x=s.x+1, y=s.y+CH*.8, r=rng(hash(s.x,s.y,3));
+  strand(c, [[x,y],[x-2,y+12],[x-3-r()*2,y+28],[x-2-r()*3,y+44]], s.col, 1.2);
+}
+
+/* ---------------- the working yarn ---------------- */
+const rope = {pts:[], settled:0, ax:0, ay:0, sx:0, sy:0};
+function ropeTarget(){
+  const em = EM[size];
+  const top = caret.y + (baseRow(em)-Math.round(em*.78))*CH, bot = caret.y + baseRow(em)*CH + 2;
+  const sx = caret.x + 3, sy = bot;
+  const ax = W + 30, ay = Math.min(H + 30, sy + Math.max(60, (W-sx)*.18) + 40);
+  return {top, bot, sx, sy, ax, ay};
+}
+function ropeInit(){
+  const t=ropeTarget(); rope.pts=[];
+  const N=26; for(let i=0;i<N;i++){ const f=i/(N-1); const x=t.sx+(t.ax-t.sx)*f, y=t.sy+(t.ay-t.sy)*f; rope.pts.push({x,y,px:x,py:y}); }
+  rope.settled=0;
+}
+function ropeStep(){
+  const t=ropeTarget(), P=rope.pts, N=P.length;
+  const len = Math.max(30, Math.hypot(t.ax-t.sx, t.ay-t.sy)*1.07)/(N-1);
+  let mv=0;
+  for(let i=1;i<N-1;i++){ const p=P[i]; const vx=(p.x-p.px)*.97, vy=(p.y-p.py)*.97; p.px=p.x; p.py=p.y; p.x+=vx; p.y+=vy+0.32; }
+  P[0].x=t.sx; P[0].y=t.sy; P[N-1].x=t.ax; P[N-1].y=t.ay;
+  for(let it=0;it<14;it++){
+    for(let i=0;i<N-1;i++){
+      const a=P[i], b=P[i+1], dx=b.x-a.x, dy=b.y-a.y, d=Math.hypot(dx,dy)||1e-6, diff=(d-len)/d;
+      const wa = i===0?0:.5, wb = i+1===N-1?0:.5, s=wa+wb||1;
+      a.x+=dx*diff*wa/s*(wa&&wb?1:1); a.y+=dy*diff*wa/s; b.x-=dx*diff*wb/s; b.y-=dy*diff*wb/s;
+    }
+    P[0].x=t.sx; P[0].y=t.sy; P[N-1].x=t.ax; P[N-1].y=t.ay;
+  }
+  for(const p of P) mv=Math.max(mv,Math.abs(p.x-p.px)+Math.abs(p.y-p.py));
+  rope.settled = mv<0.02 ? rope.settled+1 : 0;
+}
+function drawRope(c){
+  const t=ropeTarget(), col = yarnAt(yarn, seq);
+  strand(c, rope.pts.map(p=>[p.x,p.y]), col, 1.5);
+  // the stitch loop standing on the needle
+  const cx=t.sx, h=(t.bot-t.top);
+  c.beginPath(); c.ellipse(cx, t.top+h/2, 2.6, h/2, 0, 0, 6.2832);
+  c.strokeStyle=mix(col,'#120f0c',.5); c.lineWidth=2.4; c.globalAlpha=.7; c.stroke(); c.globalAlpha=1;
+  c.strokeStyle=col; c.lineWidth=1.5; c.stroke();
+}
+
+/* ---------------- model ops ---------------- */
+let placed = [];           // last layout
+let anims = [];            // {p, t0, dur}
+let falling = [];          // {t, t0, dur, dx, dy, r0, r1}
+let showRope = true;
+
+function rebuild(){        // full repaint of the static layer
+  sctx.setTransform(dpr,0,0,dpr,0,0);
+  drawCloth();
+  const busy = new Set(anims.map(a=>a.p.tok));
+  const first = placed.find(p=>p.cells && p.cells.length);
+  for(const p of placed) if(!busy.has(p.tok) && p.cells.length) drawPiece(sctx,p);
+  if(first && !busy.has(first.tok)) tail(sctx, first);
+  for(const t of threads) drawThread(sctx,t);
+}
+function relayout(newTokens){
+  const before = new Map(placed.map(p=>[p.tok,p.x+','+p.y+','+(p.cells?p.cells.length:0)]));
+  placed = layout();
+  const byTok = new Map(placed.map(p=>[p.tok,p]));
+  anims = anims.filter(a=>byTok.has(a.p.tok)).map(a=>(a.p=byTok.get(a.p.tok),a));
+  let moved=false;
+  for(const p of placed){ if(newTokens && newTokens.has(p.tok)) continue; const b=before.get(p.tok); if(b!==undefined && b!==p.x+','+p.y+','+(p.cells?p.cells.length:0)) { moved=true; break; } }
+  return moved;
+}
+function addTokens(list, animate=true){
+  const set = new Set(list); tokens.push(...list);
+  const moved = relayout(set);
+  for(const p of placed){ if(!set.has(p.tok) || !p.cells.length) continue;
+    if(animate && !REDUCED) anims.push({p, t0:performance.now(), dur: Math.min(240, 70 + p.cells.length*1.1)});
+  }
+  if(moved || !animate || REDUCED) rebuild();
+  else { for(const p of placed) if(set.has(p.tok) && p.cells.length && !anims.some(a=>a.p===p)) drawPiece(sctx,p); }
+  const first = placed.find(p=>p.cells && p.cells.length); if(first && set.has(first.tok) && (!animate||REDUCED)) tail(sctx,first);
+  wake(); persist();
+}
+function newChar(ch){
+  const em=EM[size]; const t={k:'c', ch, yarn:yarn.slice(), seq0:seq};
+  if(!/\s/.test(ch)) seq += glyph(ch,em).cells.length;
+  return t;
+}
+function newMotif(id){
+  const m=MBYID[id]; const color = yarn[motifTurn++ % yarn.length];
+  const t={k:'m', id, color}; seq += m.rows.join('').split('X').length-1; return t;
+}
+function removeLast(n, residue){
+  const gone = tokens.splice(tokens.length-n, n);
+  const gp = placed.filter(p=>gone.includes(p.tok));
+  anims = anims.filter(a=>!gone.includes(a.p.tok));
+  for(const t of gone){
+    if(t.k==='c' && !/\s/.test(t.ch)) seq = Math.min(seq, t.seq0);
+  }
+  if(residue && loose>0){
+    const now=performance.now();
+    for(const p of gp){ if(!p.cells.length) continue;
+      const r=rng(hash(p.x,p.y,threads.length+falling.length)), cnt=Math.min(40, Math.max(1, Math.round(p.cells.length*loose/100*.26)));
+      const wpx = Math.max(CW*3, (p.w||3)*CW);
+      for(let j=0;j<cnt;j++){
+        const s=p.cells[Math.floor(r()*p.cells.length)];
+        const pts=[[0,0]]; let a=r()*6.283, x=0, y=0, segs=4+Math.floor(r()*3);
+        for(let q=0;q<segs;q++){ a += (q%2?1:-1)*(0.7+r()*1.1); const l=2.2+r()*2.4; x+=Math.cos(a)*l; y+=Math.sin(a)*l; pts.push([x,y]); }
+        const t={x:s.x+CW/2, y:s.y+CH/2, pts, col:s.col};
+        const dx=(r()-.35)*wpx*1.1, dy=6+r()*Math.min(70, wpx*.9);
+        if(REDUCED){ t.x+=dx; t.y+=dy; threads.push(t); }
+        else falling.push({t, t0:now+r()*90, dur:420+r()*380, dx, dy, r0:(r()-.5)*2, r1:(r()-.5)*.6});
+      }
+    }
+  }
+  if(!tokens.length) seq=0;
+  relayout(); rebuild(); wake(); persist();
+  if(residue) tick(true);
+}
+
+/* ---------------- frame loop ---------------- */
+let raf=0;
+function wake(){ rope.settled=0; if(!raf) raf=requestAnimationFrame(frame); }
+function frame(now){
+  raf=0;
+  ropeStep();
+  ctx.setTransform(1,0,0,1,0,0); ctx.drawImage(stat,0,0);
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  for(let i=anims.length-1;i>=0;i--){
+    const a=anims[i], f=Math.min(1,(now-a.t0)/a.dur);
+    if(f>=1){ anims.splice(i,1); drawPiece(sctx,a.p); const first=placed.find(p=>p.cells&&p.cells.length); if(first===a.p) tail(sctx,a.p); drawPiece(ctx,a.p); }
+    else drawPiece(ctx,a.p,Math.ceil(f*a.p.cells.length));
+  }
+  for(let i=falling.length-1;i>=0;i--){
+    const f=falling[i], u=(now-f.t0)/f.dur;
+    if(u<0){ continue; }
+    if(u>=1){ falling.splice(i,1); f.t.x+=f.dx; f.t.y+=f.dy; f.t.pts=f.t.pts.map(([x,y])=>[x*Math.cos(f.r1)-y*Math.sin(f.r1), x*Math.sin(f.r1)+y*Math.cos(f.r1)]);
+      threads.push(f.t); drawThread(sctx,f.t); drawThread(ctx,f.t); persistSoon(); continue; }
+    const e=1-Math.pow(1-u,3);
+    drawThread(ctx,f.t,.7+.3*e,f.dx*e,f.dy*e - Math.sin(u*Math.PI)*6,f.r0+(f.r1-f.r0)*e);
+  }
+  if(showRope) drawRope(ctx);
+  if(anims.length || falling.length || rope.settled<40) raf=requestAnimationFrame(frame);
+}
+
+/* ---------------- sizing ---------------- */
+function resize(){
+  W=innerWidth; H=innerHeight; dpr=Math.min(2, window.devicePixelRatio||1);
+  cols=Math.ceil(W/CW); rows=Math.ceil(H/CH);
+  for(const c of [cv,stat]){ c.width=Math.round(W*dpr); c.height=Math.round(H*dpr); }
+  clothDirty=true;
+  anims=[]; relayout(); rebuild(); ropeInit(); moveTa(); wake();
+}
+
+/* ---------------- typing ---------------- */
+let runChars=[], runToks=[], composing=false, lastBack=0;
+function resetRun(){ ta.value=''; runChars=[]; runToks=[]; }
+function moveTa(){ ta.style.left=Math.max(0,Math.min(W-4,caret.x))+'px'; ta.style.top=Math.max(0,Math.min(H-24,caret.y))+'px'; }
+function hideHint(){ $('hint').classList.add('off'); }
+function sync(e){
+  let v=ta.value;
+  if(v.includes('\n')){ v=v.replace(/\n/g,''); ta.value=v; }
+  const next=Array.from(v);
+  let p=0; while(p<runChars.length && p<next.length && runChars[p]===next[p] && runToks[p]===tokens[tokens.length-runToks.length+p]) p++;
+  const inComp = composing || !!(e && e.isComposing);
+  const del = e && typeof e.inputType==='string' && e.inputType.startsWith('delete');
+  const goneN = runToks.length - p;
+  if(goneN>0){ removeLast(goneN, del && !inComp); runToks.length=p; }
+  const add=[];
+  for(let i=p;i<next.length;i++){ const t=newChar(next[i]); add.push(t); runToks.push(t); }
+  if(add.length){ addTokens(add, true); hideHint(); tick(false); }
+  runChars=next;
+  if(!inComp && runChars.length>40) resetRun();
+  moveTa();
+}
+ta.addEventListener('compositionstart',()=>{ composing=true; });
+ta.addEventListener('compositionend',e=>{ composing=false; sync({inputType:'insertText'}); });
+ta.addEventListener('input',e=>{ if(e.inputType==='insertLineBreak'||e.inputType==='insertParagraph') return; sync(e); });
+ta.addEventListener('keydown',e=>{
+  if(e.isComposing||e.keyCode===229) return;
+  if(e.key==='Enter'){ e.preventDefault(); resetRun(); addTokens([{k:'n'}], false); tick(false); moveTa(); }
+  else if(e.key==='Backspace' && ta.value===''){ e.preventDefault(); lastBack=performance.now(); if(tokens.length){ removeLast(1,true); } moveTa(); }
+  else if(e.key==='Escape'){ ta.blur(); closePanels(); }
+});
+ta.addEventListener('beforeinput',e=>{   // soft keyboards that send no keydown for an empty field
+  if(e.inputType==='deleteContentBackward' && ta.value==='' && performance.now()-lastBack>80 && tokens.length){ removeLast(1,true); moveTa(); }
+});
+cv.addEventListener('pointerdown',e=>{
+  e.preventDefault(); closePanels(); audio(); resetRun(); moveTa();
+  ta.focus({preventScroll:true});
+});
+
+/* ---------------- sound ---------------- */
+let ac=null;
+function audio(){ if(!soundOn||ac) return; try{ ac=new (window.AudioContext||window.webkitAudioContext)(); }catch(_){ ac=null; } }
+function tick(undo){
+  if(!soundOn||!ac) return;
+  try{
+    if(ac.state==='suspended') ac.resume();
+    const t=ac.currentTime, o=ac.createOscillator(), g=ac.createGain(), f=ac.createBiquadFilter();
+    f.type='lowpass'; f.frequency.value=undo?900:2400;
+    o.type = undo?'sawtooth':'triangle';
+    o.frequency.setValueAtTime(undo?190+Math.random()*30:520+Math.random()*220,t);
+    o.frequency.exponentialRampToValueAtTime(undo?80:300,t+.06);
+    g.gain.setValueAtTime(undo?.05:.06,t); g.gain.exponentialRampToValueAtTime(.0008,t+.08);
+    o.connect(f).connect(g).connect(ac.destination); o.start(t); o.stop(t+.09);
+  }catch(_){}
+}
+
+/* ---------------- toast ---------------- */
+let toastT=0;
+function toast(msg){ const el=$('toast'); el.textContent=msg; el.classList.add('show'); clearTimeout(toastT); toastT=setTimeout(()=>el.classList.remove('show'),1700); }
+
+/* ---------------- panels ---------------- */
+const pairs=[['bYarn','pYarn'],['bMotif','pMotif'],['bCloth','pCloth']];
+function closePanels(){ for(const [b,p] of pairs){ $(p).classList.remove('open'); $(b).setAttribute('aria-expanded','false'); } disarm(); }
+for(const [b,p] of pairs) $(b).addEventListener('click',()=>{ const open=$(p).classList.contains('open'); closePanels(); if(!open){ $(p).classList.add('open'); $(b).setAttribute('aria-expanded','true'); } });
+
+const pieCss = cs => cs.length===1 ? cs[0] : `conic-gradient(${cs.map((c,i)=>`${c} ${i/cs.length*360}deg ${(i+1)/cs.length*360}deg`).join(',')})`;
+function swatch(list, name, bg, key, onPick){
+  const b=document.createElement('button'); b.className='sw'; b.type='button'; b.dataset.key=key;
+  const i=document.createElement('i'); i.style.background=bg; b.append(i, document.createTextNode(name));
+  b.setAttribute('aria-pressed','false'); b.addEventListener('click',onPick); list.append(b); return b;
+}
+function markYarn(){ document.querySelectorAll('#pYarn .sw').forEach(s=>s.setAttribute('aria-pressed',String(s.dataset.key===yarnKey))); $('yarnPie').style.background=pieCss(yarn); }
+SOLIDS.forEach(([n,c],i)=>swatch($('solidList'),n,c,'s'+i,()=>{ yarn=[c]; yarnKey='s'+i; motifTurn=0; markYarn(); paintMotifs(); wake(); persist(); }));
+DYES.forEach(([n,cs],i)=>swatch($('dyeList'),n,pieCss(cs),'d'+i,()=>{ yarn=cs.slice(); yarnKey='d'+i; motifTurn=0; markYarn(); paintMotifs(); wake(); persist(); }));
+function markCloth(){
+  document.querySelectorAll('#clothList .sw').forEach(s=>s.setAttribute('aria-pressed',String(+s.dataset.key===clothKey)));
+  document.documentElement.style.setProperty('--cloth', cloth);
+  document.documentElement.style.setProperty('--hint', lum(cloth)>.55 ? mix(cloth,'#1a1814',.62) : mix(cloth,'#ffffff',.7));
+}
+CLOTHS.forEach(([n,c],i)=>swatch($('clothList'),n,c,String(i),()=>{ cloth=c; clothKey=i; markCloth(); clothDirty=true; rebuild(); wake(); persist(); }));
+
+function paintMotifs(){
+  const list=$('motifList'); list.textContent='';
+  for(const m of MOTIFS){
+    const b=document.createElement('button'); b.className='motif'; b.type='button'; b.setAttribute('aria-label',m.name); b.title=m.name;
+    const w=m.rows[0].length, h=m.rows.length, c=document.createElement('canvas'), d=2, cw=2.4, chh=2.1;
+    c.width=Math.ceil(w*cw*d); c.height=Math.ceil(h*chh*d); c.style.width=(w*cw)+'px'; c.style.height=(h*chh)+'px';
+    const x=c.getContext('2d'); x.scale(d,d); x.fillStyle='#f4efe6';
+    m.rows.forEach((line,yy)=>{ for(let xx=0;xx<w;xx++) if(line[xx]==='X') x.fillRect(xx*cw,yy*chh,cw-.2,chh-.2); });
+    b.append(c);
+    b.addEventListener('click',()=>{ resetRun(); addTokens([newMotif(m.id)], true); hideHint(); tick(false); moveTa(); audio(); if(FINE) ta.focus({preventScroll:true}); });
+    list.append(b);
+  }
+}
+
+const setRange = (el,v) => { el.value=v; el.style.setProperty('--p', v+'%'); };
+$('sizeSeg').addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b) return; size=b.dataset.size; markSeg('sizeSeg','size',size);
+  resetRun(); anims=[]; relayout(); rebuild(); moveTa(); wake(); persist(); });
+$('soundSeg').addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b) return; soundOn=b.dataset.sound==='1'; markSeg('soundSeg','sound',soundOn?'1':'0');
+  if(soundOn){ audio(); tick(false); } persist(); });
+function markSeg(id,attr,v){ $(id).querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',String(x.dataset[attr]===v))); }
+let fuzzT=0;
+$('fuzz').addEventListener('input',e=>{ fuzz=+e.target.value; setRange(e.target,fuzz); $('fuzzV').textContent=fuzz; clearTimeout(fuzzT); fuzzT=setTimeout(()=>{ clothDirty=true; rebuild(); wake(); persist(); },60); });
+$('loose').addEventListener('input',e=>{ loose=+e.target.value; setRange(e.target,loose); $('looseV').textContent=loose; persist(); });
+
+let armed=false, armT=0;
+function disarm(){ armed=false; clearTimeout(armT); $('reset').textContent='다 풀고 새로 뜨기'; }
+$('reset').addEventListener('click',()=>{
+  if(!armed){ armed=true; $('reset').textContent='한 번 더 누르면 다 풀어요'; clearTimeout(armT); armT=setTimeout(disarm,3000); return; }
+  tokens=[]; threads=[]; anims=[]; falling=[]; seq=0; motifTurn=0; resetRun();
+  relayout(); rebuild(); disarm(); closePanels(); tick(true); moveTa(); wake(); persist();
+  $('hint').classList.remove('off'); toast('새 천을 걸었어요');
+});
+
+/* ---------------- save as picture ---------------- */
+$('bSave').addEventListener('click',()=>{
+  closePanels();
+  for(const a of anims) a.dur=0; for(const f of falling) f.dur=1;
+  frame(performance.now()+5000);
+  cv.toBlob(b=>{
+    if(!b){ toast('저장하지 못했어요'); return; }
+    const url=URL.createObjectURL(b), a=document.createElement('a');
+    a.href=url; a.download='knit-'+new Date().toISOString().slice(0,10)+'.png';
+    document.body.append(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(url),4000);
+    toast('사진으로 저장했어요');
+  },'image/png');
+});
+
+addEventListener('keydown',e=>{ if(e.key==='Escape') closePanels(); });
+
+/* ---------------- keep the cloth between visits ---------------- */
+const KEY='knit-txt-v2';
+let pT=0;
+function persist(){ clearTimeout(pT); pT=setTimeout(save,250); }
+function persistSoon(){ persist(); }
+function save(){
+  try{
+    localStorage.setItem(KEY, JSON.stringify({v:2, tokens:tokens.map(t=>t.k==='c'?{k:'c',ch:t.ch,y:t.yarn,s:t.seq0}:t.k==='m'?{k:'m',id:t.id,c:t.color}:{k:'n'}),
+      threads:threads.slice(-1500).map(t=>({x:+t.x.toFixed(1),y:+t.y.toFixed(1),c:t.col,p:t.pts.map(([x,y])=>[+x.toFixed(1),+y.toFixed(1)])})),
+      seq, motifTurn, yarnKey, clothKey, size, fuzz, loose, soundOn}));
+  }catch(_){}
+}
+function load(){
+  let d=null; try{ d=JSON.parse(localStorage.getItem(KEY)||'null'); }catch(_){ d=null; }
+  if(!d || d.v!==2) return false;
+  try{
+    tokens=(d.tokens||[]).map(t=>t.k==='c'?{k:'c',ch:String(t.ch),yarn:Array.isArray(t.y)&&t.y.length?t.y:['#c94f3b'],seq0:+t.s||0}
+      : t.k==='m'&&MBYID[t.id]?{k:'m',id:t.id,color:t.c||'#c94f3b'}:{k:'n'});
+    threads=(d.threads||[]).map(t=>({x:+t.x,y:+t.y,col:t.c,pts:t.p}));
+    seq=+d.seq||0; motifTurn=+d.motifTurn||0;
+    if(typeof d.yarnKey==='string'){ const i=+d.yarnKey.slice(1); const src=d.yarnKey[0]==='s'?SOLIDS[i]&&[SOLIDS[i][1]]:DYES[i]&&DYES[i][1]; if(src){ yarn=src.slice(); yarnKey=d.yarnKey; } }
+    if(CLOTHS[d.clothKey]){ clothKey=+d.clothKey; cloth=CLOTHS[clothKey][1]; }
+    if(EM[d.size]) size=d.size;
+    if(d.fuzz>=0&&d.fuzz<=100) fuzz=+d.fuzz; if(d.loose>=0&&d.loose<=100) loose=+d.loose;
+    soundOn = d.soundOn!==false;
+    return true;
+  }catch(_){ tokens=[]; threads=[]; return false; }
+}
+
+/* ---------------- start ---------------- */
+load();
+markYarn(); markCloth(); paintMotifs();
+markSeg('sizeSeg','size',size); markSeg('soundSeg','sound',soundOn?'1':'0');
+setRange($('fuzz'),fuzz); $('fuzzV').textContent=fuzz; setRange($('loose'),loose); $('looseV').textContent=loose;
+if(tokens.length) hideHint();
+let rt=0; addEventListener('resize',()=>{ clearTimeout(rt); rt=setTimeout(resize,120); });
+resize();
+})();
+</script>
+</body>
+</html>

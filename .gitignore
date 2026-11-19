@@ -66,8 +66,8 @@ docs/students/
 /강의홈페이지_모아보기*.html
 /공유용/
 
-# 이름을 가린 공개용 사본 (tools/build-gallery.py 로 만듭니다 — 지금은 쓰지 않습니다)
-docs/gallery/
+# 이름을 가린 공개용 사본 docs/gallery/ · docs/feedback/ 은 강의 홈페이지에 올립니다
+#   (tools/build-gallery.py · tools/build-feedback-standalone.py --public 로 만듭니다)
 
 # 공개용 번호 ↔ 실명 대조표 (선생님 노트북에만 둡니다)
 tools/_private/

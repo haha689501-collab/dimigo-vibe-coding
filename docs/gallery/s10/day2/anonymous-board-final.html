@@ -1,0 +1,997 @@
+<!DOCTYPE html>
+<html lang="ko" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>조용한 게시판</title>
+<style>
+  :root {
+    --bg: #F2F5F1;
+    --surface: #FBFCFA;
+    --surface-2: #E9EEE8;
+    --line: #D8E0D6;
+    --ink: #2C3733;
+    --ink-2: #5E6F68;
+    --muted: #8B9A93;
+    --accent: #7FA894;
+    --accent-soft: #DCEAE2;
+    --lilac: #B9A7C4;
+    --lilac-soft: #EBE3EF;
+    --warn: #C08585;
+    --warn-soft: #F3E2E2;
+    --radius: 14px;
+    --shadow: 0 1px 2px rgba(44, 55, 51, .05);
+  }
+  :root[data-theme="dark"] {
+    --bg: #1C2320;
+    --surface: #242C29;
+    --surface-2: #2C3532;
+    --line: #38423E;
+    --ink: #E1E8E4;
+    --ink-2: #AFBCB6;
+    --muted: #869089;
+    --accent: #8FBCA5;
+    --accent-soft: #2F403A;
+    --lilac: #C3B2CE;
+    --lilac-soft: #383243;
+    --warn: #D49A9A;
+    --warn-soft: #43302F;
+    --shadow: none;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont,
+                 "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", sans-serif;
+    font-size: 16px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap { max-width: 760px; margin: 0 auto; padding: 0 20px 80px; }
+
+  /* ---------- 상단 ---------- */
+  header.bar {
+    position: sticky; top: 0; z-index: 20;
+    background: color-mix(in srgb, var(--bg) 88%, transparent);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--line);
+  }
+  .bar-inner {
+    max-width: 760px; margin: 0 auto; padding: 14px 20px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .brand {
+    font-size: 17px; font-weight: 600; letter-spacing: -.02em;
+    background: none; border: 0; color: var(--ink); cursor: pointer;
+    padding: 0; font-family: inherit; white-space: nowrap;
+  }
+  .bar-spacer { flex: 1; }
+  .whoami {
+    font-size: 13px; color: var(--muted);
+    padding: 4px 10px; border-radius: 999px; background: var(--surface-2); white-space: nowrap;
+  }
+  .whoami.blocked { color: var(--warn); background: var(--warn-soft); }
+
+  /* ---------- 버튼 ---------- */
+  button { font-family: inherit; font-size: 15px; cursor: pointer; }
+  .btn {
+    border: 1px solid var(--line); background: var(--surface); color: var(--ink);
+    padding: 9px 16px; border-radius: 10px; transition: background .12s ease;
+    white-space: nowrap;
+  }
+  .btn:hover { background: var(--surface-2); }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: #14201B; font-weight: 600; }
+  :root[data-theme="dark"] .btn.primary { color: #16201C; }
+  .btn.primary:hover { filter: brightness(1.05); }
+  .btn.quiet { background: transparent; border-color: transparent; color: var(--ink-2); padding: 7px 10px; }
+  .btn.quiet:hover { background: var(--surface-2); }
+  .btn.danger { color: var(--warn); border-color: var(--line); background: var(--surface); }
+  .btn.danger:hover { background: var(--warn-soft); }
+  .btn.small { padding: 6px 12px; font-size: 14px; border-radius: 8px; }
+  .btn:disabled { opacity: .45; cursor: not-allowed; }
+  .btn:focus-visible, input:focus-visible, textarea:focus-visible,
+  .board:focus-visible, .post:focus-visible, .brand:focus-visible, .crumb:focus-visible {
+    outline: 2px solid var(--accent); outline-offset: 2px;
+  }
+  .admin-on { background: var(--lilac-soft); border-color: var(--lilac); color: var(--ink); }
+
+  /* ---------- 검색 ---------- */
+  .search { position: relative; margin: 28px 0 8px; }
+  .search input {
+    width: 100%; padding: 16px 18px; font-size: 17px;
+    border: 1px solid var(--line); border-radius: var(--radius);
+    background: var(--surface); color: var(--ink); font-family: inherit;
+    box-shadow: var(--shadow);
+  }
+  .search input::placeholder { color: var(--muted); }
+  .search-meta { font-size: 13px; color: var(--muted); min-height: 20px; padding: 6px 4px 0; }
+
+  /* ---------- 목록 ---------- */
+  h1.view-title { font-size: 24px; font-weight: 600; letter-spacing: -.02em; margin: 24px 0 2px; }
+  .view-sub { color: var(--ink-2); font-size: 15px; margin: 0 0 18px; }
+
+  .list { display: flex; flex-direction: column; gap: 10px; }
+
+  .board {
+    display: block; width: 100%; text-align: left;
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: var(--radius); padding: 16px 18px; box-shadow: var(--shadow);
+    color: var(--ink); font-size: 16px;
+  }
+  .board:hover { border-color: var(--accent); }
+  .board-name { font-weight: 600; letter-spacing: -.01em; }
+  .board-desc { color: var(--ink-2); font-size: 14px; margin-top: 2px; }
+  .board-count { color: var(--muted); font-size: 13px; margin-top: 6px; }
+
+  .post {
+    display: block; width: 100%; text-align: left;
+    background: transparent; border: 0; border-bottom: 1px solid var(--line);
+    padding: 15px 4px; color: var(--ink); font-size: 16px;
+  }
+  .post:hover .post-title { color: var(--accent); }
+  .post-title { font-weight: 500; letter-spacing: -.01em; }
+  .post-snippet {
+    color: var(--ink-2); font-size: 14px; margin-top: 3px;
+    display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden;
+  }
+  .post-meta { color: var(--muted); font-size: 13px; margin-top: 6px; }
+
+  .empty {
+    border: 1px dashed var(--line); border-radius: var(--radius);
+    padding: 34px 20px; text-align: center; color: var(--ink-2);
+  }
+  .empty strong { display: block; color: var(--ink); font-weight: 600; margin-bottom: 4px; }
+
+  /* ---------- 글 상세 ---------- */
+  .article { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 24px; box-shadow: var(--shadow); }
+  .article h2 { font-size: 21px; font-weight: 600; letter-spacing: -.02em; margin: 0 0 8px; }
+  .article .meta { color: var(--muted); font-size: 13px; margin-bottom: 20px; }
+  .article .body { white-space: pre-wrap; word-break: break-word; color: var(--ink); }
+  .article-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 24px; padding-top: 18px; border-top: 1px solid var(--line); }
+
+  /* ---------- 댓글 ---------- */
+  .comments { margin-top: 26px; }
+  .comment {
+    border-bottom: 1px solid var(--line); padding: 14px 4px;
+    display: flex; gap: 12px; align-items: flex-start;
+  }
+  .comment .c-main { flex: 1; min-width: 0; }
+  .comment .c-meta { color: var(--muted); font-size: 13px; margin-bottom: 3px; }
+  .comment .c-body { white-space: pre-wrap; word-break: break-word; }
+  .comment-form { margin-top: 16px; }
+  .comment-form textarea {
+    width: 100%; min-height: 84px; padding: 12px 14px; font-size: 15px; font-family: inherit;
+    border: 1px solid var(--line); border-radius: 10px; background: var(--surface);
+    color: var(--ink); resize: vertical; line-height: 1.6;
+  }
+
+  /* ---------- 폼 ---------- */
+  .field { margin-bottom: 14px; }
+  .field input, .field textarea {
+    width: 100%; padding: 13px 15px; font-size: 16px; font-family: inherit;
+    border: 1px solid var(--line); border-radius: 10px;
+    background: var(--surface); color: var(--ink); line-height: 1.6;
+  }
+  .field textarea { min-height: 260px; resize: vertical; }
+  .form-actions { display: flex; gap: 8px; align-items: center; margin-top: 18px; flex-wrap: wrap; }
+
+  .notice { border-radius: 10px; padding: 12px 15px; font-size: 14px; margin-bottom: 16px; }
+  .notice.info { background: var(--accent-soft); color: var(--ink); }
+  .notice.error { background: var(--warn-soft); color: var(--ink); border-left: 3px solid var(--warn); }
+  .notice.hidden { display: none; }
+
+  /* ---------- 관리자 / 설정 ---------- */
+  .row {
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: 10px; padding: 12px 15px;
+  }
+  .row .who { flex: 1; min-width: 180px; }
+  .row .who b { font-weight: 600; }
+  .row .who span { display: block; color: var(--muted); font-size: 13px; }
+  .tag { font-size: 12px; padding: 2px 8px; border-radius: 999px; background: var(--warn-soft); color: var(--warn); }
+  .tag.calm { background: var(--accent-soft); color: var(--ink); }
+  .section-head { display: flex; align-items: baseline; gap: 10px; margin: 30px 0 12px; flex-wrap: wrap; }
+  .section-head h2 { font-size: 17px; font-weight: 600; margin: 0; }
+  .section-head p { margin: 0; color: var(--muted); font-size: 13px; }
+  .inline-form { display: flex; gap: 8px; margin-bottom: 12px; }
+  .inline-form input {
+    flex: 1; padding: 10px 14px; font-size: 15px; font-family: inherit;
+    border: 1px solid var(--line); border-radius: 10px; background: var(--surface); color: var(--ink);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: var(--surface-2); border: 1px solid var(--line);
+    border-radius: 999px; padding: 6px 8px 6px 14px; font-size: 14px;
+  }
+  .chip button {
+    border: 0; background: none; color: var(--muted); font-size: 16px; line-height: 1;
+    padding: 2px 6px; border-radius: 999px;
+  }
+  .chip button:hover { color: var(--warn); background: var(--warn-soft); }
+
+  .crumb { background: none; border: 0; color: var(--ink-2); padding: 0; font-size: 14px; margin-top: 22px; }
+  .crumb:hover { color: var(--accent); }
+
+  @media (max-width: 620px) {
+    .bar-inner { padding: 12px 16px; gap: 6px; }
+    .whoami { display: none; }
+    .wrap { padding: 0 16px 60px; }
+    h1.view-title { font-size: 21px; }
+    .btn.quiet { padding: 7px 8px; font-size: 14px; }
+  }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+
+<header class="bar">
+  <div class="bar-inner">
+    <button class="brand" id="brand">조용한 게시판</button>
+    <div class="bar-spacer"></div>
+    <span class="whoami" id="whoami"></span>
+    <button class="btn quiet" id="settingsBtn">차단 설정</button>
+    <button class="btn quiet" id="themeBtn">다크 모드</button>
+    <button class="btn quiet" id="adminBtn">관리자</button>
+  </div>
+</header>
+
+<main class="wrap" id="app"></main>
+
+<script>
+"use strict";
+
+/* =========================================================
+   저장소 키
+   ========================================================= */
+const KEY_DB      = "quietboard.db.v2";     // 게시판·글·댓글·신고·관리자 차단·금지어
+const KEY_ME      = "quietboard.me.v1";     // 내 익명 ID
+const KEY_MYBLOCK = "quietboard.myblock.v1";// 내가 설정한 차단 유저·단어
+const KEY_DRAFT   = "quietboard.draft.v1";  // 쓰다 만 글
+const KEY_THEME   = "quietboard.theme.v1";
+
+const DEFAULT_BANNED = ["바보", "멍청이", "한심", "쓰레기", "꺼져", "죽어"];
+
+const uid = () => Math.random().toString(36).slice(2, 8);
+
+/* =========================================================
+   초기 데이터
+   ========================================================= */
+function seed() {
+  const now = Date.now(), m = 60000;
+  return {
+    boards: [
+      { id: "b1", name: "자취 생활", desc: "혼자 사는 사람들의 집안일과 살림 이야기" },
+      { id: "b2", name: "진로와 이직", desc: "커리어 고민, 이직 준비, 면접 후기" },
+      { id: "b3", name: "개발 공부", desc: "언어, 프레임워크, 공부 방법" },
+      { id: "b4", name: "건강 기록", desc: "운동, 수면, 식습관에 대한 기록" },
+      { id: "b5", name: "동네 정보", desc: "가게, 병원, 생활 정보 묻고 답하기" }
+    ],
+    posts: [
+      { id: "p1", boardId: "b1", title: "원룸 곰팡이 어떻게 잡으셨나요",
+        body: "창문 쪽 벽에 곰팡이가 계속 올라옵니다.\n제습기를 돌려도 며칠 지나면 다시 생기네요. 근본적으로 해결한 분 계신가요?",
+        authorId: "u_7k2a", createdAt: now - 320*m, updatedAt: now - 320*m },
+      { id: "p2", boardId: "b1", title: "자취 3년차가 쓰는 살림 목록",
+        body: "빨래 건조대는 크게 사세요. 작은 거 샀다가 두 번 샀습니다.\n전기 주전자, 밀폐용기, 그리고 좋은 쓰레기통. 이 셋은 값을 합니다.",
+        authorId: "u_3md1", createdAt: now - 180*m, updatedAt: now - 180*m },
+      { id: "p3", boardId: "b2", title: "경력 2년차 이직 면접 후기",
+        body: "기술 면접 두 번, 임원 면접 한 번이었습니다.\n생각보다 프로젝트에서 내가 뭘 결정했는지를 깊게 물어보더군요.",
+        authorId: "u_9qz4", createdAt: now - 95*m, updatedAt: now - 95*m },
+      { id: "p4", boardId: "b2", title: "이직 준비 기간은 보통 얼마나 두나요",
+        body: "지금 다니면서 준비 중인데 체력이 버티질 않습니다. 다들 어떻게 하셨는지 궁금합니다.",
+        authorId: "u_7k2a", createdAt: now - 44*m, updatedAt: now - 44*m },
+      { id: "p5", boardId: "b3", title: "자바스크립트 비동기가 계속 헷갈립니다",
+        body: "promise는 알겠는데 async/await 안에서 반복문을 돌리면 순서가 꼬입니다.\n좋은 설명 자료 있을까요?",
+        authorId: "u_3md1", createdAt: now - 260*m, updatedAt: now - 260*m },
+      { id: "p6", boardId: "b3", title: "검색 기능 만들 때 디바운스 꼭 필요한가요",
+        body: "데이터가 몇백 건 수준이면 입력할 때마다 걸러도 느리지 않던데,\n규모가 커지면 어느 시점부터 체감되는지 궁금합니다.",
+        authorId: "u_9qz4", createdAt: now - 12*m, updatedAt: now - 12*m },
+      { id: "p7", boardId: "b4", title: "수면 시간 기록 두 달째",
+        body: "자기 전 휴대폰만 치웠는데 잠드는 시간이 20분 정도 빨라졌습니다.",
+        authorId: "u_3md1", createdAt: now - 500*m, updatedAt: now - 500*m },
+      { id: "p8", boardId: "b5", title: "주말에 여는 내과 찾습니다",
+        body: "토요일 오후에도 진료하는 곳 아시는 분 계실까요.",
+        authorId: "u_7k2a", createdAt: now - 70*m, updatedAt: now - 70*m }
+    ],
+    comments: [
+      { id: "c1", postId: "p1", body: "환기가 제일 낫습니다. 하루 두 번 10분씩만 열어도 다릅니다.",
+        authorId: "u_3md1", createdAt: now - 300*m },
+      { id: "c2", postId: "p1", body: "벽지 뒤쪽이면 곰팡이 제거제로는 안 잡히더라고요. 집주인한테 말하세요.",
+        authorId: "u_9qz4", createdAt: now - 120*m },
+      { id: "c3", postId: "p5", body: "for 문 안에서 await 쓰면 순서대로 돕니다. forEach가 문제예요.",
+        authorId: "u_7k2a", createdAt: now - 200*m }
+    ],
+    reports: [],
+    blocked: [],                       // 관리자가 차단한 유저
+    bannedWords: [...DEFAULT_BANNED]   // 관리자가 설정하는 금지어
+  };
+}
+
+function loadDB() {
+  try {
+    const d = JSON.parse(localStorage.getItem(KEY_DB) || "null");
+    if (d && Array.isArray(d.boards) && Array.isArray(d.posts)) {
+      d.comments    = d.comments    || [];
+      d.reports     = d.reports     || [];
+      d.blocked     = d.blocked     || [];
+      d.bannedWords = d.bannedWords || [...DEFAULT_BANNED];
+      return d;
+    }
+  } catch (e) {}
+  const fresh = seed();
+  saveDB(fresh);
+  return fresh;
+}
+function saveDB(d) { try { localStorage.setItem(KEY_DB, JSON.stringify(d)); } catch (e) {} }
+
+function loadMe() {
+  let id = null;
+  try { id = localStorage.getItem(KEY_ME); } catch (e) {}
+  if (!id) { id = "u_" + uid(); try { localStorage.setItem(KEY_ME, id); } catch (e) {} }
+  return id;
+}
+
+function loadMyBlock() {
+  try {
+    const v = JSON.parse(localStorage.getItem(KEY_MYBLOCK) || "null");
+    if (v && Array.isArray(v.users) && Array.isArray(v.words)) return v;
+  } catch (e) {}
+  return { users: [], words: [] };
+}
+function saveMyBlock() { try { localStorage.setItem(KEY_MYBLOCK, JSON.stringify(myBlock)); } catch (e) {} }
+
+const db = loadDB();
+const me = loadMe();
+const myBlock = loadMyBlock();
+
+let isAdmin = false;
+let view = { name: "boards" };
+let boardQuery = "";
+let postQuery = "";
+let formError = "";
+let commentError = "";
+
+/* =========================================================
+   유틸
+   ========================================================= */
+function esc(s) {
+  return String(s).replace(/[&<>"']/g, c =>
+    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+function nickname(id) { return "익명 " + String(id).replace(/^u_/, ""); }
+function timeText(ts) {
+  const min = Math.floor((Date.now() - ts) / 60000);
+  if (min < 1) return "방금";
+  if (min < 60) return min + "분 전";
+  const hr = Math.floor(min / 60);
+  if (hr < 24) return hr + "시간 전";
+  const day = Math.floor(hr / 24);
+  if (day < 7) return day + "일 전";
+  const d = new Date(ts);
+  return `${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,"0")}.${String(d.getDate()).padStart(2,"0")}`;
+}
+function normalize(s) { return String(s).toLowerCase().replace(/\s+/g, ""); }
+
+/* 금지어: 공백을 지운 뒤 포함 여부를 본다 */
+function findBanned(text) {
+  const flat = normalize(text);
+  return db.bannedWords.filter(w => w && flat.includes(normalize(w)));
+}
+function hasMyWord(text) {
+  const flat = normalize(text);
+  return myBlock.words.some(w => w && flat.includes(normalize(w)));
+}
+function isAdminBlocked(id) { return db.blocked.includes(id); }
+
+/* 내가 가린 글·댓글인가 */
+function hiddenPost(p) {
+  return myBlock.users.includes(p.authorId) || hasMyWord(p.title + " " + p.body);
+}
+function hiddenComment(c) {
+  return myBlock.users.includes(c.authorId) || hasMyWord(c.body);
+}
+
+function boardById(id) { return db.boards.find(b => b.id === id); }
+function postById(id) { return db.posts.find(p => p.id === id); }
+function visiblePosts(boardId) {
+  return db.posts.filter(p => p.boardId === boardId && !hiddenPost(p))
+                 .sort((a, b) => b.createdAt - a.createdAt);
+}
+function visibleComments(postId) {
+  return db.comments.filter(c => c.postId === postId && !hiddenComment(c))
+                    .sort((a, b) => a.createdAt - b.createdAt);
+}
+function reportCount(type, targetId) {
+  return db.reports.filter(r => r.type === type && r.targetId === targetId).length;
+}
+function alreadyReported(type, targetId) {
+  return db.reports.some(r => r.type === type && r.targetId === targetId && r.reporterId === me);
+}
+function addReport(type, targetId) {
+  db.reports.push({ id: "r_" + uid(), type, targetId, reporterId: me, createdAt: Date.now() });
+  saveDB(db);
+}
+function dropReports(type, targetId) {
+  db.reports = db.reports.filter(r => !(r.type === type && r.targetId === targetId));
+  saveDB(db);
+}
+function removePost(id) {
+  db.posts = db.posts.filter(p => p.id !== id);
+  db.comments = db.comments.filter(c => c.postId !== id);
+  dropReports("post", id);
+  saveDB(db);
+}
+
+/* 임시 저장 */
+function readDraft() { try { return JSON.parse(localStorage.getItem(KEY_DRAFT) || "null"); } catch (e) { return null; } }
+function writeDraft(d) { try { localStorage.setItem(KEY_DRAFT, JSON.stringify(d)); } catch (e) {} }
+function clearDraft() { try { localStorage.removeItem(KEY_DRAFT); } catch (e) {} }
+
+/* =========================================================
+   렌더링
+   ========================================================= */
+const app = document.getElementById("app");
+
+function render() {
+  ({ boards: renderBoards, board: renderBoard, post: renderPost,
+     write: renderWrite, admin: renderAdmin, settings: renderSettings }[view.name] || renderBoards)();
+  renderIdentity();
+}
+
+function renderIdentity() {
+  const el = document.getElementById("whoami");
+  const blocked = isAdminBlocked(me);
+  el.textContent = nickname(me) + (blocked ? " · 차단됨" : "");
+  el.classList.toggle("blocked", blocked);
+  const ab = document.getElementById("adminBtn");
+  const pending = db.reports.length;
+  ab.textContent = isAdmin ? "관리자 모드 켜짐" : (pending ? `관리자 (신고 ${pending})` : "관리자");
+  ab.classList.toggle("admin-on", isAdmin);
+}
+
+/* ---- 1. 전체 게시판 목록 ---- */
+function renderBoards() {
+  const q = boardQuery.trim();
+  const list = db.boards
+    .map(b => ({ ...b, count: visiblePosts(b.id).length }))
+    .filter(b => !q || normalize(b.name).includes(normalize(q)) || normalize(b.desc).includes(normalize(q)))
+    .sort((a, b) => b.count - a.count);
+
+  app.innerHTML = `
+    <div class="search">
+      <input id="boardSearch" type="search" placeholder="게시판 이름을 검색하세요"
+             value="${esc(boardQuery)}" autocomplete="off" aria-label="게시판 검색">
+    </div>
+    <div class="search-meta">${q ? `게시판 ${list.length}개` : "글이 많은 게시판 순서로 보여줍니다"}</div>
+    <div class="list" style="margin-top:14px">
+      ${list.length ? list.map(b => `
+        <button class="board" data-board="${b.id}">
+          <div class="board-name">${esc(b.name)}</div>
+          <div class="board-desc">${esc(b.desc)}</div>
+          <div class="board-count">글 ${b.count}개</div>
+        </button>`).join("") : `
+        <div class="empty">
+          <strong>찾는 게시판이 없습니다</strong>
+          검색어를 줄이거나 다른 낱말로 다시 찾아보세요.
+        </div>`}
+    </div>`;
+
+  wireLiveSearch("boardSearch", v => { boardQuery = v; renderBoards(); });
+  app.querySelectorAll("[data-board]").forEach(el =>
+    el.addEventListener("click", () => { postQuery = ""; go({ name: "board", boardId: el.dataset.board }); }));
+}
+
+/* 입력 즉시 반영 + 커서 유지 */
+function wireLiveSearch(id, onInput) {
+  const input = document.getElementById(id);
+  if (!input) return;
+  input.addEventListener("input", e => {
+    const pos = e.target.selectionStart;
+    onInput(e.target.value);
+    const next = document.getElementById(id);
+    if (next) { next.focus(); next.setSelectionRange(pos, pos); }
+  });
+}
+
+/* ---- 2. 게시판 안 ---- */
+function renderBoard() {
+  const board = boardById(view.boardId);
+  if (!board) return go({ name: "boards" });
+
+  const q = postQuery.trim();
+  const all = visiblePosts(board.id);
+  const list = q
+    ? all.filter(p => normalize(p.title).includes(normalize(q)) || normalize(p.body).includes(normalize(q)))
+    : all;
+  const blocked = isAdminBlocked(me);
+
+  app.innerHTML = `
+    <button class="crumb" id="back">← 전체 게시판</button>
+    <h1 class="view-title">${esc(board.name)}</h1>
+    <p class="view-sub">${esc(board.desc)}</p>
+
+    <div class="search">
+      <input id="postSearch" type="search" placeholder="이 게시판에서 글 검색"
+             value="${esc(postQuery)}" autocomplete="off" aria-label="글 검색">
+    </div>
+    <div class="search-meta">${q ? `글 ${list.length}개` : `전체 글 ${all.length}개`}</div>
+
+    <div style="display:flex;justify-content:flex-end;margin:10px 0 4px">
+      <button class="btn primary" id="writeBtn" ${blocked ? "disabled" : ""}>글쓰기</button>
+    </div>
+    ${blocked ? `<div class="notice error">차단된 계정입니다. 글과 댓글을 쓸 수 없습니다.</div>` : ""}
+
+    <div class="list" style="gap:0">
+      ${list.length ? list.map(p => {
+        const cc = visibleComments(p.id).length;
+        return `
+        <button class="post" data-post="${p.id}">
+          <div class="post-title">${esc(p.title)}${cc ? ` <span style="color:var(--accent);font-size:14px">[${cc}]</span>` : ""}</div>
+          <div class="post-snippet">${esc(p.body)}</div>
+          <div class="post-meta">${esc(nickname(p.authorId))} · ${timeText(p.createdAt)}${
+            p.updatedAt !== p.createdAt ? " · 수정됨" : ""}</div>
+        </button>`; }).join("") : `
+        <div class="empty">
+          <strong>${q ? "검색 결과가 없습니다" : "아직 글이 없습니다"}</strong>
+          ${q ? "다른 낱말로 다시 찾아보세요." : "첫 글을 남겨보세요."}
+        </div>`}
+    </div>`;
+
+  document.getElementById("back").addEventListener("click", () => { boardQuery = ""; go({ name: "boards" }); });
+  wireLiveSearch("postSearch", v => { postQuery = v; renderBoard(); });
+  document.getElementById("writeBtn").addEventListener("click", () =>
+    go({ name: "write", boardId: board.id, postId: null }));
+  app.querySelectorAll("[data-post]").forEach(el =>
+    el.addEventListener("click", () => go({ name: "post", postId: el.dataset.post })));
+}
+
+/* ---- 3. 글 상세 + 댓글 ---- */
+function renderPost() {
+  const post = postById(view.postId);
+  if (!post) return go({ name: "boards" });
+  if (hiddenPost(post) && !isAdmin) return go({ name: "board", boardId: post.boardId });
+
+  const board = boardById(post.boardId);
+  const mine = post.authorId === me;
+  const blocked = isAdminBlocked(me);
+  const comments = visibleComments(post.id);
+
+  app.innerHTML = `
+    <button class="crumb" id="back">← ${esc(board ? board.name : "목록")}</button>
+    <div class="article" style="margin-top:16px">
+      <h2>${esc(post.title)}</h2>
+      <div class="meta">${esc(nickname(post.authorId))} · ${timeText(post.createdAt)}${
+        post.updatedAt !== post.createdAt ? " · " + timeText(post.updatedAt) + " 수정" : ""}${
+        mine ? " · 내가 쓴 글" : ""}</div>
+      <div class="body">${esc(post.body)}</div>
+      <div class="article-actions">
+        ${mine && !blocked ? `<button class="btn small" id="edit">수정</button>` : ""}
+        ${(mine || isAdmin) ? `<button class="btn small danger" id="del">${isAdmin && !mine ? "관리자 삭제" : "삭제"}</button>` : ""}
+        ${!mine ? `
+          <button class="btn small" id="reportPost" ${alreadyReported("post", post.id) ? "disabled" : ""}>
+            ${alreadyReported("post", post.id) ? "신고함" : "글 신고"}
+          </button>
+          <button class="btn small" id="reportUser" ${alreadyReported("user", post.authorId) ? "disabled" : ""}>
+            ${alreadyReported("user", post.authorId) ? "작성자 신고함" : "작성자 신고"}
+          </button>
+          <button class="btn small" id="blockUser">
+            ${myBlock.users.includes(post.authorId) ? "차단 해제" : "이 사용자 차단"}
+          </button>` : ""}
+      </div>
+    </div>
+
+    <div class="comments">
+      <div class="section-head" style="margin-top:26px">
+        <h2>댓글 ${comments.length}개</h2>
+        <p>차단한 사용자와 단어가 든 댓글은 빼고 보여줍니다</p>
+      </div>
+      <div>
+        ${comments.length ? comments.map(c => `
+          <div class="comment">
+            <div class="c-main">
+              <div class="c-meta">${esc(nickname(c.authorId))} · ${timeText(c.createdAt)}${
+                c.authorId === me ? " · 내 댓글" : ""}</div>
+              <div class="c-body">${esc(c.body)}</div>
+            </div>
+            ${(c.authorId === me || isAdmin) ? `<button class="btn small danger" data-cdel="${c.id}">삭제</button>` : ""}
+          </div>`).join("") : `<div class="empty" style="padding:22px"><strong>첫 댓글을 남겨보세요</strong></div>`}
+      </div>
+
+      <div class="comment-form">
+        <div class="notice error ${commentError ? "" : "hidden"}" id="cError">${esc(commentError)}</div>
+        <textarea id="cBody" placeholder="${blocked ? "차단된 계정은 댓글을 쓸 수 없습니다" : "댓글을 쓰세요"}"
+          ${blocked ? "disabled" : ""}></textarea>
+        <div class="form-actions" style="margin-top:10px">
+          <button class="btn primary" id="cSave" ${blocked ? "disabled" : ""}>댓글 등록</button>
+        </div>
+      </div>
+    </div>`;
+
+  commentError = "";
+
+  document.getElementById("back").addEventListener("click", () => go({ name: "board", boardId: post.boardId }));
+
+  const editBtn = document.getElementById("edit");
+  if (editBtn) editBtn.addEventListener("click", () => go({ name: "write", boardId: post.boardId, postId: post.id }));
+
+  const delBtn = document.getElementById("del");
+  if (delBtn) delBtn.addEventListener("click", () => {
+    if (!confirm("이 글을 삭제할까요? 댓글도 함께 지워지고 되돌릴 수 없습니다.")) return;
+    removePost(post.id);
+    go({ name: "board", boardId: post.boardId });
+  });
+
+  const rp = document.getElementById("reportPost");
+  if (rp) rp.addEventListener("click", () => {
+    addReport("post", post.id);
+    alert("신고했습니다. 관리자가 확인합니다.");
+    render();
+  });
+  const ru = document.getElementById("reportUser");
+  if (ru) ru.addEventListener("click", () => {
+    addReport("user", post.authorId);
+    alert("신고했습니다. 관리자가 확인합니다.");
+    render();
+  });
+  const bu = document.getElementById("blockUser");
+  if (bu) bu.addEventListener("click", () => {
+    const id = post.authorId;
+    myBlock.users = myBlock.users.includes(id)
+      ? myBlock.users.filter(x => x !== id)
+      : [...myBlock.users, id];
+    saveMyBlock();
+    if (myBlock.users.includes(id)) go({ name: "board", boardId: post.boardId });
+    else render();
+  });
+
+  app.querySelectorAll("[data-cdel]").forEach(el => el.addEventListener("click", () => {
+    if (!confirm("이 댓글을 삭제할까요?")) return;
+    db.comments = db.comments.filter(c => c.id !== el.dataset.cdel);
+    saveDB(db);
+    render();
+  }));
+
+  const cSave = document.getElementById("cSave");
+  if (cSave) cSave.addEventListener("click", () => {
+    const body = document.getElementById("cBody").value.trim();
+    const err = document.getElementById("cError");
+    const fail = msg => { err.textContent = msg; err.classList.remove("hidden"); };
+    if (!body) return fail("내용이 비어 있어 저장되지 않았습니다.");
+    const hits = findBanned(body);
+    if (hits.length) return fail(`금지어가 들어 있어 저장되지 않았습니다: ${hits.join(", ")}`);
+    db.comments.push({ id: "c_" + uid(), postId: post.id, body, authorId: me, createdAt: Date.now() });
+    saveDB(db);
+    render();   // 등록 즉시 화면에 반영
+  });
+}
+
+/* ---- 4. 글 작성 / 수정 ---- */
+function renderWrite() {
+  const board = boardById(view.boardId);
+  if (!board) return go({ name: "boards" });
+  if (isAdminBlocked(me)) return go({ name: "board", boardId: board.id });
+
+  const editing = view.postId ? postById(view.postId) : null;
+  if (view.postId && !editing) return go({ name: "board", boardId: board.id });
+  if (editing && editing.authorId !== me) return go({ name: "post", postId: editing.id });
+
+  const draft = readDraft();
+  const matches = draft && draft.boardId === board.id && (draft.postId || null) === (view.postId || null);
+
+  let title = editing ? editing.title : "";
+  let body  = editing ? editing.body  : "";
+  let restored = false;
+  if (matches && (draft.title || draft.body)) { title = draft.title; body = draft.body; restored = true; }
+
+  app.innerHTML = `
+    <button class="crumb" id="back">← ${esc(board.name)}</button>
+    <h1 class="view-title">${editing ? "글 수정" : "새 글"}</h1>
+    <p class="view-sub">${esc(board.name)}에 ${esc(nickname(me))}(으)로 올라갑니다.</p>
+
+    <div class="notice info ${restored ? "" : "hidden"}">쓰다 만 내용을 불러왔습니다. 이어서 쓰시면 됩니다.</div>
+    <div class="notice error ${formError ? "" : "hidden"}" id="formError">${esc(formError)}</div>
+
+    <div class="field">
+      <input id="fTitle" type="text" placeholder="제목" value="${esc(title)}" maxlength="120">
+    </div>
+    <div class="field">
+      <textarea id="fBody" placeholder="내용을 쓰세요">${esc(body)}</textarea>
+    </div>
+    <div class="form-actions">
+      <button class="btn primary" id="save">${editing ? "수정 저장" : "올리기"}</button>
+      <button class="btn" id="cancel">취소</button>
+      <span class="search-meta" id="autosave" style="padding:0">${restored ? "쓰는 중에 자동으로 보관됩니다" : ""}</span>
+    </div>`;
+
+  const fTitle = document.getElementById("fTitle");
+  const fBody  = document.getElementById("fBody");
+  const auto   = document.getElementById("autosave");
+
+  const keep = () => {
+    writeDraft({ boardId: board.id, postId: view.postId || null, title: fTitle.value, body: fBody.value });
+    auto.textContent = "쓰는 중에 자동으로 보관됩니다";
+  };
+  fTitle.addEventListener("input", keep);
+  fBody.addEventListener("input", keep);
+
+  document.getElementById("back").addEventListener("click", () => go({ name: "board", boardId: board.id }));
+  document.getElementById("cancel").addEventListener("click", () => {
+    clearDraft();
+    go(editing ? { name: "post", postId: editing.id } : { name: "board", boardId: board.id });
+  });
+
+  document.getElementById("save").addEventListener("click", () => {
+    const t = fTitle.value.trim();
+    const b = fBody.value.trim();
+    const err = document.getElementById("formError");
+    const fail = msg => { formError = msg; err.textContent = msg; err.classList.remove("hidden"); };
+
+    if (!t || !b) {
+      return fail(!t && !b ? "제목과 내용을 모두 채워야 저장됩니다."
+                : (!t ? "제목이 비어 있어 저장되지 않았습니다." : "내용이 비어 있어 저장되지 않았습니다."));
+    }
+    const hits = findBanned(t + " " + b);
+    if (hits.length) {
+      return fail(`금지어가 들어 있어 저장되지 않았습니다: ${hits.join(", ")}. 해당 표현을 고친 뒤 다시 올려주세요.`);
+    }
+
+    const now = Date.now();
+    if (editing) { editing.title = t; editing.body = b; editing.updatedAt = now; }
+    else {
+      db.posts.push({ id: "p_" + uid(), boardId: board.id, title: t, body: b,
+                      authorId: me, createdAt: now, updatedAt: now });
+    }
+    saveDB(db);
+    clearDraft();
+    formError = "";
+    go(editing ? { name: "post", postId: editing.id } : { name: "board", boardId: board.id });
+  });
+}
+
+/* ---- 5. 관리자 ---- */
+function renderAdmin() {
+  const postReports = [...new Set(db.reports.filter(r => r.type === "post").map(r => r.targetId))]
+    .map(id => ({ id, post: postById(id), count: reportCount("post", id) }))
+    .filter(x => x.post)
+    .sort((a, b) => b.count - a.count);
+
+  const userReports = [...new Set(db.reports.filter(r => r.type === "user").map(r => r.targetId))]
+    .map(id => ({ id, count: reportCount("user", id) }))
+    .sort((a, b) => b.count - a.count);
+
+  const ids = [...new Set([...db.posts.map(p => p.authorId), ...db.comments.map(c => c.authorId), ...db.blocked, me])];
+  const users = ids.map(id => ({
+    id,
+    count: db.posts.filter(p => p.authorId === id).length,
+    blocked: isAdminBlocked(id),
+    reports: reportCount("user", id),
+    isMe: id === me
+  })).sort((a, b) => b.reports - a.reports || Number(b.blocked) - Number(a.blocked) || b.count - a.count);
+
+  app.innerHTML = `
+    <button class="crumb" id="back">← 전체 게시판</button>
+    <h1 class="view-title">관리자</h1>
+    <p class="view-sub">신고를 확인하고 글을 내리거나 이용자를 차단합니다.</p>
+
+    <div class="section-head"><h2>신고된 글</h2><p>신고가 많은 순서</p></div>
+    <div class="list">
+      ${postReports.length ? postReports.map(x => `
+        <div class="row">
+          <div class="who">
+            <b>${esc(x.post.title)}</b> <span class="tag">신고 ${x.count}</span>
+            <span>${esc(nickname(x.post.authorId))} · ${timeText(x.post.createdAt)}</span>
+          </div>
+          <button class="btn small" data-open="${x.post.id}">보기</button>
+          <button class="btn small danger" data-premove="${x.post.id}">글 삭제</button>
+          <button class="btn small" data-pignore="${x.post.id}">신고 무시</button>
+        </div>`).join("") : `<div class="empty" style="padding:22px"><strong>신고된 글이 없습니다</strong></div>`}
+    </div>
+
+    <div class="section-head"><h2>신고된 이용자</h2><p>차단하면 글과 댓글을 쓸 수 없습니다</p></div>
+    <div class="list">
+      ${userReports.length ? userReports.map(x => `
+        <div class="row">
+          <div class="who">
+            <b>${esc(nickname(x.id))}</b> <span class="tag">신고 ${x.count}</span>
+            ${isAdminBlocked(x.id) ? '<span class="tag">차단됨</span>' : ""}
+            <span>글 ${db.posts.filter(p => p.authorId === x.id).length}개</span>
+          </div>
+          <button class="btn small ${isAdminBlocked(x.id) ? "" : "danger"}" data-toggle="${x.id}">
+            ${isAdminBlocked(x.id) ? "차단 해제" : "차단"}
+          </button>
+          <button class="btn small" data-uignore="${x.id}">신고 무시</button>
+        </div>`).join("") : `<div class="empty" style="padding:22px"><strong>신고된 이용자가 없습니다</strong></div>`}
+    </div>
+
+    <div class="section-head"><h2>이용자 전체</h2><p>신고 없이도 차단할 수 있습니다</p></div>
+    <div class="list">
+      ${users.map(u => `
+        <div class="row">
+          <div class="who">
+            <b>${esc(nickname(u.id))}</b>
+            ${u.isMe ? '<span class="tag calm">나</span>' : ""}
+            ${u.blocked ? '<span class="tag">차단됨</span>' : ""}
+            <span>글 ${u.count}개</span>
+          </div>
+          <button class="btn small ${u.blocked ? "" : "danger"}" data-toggle="${u.id}">
+            ${u.blocked ? "차단 해제" : "차단"}
+          </button>
+        </div>`).join("")}
+    </div>
+
+    <div class="section-head"><h2>금지어 설정</h2><p>여기 있는 낱말이 든 글과 댓글은 저장되지 않습니다</p></div>
+    <div class="inline-form">
+      <input id="banInput" type="text" placeholder="금지어를 입력하고 추가를 누르세요" maxlength="30">
+      <button class="btn" id="banAdd">추가</button>
+    </div>
+    <div class="notice error hidden" id="banError"></div>
+    <div class="chips">
+      ${db.bannedWords.length ? db.bannedWords.map(w => `
+        <span class="chip">${esc(w)}<button data-banrm="${esc(w)}" aria-label="${esc(w)} 삭제">×</button></span>
+      `).join("") : `<span class="search-meta">설정된 금지어가 없습니다</span>`}
+    </div>`;
+
+  document.getElementById("back").addEventListener("click", () => go({ name: "boards" }));
+
+  app.querySelectorAll("[data-open]").forEach(el =>
+    el.addEventListener("click", () => go({ name: "post", postId: el.dataset.open })));
+
+  app.querySelectorAll("[data-premove]").forEach(el => el.addEventListener("click", () => {
+    if (!confirm("이 글을 삭제할까요? 되돌릴 수 없습니다.")) return;
+    removePost(el.dataset.premove);
+    renderAdmin(); renderIdentity();
+  }));
+  app.querySelectorAll("[data-pignore]").forEach(el => el.addEventListener("click", () => {
+    dropReports("post", el.dataset.pignore);
+    renderAdmin(); renderIdentity();
+  }));
+  app.querySelectorAll("[data-uignore]").forEach(el => el.addEventListener("click", () => {
+    dropReports("user", el.dataset.uignore);
+    renderAdmin(); renderIdentity();
+  }));
+  app.querySelectorAll("[data-toggle]").forEach(el => el.addEventListener("click", () => {
+    const id = el.dataset.toggle;
+    db.blocked = isAdminBlocked(id) ? db.blocked.filter(x => x !== id) : [...db.blocked, id];
+    saveDB(db);
+    renderAdmin(); renderIdentity();
+  }));
+
+  const banAdd = () => {
+    const input = document.getElementById("banInput");
+    const err = document.getElementById("banError");
+    const w = input.value.trim();
+    if (!w) { err.textContent = "금지어가 비어 있어 추가되지 않았습니다."; err.classList.remove("hidden"); return; }
+    if (db.bannedWords.some(x => normalize(x) === normalize(w))) {
+      err.textContent = "이미 들어 있는 금지어입니다."; err.classList.remove("hidden"); return;
+    }
+    db.bannedWords.push(w);
+    saveDB(db);
+    renderAdmin();
+  };
+  document.getElementById("banAdd").addEventListener("click", banAdd);
+  document.getElementById("banInput").addEventListener("keydown", e => { if (e.key === "Enter") banAdd(); });
+  app.querySelectorAll("[data-banrm]").forEach(el => el.addEventListener("click", () => {
+    db.bannedWords = db.bannedWords.filter(w => w !== el.dataset.banrm);
+    saveDB(db);
+    renderAdmin();
+  }));
+}
+
+/* ---- 6. 내 차단 설정 ---- */
+function renderSettings() {
+  const known = [...new Set([...db.posts.map(p => p.authorId), ...db.comments.map(c => c.authorId)])]
+    .filter(id => id !== me);
+
+  app.innerHTML = `
+    <button class="crumb" id="back">← 전체 게시판</button>
+    <h1 class="view-title">차단 설정</h1>
+    <p class="view-sub">여기서 막은 사용자와 낱말은 ${esc(nickname(me))}의 화면에서만 사라집니다.</p>
+
+    <div class="section-head"><h2>차단한 사용자</h2><p>이 사람의 글과 댓글이 보이지 않습니다</p></div>
+    <div class="chips" style="margin-bottom:14px">
+      ${myBlock.users.length ? myBlock.users.map(id => `
+        <span class="chip">${esc(nickname(id))}<button data-urm="${id}" aria-label="차단 해제">×</button></span>
+      `).join("") : `<span class="search-meta">차단한 사용자가 없습니다</span>`}
+    </div>
+    <div class="list">
+      ${known.length ? known.map(id => `
+        <div class="row">
+          <div class="who"><b>${esc(nickname(id))}</b>
+            <span>글 ${db.posts.filter(p => p.authorId === id).length}개 · 댓글 ${db.comments.filter(c => c.authorId === id).length}개</span>
+          </div>
+          <button class="btn small ${myBlock.users.includes(id) ? "" : "danger"}" data-uadd="${id}">
+            ${myBlock.users.includes(id) ? "차단 해제" : "차단"}
+          </button>
+        </div>`).join("") : `<div class="empty" style="padding:22px"><strong>표시할 사용자가 없습니다</strong></div>`}
+    </div>
+
+    <div class="section-head"><h2>차단한 낱말</h2><p>이 낱말이 든 글과 댓글이 보이지 않습니다</p></div>
+    <div class="inline-form">
+      <input id="wordInput" type="text" placeholder="가리고 싶은 낱말" maxlength="30">
+      <button class="btn" id="wordAdd">추가</button>
+    </div>
+    <div class="notice error hidden" id="wordError"></div>
+    <div class="chips">
+      ${myBlock.words.length ? myBlock.words.map(w => `
+        <span class="chip">${esc(w)}<button data-wrm="${esc(w)}" aria-label="${esc(w)} 삭제">×</button></span>
+      `).join("") : `<span class="search-meta">차단한 낱말이 없습니다</span>`}
+    </div>`;
+
+  document.getElementById("back").addEventListener("click", () => go({ name: "boards" }));
+
+  app.querySelectorAll("[data-urm]").forEach(el => el.addEventListener("click", () => {
+    myBlock.users = myBlock.users.filter(x => x !== el.dataset.urm);
+    saveMyBlock(); renderSettings();
+  }));
+  app.querySelectorAll("[data-uadd]").forEach(el => el.addEventListener("click", () => {
+    const id = el.dataset.uadd;
+    myBlock.users = myBlock.users.includes(id) ? myBlock.users.filter(x => x !== id) : [...myBlock.users, id];
+    saveMyBlock(); renderSettings();
+  }));
+
+  const wordAdd = () => {
+    const input = document.getElementById("wordInput");
+    const err = document.getElementById("wordError");
+    const w = input.value.trim();
+    if (!w) { err.textContent = "낱말이 비어 있어 추가되지 않았습니다."; err.classList.remove("hidden"); return; }
+    if (myBlock.words.some(x => normalize(x) === normalize(w))) {
+      err.textContent = "이미 차단한 낱말입니다."; err.classList.remove("hidden"); return;
+    }
+    myBlock.words.push(w);
+    saveMyBlock(); renderSettings();
+  };
+  document.getElementById("wordAdd").addEventListener("click", wordAdd);
+  document.getElementById("wordInput").addEventListener("keydown", e => { if (e.key === "Enter") wordAdd(); });
+  app.querySelectorAll("[data-wrm]").forEach(el => el.addEventListener("click", () => {
+    myBlock.words = myBlock.words.filter(w => w !== el.dataset.wrm);
+    saveMyBlock(); renderSettings();
+  }));
+}
+
+/* =========================================================
+   이동 / 상단 버튼 / 테마
+   ========================================================= */
+function go(next) {
+  view = next;
+  if (next.name !== "write") formError = "";
+  commentError = "";
+  window.scrollTo({ top: 0, behavior: "auto" });
+  render();
+}
+
+document.getElementById("brand").addEventListener("click", () => { boardQuery = ""; go({ name: "boards" }); });
+document.getElementById("settingsBtn").addEventListener("click", () => go({ name: "settings" }));
+document.getElementById("adminBtn").addEventListener("click", () => {
+  isAdmin = !isAdmin;
+  go(isAdmin ? { name: "admin" } : { name: "boards" });
+});
+
+function applyTheme(t) {
+  document.documentElement.setAttribute("data-theme", t);
+  document.getElementById("themeBtn").textContent = t === "dark" ? "라이트 모드" : "다크 모드";
+  try { localStorage.setItem(KEY_THEME, t); } catch (e) {}
+}
+let savedTheme = null;
+try { savedTheme = localStorage.getItem(KEY_THEME); } catch (e) {}
+applyTheme(savedTheme || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"));
+document.getElementById("themeBtn").addEventListener("click", () =>
+  applyTheme(document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark"));
+
+/* 창을 닫을 때도 쓰던 글을 남겨둔다 */
+window.addEventListener("beforeunload", () => {
+  if (view.name !== "write") return;
+  const t = document.getElementById("fTitle");
+  const b = document.getElementById("fBody");
+  if (t && b) writeDraft({ boardId: view.boardId, postId: view.postId || null, title: t.value, body: b.value });
+});
+
+render();
+</script>
+</body>
+</html>

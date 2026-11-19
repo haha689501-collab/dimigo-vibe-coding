@@ -1,0 +1,1301 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>익명게시판</title>
+<style>
+  :root {
+    --card: #ffffff;
+    --border: rgba(219, 219, 219, 0.9);
+    --text: #1a1a2e;
+    --muted: #6b7280;
+    --accent: #6366f1;
+    --accent-2: #a855f7;
+    --danger: #ef4444;
+    --admin: #f59e0b;
+    --shadow: 0 4px 20px rgba(99, 102, 241, 0.08);
+    --shadow-lg: 0 12px 40px rgba(99, 102, 241, 0.18);
+    --radius: 14px;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Pretendard", "Malgun Gothic", sans-serif;
+    height: 100%;
+    -webkit-tap-highlight-color: transparent;
+  }
+  body {
+    background:
+      radial-gradient(circle at 15% 20%, rgba(168, 85, 247, 0.18), transparent 40%),
+      radial-gradient(circle at 85% 15%, rgba(99, 102, 241, 0.20), transparent 45%),
+      radial-gradient(circle at 50% 90%, rgba(236, 72, 153, 0.12), transparent 50%),
+      linear-gradient(135deg, #f5f3ff 0%, #ede9fe 50%, #fce7f3 100%);
+    background-attachment: fixed;
+    min-height: 100vh;
+  }
+  header {
+    position: sticky;
+    top: 0;
+    background: rgba(255, 255, 255, 0.75);
+    backdrop-filter: saturate(180%) blur(16px);
+    -webkit-backdrop-filter: saturate(180%) blur(16px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.6);
+    padding: 12px 20px;
+    z-index: 10;
+  }
+  .header-row {
+    max-width: 640px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  header h1 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 700;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .icon-btn {
+    background: rgba(255, 255, 255, 0.6);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 8px 10px;
+    cursor: pointer;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--text);
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+  .icon-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow);
+  }
+  .icon-btn.admin-active {
+    background: linear-gradient(135deg, var(--admin), #fb923c);
+    color: #fff;
+    border-color: transparent;
+  }
+  .user-badge {
+    font-size: 12px;
+    color: var(--muted);
+    padding: 6px 10px;
+    background: rgba(255, 255, 255, 0.6);
+    border-radius: 8px;
+  }
+  .search-row {
+    max-width: 640px;
+    margin: 8px auto 0;
+    padding: 0;
+  }
+  .search-box {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1px solid var(--border);
+    background: rgba(255, 255, 255, 0.75);
+    border-radius: 12px;
+    font-size: 14px;
+    outline: none;
+    font-family: inherit;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .search-box:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+  }
+  #feed-container {
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 20px 16px 100px;
+    height: calc(100vh - 120px);
+    overflow-y: auto;
+    position: relative;
+    scroll-behavior: smooth;
+  }
+  #virtual-spacer {
+    position: relative;
+    width: 100%;
+  }
+  .post {
+    position: absolute;
+    left: 0;
+    right: 0;
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+  .post:hover {
+    box-shadow: var(--shadow-lg);
+  }
+  .post-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 14px;
+    border-bottom: 1px solid rgba(0,0,0,0.04);
+  }
+  .post-author {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+  }
+  .avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+  .post-meta {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+  .post-nickname {
+    font-weight: 600;
+    font-size: 14px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .post-time {
+    font-size: 11px;
+    color: var(--muted);
+  }
+  .post-body {
+    padding: 12px 14px;
+  }
+  .post-title {
+    font-weight: 700;
+    font-size: 16px;
+    margin: 0 0 6px 0;
+    word-break: break-word;
+  }
+  .post-content {
+    white-space: pre-wrap;
+    word-break: break-word;
+    font-size: 14px;
+    line-height: 1.6;
+    margin: 0;
+  }
+  .post-content mark, .post-title mark {
+    background: linear-gradient(120deg, rgba(245, 158, 11, 0.4), rgba(251, 146, 60, 0.4));
+    color: inherit;
+    padding: 0 2px;
+    border-radius: 3px;
+  }
+  .post-image {
+    width: 100%;
+    display: block;
+    max-height: 500px;
+    object-fit: contain;
+    background: #f3f4f6;
+  }
+  .post-file {
+    display: inline-block;
+    padding: 8px 12px;
+    margin: 8px 14px 12px;
+    background: rgba(99, 102, 241, 0.08);
+    border-radius: 8px;
+    font-size: 13px;
+    text-decoration: none;
+    color: var(--accent);
+    font-weight: 500;
+  }
+  .post-actions {
+    display: flex;
+    gap: 4px;
+  }
+  .delete-btn {
+    background: none;
+    border: none;
+    color: var(--danger);
+    cursor: pointer;
+    font-size: 13px;
+    padding: 6px 10px;
+    font-weight: 600;
+    border-radius: 6px;
+  }
+  .delete-btn:hover { background: rgba(239, 68, 68, 0.08); }
+  .delete-btn.admin-delete { color: var(--admin); }
+  .delete-btn.admin-delete:hover { background: rgba(245, 158, 11, 0.1); }
+  .relevance-badge {
+    font-size: 10px;
+    padding: 2px 6px;
+    background: rgba(99, 102, 241, 0.1);
+    color: var(--accent);
+    border-radius: 4px;
+    font-weight: 600;
+  }
+  .fab {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    color: #fff;
+    border: none;
+    font-size: 30px;
+    line-height: 1;
+    cursor: pointer;
+    box-shadow: 0 8px 24px rgba(99, 102, 241, 0.4);
+    z-index: 20;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+  .fab:hover { transform: scale(1.05); box-shadow: 0 12px 32px rgba(99, 102, 241, 0.5); }
+  .fab:active { transform: scale(0.98); }
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.55);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    z-index: 30;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+  }
+  .modal-overlay.active { display: flex; }
+  .modal {
+    background: #fff;
+    border-radius: 18px;
+    width: 100%;
+    max-width: 520px;
+    max-height: 90vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 25px 60px rgba(0,0,0,0.2);
+  }
+  .modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--border);
+  }
+  .modal-header h2 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 700;
+  }
+  .modal-close {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: var(--muted);
+    padding: 0;
+    line-height: 1;
+    width: 28px;
+    height: 28px;
+  }
+  .submit-btn {
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    border: none;
+    color: #fff;
+    font-weight: 700;
+    font-size: 13px;
+    cursor: pointer;
+    padding: 8px 14px;
+    border-radius: 8px;
+  }
+  .submit-btn:disabled {
+    background: #d1d5db;
+    cursor: not-allowed;
+  }
+  .modal-body {
+    padding: 16px 18px;
+    overflow-y: auto;
+  }
+  .modal-body input[type="text"],
+  .modal-body input[type="password"],
+  .modal-body textarea {
+    width: 100%;
+    padding: 11px 12px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    font-size: 14px;
+    font-family: inherit;
+    margin-bottom: 12px;
+    outline: none;
+    background: #fff;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .modal-body input:focus, .modal-body textarea:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+  }
+  .modal-body textarea {
+    min-height: 130px;
+    resize: vertical;
+  }
+  .drop-zone {
+    border: 2px dashed var(--border);
+    border-radius: 12px;
+    padding: 22px;
+    text-align: center;
+    color: var(--muted);
+    font-size: 13px;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+  }
+  .drop-zone.dragover {
+    background: rgba(99, 102, 241, 0.08);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  .attachment-preview {
+    margin-top: 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px;
+    background: #f9fafb;
+    border-radius: 10px;
+    font-size: 13px;
+  }
+  .attachment-preview img {
+    width: 48px;
+    height: 48px;
+    object-fit: cover;
+    border-radius: 6px;
+  }
+  .attachment-remove {
+    margin-left: auto;
+    background: none;
+    border: none;
+    color: var(--danger);
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .confirm-box {
+    background: #fff;
+    border-radius: 16px;
+    padding: 24px;
+    width: 100%;
+    max-width: 360px;
+    text-align: center;
+    box-shadow: 0 25px 60px rgba(0,0,0,0.2);
+  }
+  .confirm-box p {
+    margin: 0 0 20px;
+    font-size: 15px;
+    line-height: 1.5;
+  }
+  .confirm-actions {
+    display: flex;
+    gap: 8px;
+  }
+  .confirm-actions button {
+    flex: 1;
+    padding: 11px;
+    border: 1px solid var(--border);
+    background: #fff;
+    border-radius: 10px;
+    font-size: 14px;
+    cursor: pointer;
+    font-family: inherit;
+    font-weight: 500;
+  }
+  .confirm-actions .primary {
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    color: #fff;
+    border-color: transparent;
+    font-weight: 700;
+  }
+  .confirm-actions .danger {
+    background: var(--danger);
+    color: #fff;
+    border-color: var(--danger);
+    font-weight: 700;
+  }
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--muted);
+  }
+  .empty-state h3 {
+    margin: 0 0 8px;
+    font-weight: 500;
+    font-size: 17px;
+  }
+  .admin-status {
+    padding: 10px 14px;
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(251, 146, 60, 0.1));
+    border: 1px solid rgba(245, 158, 11, 0.3);
+    border-radius: 10px;
+    margin-bottom: 12px;
+    font-size: 13px;
+    color: #92400e;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .admin-status .status-dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--admin);
+    margin-right: 6px;
+  }
+  .lockout-msg {
+    color: var(--danger);
+    font-size: 12px;
+    margin-top: -6px;
+    margin-bottom: 12px;
+  }
+  .hint {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: -6px;
+    margin-bottom: 12px;
+  }
+
+  /* Responsive */
+  @media (max-width: 640px) {
+    header { padding: 10px 14px; }
+    header h1 { font-size: 18px; }
+    .icon-btn { padding: 7px 9px; font-size: 13px; }
+    .user-badge { display: none; }
+    #feed-container { padding: 14px 12px 96px; height: calc(100vh - 116px); }
+    .post-title { font-size: 15px; }
+    .fab { bottom: 18px; right: 18px; width: 54px; height: 54px; font-size: 28px; }
+    .modal { border-radius: 14px; max-height: 92vh; }
+    .modal-body { padding: 14px; }
+  }
+  @media (max-width: 380px) {
+    .header-actions .btn-label { display: none; }
+    .icon-btn { padding: 8px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-row">
+    <h1>익명게시판</h1>
+    <div class="header-actions">
+      <span class="user-badge" id="user-badge"></span>
+      <button class="icon-btn" id="admin-btn" title="관리자">
+        <span>🔐</span><span class="btn-label" id="admin-btn-label">관리자</span>
+      </button>
+    </div>
+  </div>
+  <div class="search-row">
+    <input type="text" class="search-box" id="search-box" placeholder="🔎  게시글 검색 (제목 · 내용)" />
+  </div>
+</header>
+
+<div id="feed-container">
+  <div id="virtual-spacer"></div>
+  <div id="empty-state" class="empty-state" style="display:none;">
+    <h3>아직 게시글이 없어요</h3>
+    <p>우측 하단 + 버튼을 눌러 첫 게시글을 작성해보세요.</p>
+  </div>
+</div>
+
+<button class="fab" id="fab" title="게시글 작성">+</button>
+
+<!-- Write Modal -->
+<div class="modal-overlay" id="write-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <button class="modal-close" id="close-write">×</button>
+      <h2>새 게시글</h2>
+      <button class="submit-btn" id="publish-btn">게시하기</button>
+    </div>
+    <div class="modal-body">
+      <input type="text" id="title-input" placeholder="제목" maxlength="100" />
+      <textarea id="content-input" placeholder="내용을 입력하세요"></textarea>
+      <div class="drop-zone" id="drop-zone">
+        파일을 여기로 끌어오거나 클릭해서 선택하세요<br />
+        <small>(이미지 및 모든 파일 · 최대 5MB)</small>
+        <input type="file" id="file-input" style="display:none;" />
+      </div>
+      <div id="attachment-preview-area"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Publish Confirm -->
+<div class="modal-overlay" id="confirm-modal">
+  <div class="confirm-box">
+    <p id="confirm-message">게시글을 게시하시겠습니까?</p>
+    <div class="confirm-actions">
+      <button id="confirm-cancel">수정</button>
+      <button class="primary" id="confirm-ok">게시하기</button>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Confirm -->
+<div class="modal-overlay" id="delete-modal">
+  <div class="confirm-box">
+    <p id="delete-message">이 게시글을 삭제하시겠습니까?</p>
+    <div class="confirm-actions">
+      <button id="delete-cancel">취소</button>
+      <button class="danger" id="delete-ok">삭제</button>
+    </div>
+  </div>
+</div>
+
+<!-- Admin Modal -->
+<div class="modal-overlay" id="admin-modal">
+  <div class="modal" style="max-width:400px;">
+    <div class="modal-header">
+      <button class="modal-close" id="close-admin">×</button>
+      <h2 id="admin-title">관리자</h2>
+      <span></span>
+    </div>
+    <div class="modal-body">
+      <div id="admin-content"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function() {
+  'use strict';
+
+  // ============================================================
+  // Storage keys
+  // ============================================================
+  const STORAGE_POSTS = 'anonboard.posts.v1';
+  const STORAGE_USER = 'anonboard.userId.v1';
+  const STORAGE_ADMIN_HASH = 'anonboard.adminHash.v1';
+  const STORAGE_ADMIN_SALT = 'anonboard.adminSalt.v1';
+  const STORAGE_ADMIN_ATTEMPTS = 'anonboard.adminAttempts.v1';
+  const SESSION_ADMIN_TOKEN = 'anonboard.adminSession.v1';
+
+  const ADMIN_SESSION_MS = 30 * 60 * 1000; // 30 min
+  const MAX_ATTEMPTS = 5;
+  const LOCKOUT_MS = 5 * 60 * 1000; // 5 min
+
+  const BUFFER = 3;
+
+  // ============================================================
+  // Crypto helpers (SHA-256 with salt via SubtleCrypto)
+  // ============================================================
+  async function sha256Hex(text) {
+    const enc = new TextEncoder().encode(text);
+    const buf = await crypto.subtle.digest('SHA-256', enc);
+    return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+  }
+  async function hashPassword(password, salt) {
+    // Multiple rounds strengthens against brute force
+    let h = await sha256Hex(salt + '::' + password);
+    for (let i = 0; i < 10000; i++) h = await sha256Hex(h + '::' + salt);
+    return h;
+  }
+  function randomSalt() {
+    const arr = new Uint8Array(16);
+    crypto.getRandomValues(arr);
+    return Array.from(arr).map(b => b.toString(16).padStart(2, '0')).join('');
+  }
+
+  // ============================================================
+  // User identity
+  // ============================================================
+  function getUserId() {
+    let uid = localStorage.getItem(STORAGE_USER);
+    if (!uid) {
+      uid = 'u_' + Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
+      localStorage.setItem(STORAGE_USER, uid);
+    }
+    return uid;
+  }
+  function getNickname(uid) {
+    const adjs = ['용감한', '조용한', '반짝이는', '느긋한', '호기심많은', '똑똑한', '따뜻한', '재빠른', '차분한', '유쾌한'];
+    const nouns = ['사자', '토끼', '고양이', '펭귄', '늑대', '여우', '수달', '판다', '올빼미', '돌고래'];
+    let hash = 0;
+    for (let i = 0; i < uid.length; i++) hash = (hash * 31 + uid.charCodeAt(i)) >>> 0;
+    return adjs[hash % adjs.length] + ' ' + nouns[(hash >>> 3) % nouns.length];
+  }
+
+  const currentUser = getUserId();
+  const currentNickname = getNickname(currentUser);
+  document.getElementById('user-badge').textContent = '나: ' + currentNickname;
+
+  // ============================================================
+  // Posts persistence
+  // ============================================================
+  function loadPosts() {
+    try { return JSON.parse(localStorage.getItem(STORAGE_POSTS) || '[]'); }
+    catch (e) { return []; }
+  }
+  function savePosts(posts) {
+    localStorage.setItem(STORAGE_POSTS, JSON.stringify(posts));
+  }
+  let posts = loadPosts();
+  window.addEventListener('storage', function(e) {
+    if (e.key === STORAGE_POSTS) {
+      posts = loadPosts();
+      itemHeights.clear();
+      renderVirtual();
+    }
+  });
+
+  // ============================================================
+  // Admin state
+  // ============================================================
+  function isAdminLoggedIn() {
+    try {
+      const tok = JSON.parse(sessionStorage.getItem(SESSION_ADMIN_TOKEN) || 'null');
+      if (!tok) return false;
+      if (Date.now() > tok.expiresAt) {
+        sessionStorage.removeItem(SESSION_ADMIN_TOKEN);
+        return false;
+      }
+      return true;
+    } catch (e) { return false; }
+  }
+  function setAdminSession() {
+    sessionStorage.setItem(SESSION_ADMIN_TOKEN, JSON.stringify({
+      expiresAt: Date.now() + ADMIN_SESSION_MS,
+      userId: currentUser
+    }));
+  }
+  function clearAdminSession() {
+    sessionStorage.removeItem(SESSION_ADMIN_TOKEN);
+  }
+  function getAttemptState() {
+    try {
+      return JSON.parse(localStorage.getItem(STORAGE_ADMIN_ATTEMPTS) || '{"count":0,"lockedUntil":0}');
+    } catch (e) { return { count: 0, lockedUntil: 0 }; }
+  }
+  function setAttemptState(s) {
+    localStorage.setItem(STORAGE_ADMIN_ATTEMPTS, JSON.stringify(s));
+  }
+  function isLockedOut() {
+    return getAttemptState().lockedUntil > Date.now();
+  }
+  function updateAdminBtn() {
+    const btn = document.getElementById('admin-btn');
+    const label = document.getElementById('admin-btn-label');
+    if (isAdminLoggedIn()) {
+      btn.classList.add('admin-active');
+      label.textContent = '관리자 ON';
+    } else {
+      btn.classList.remove('admin-active');
+      label.textContent = '관리자';
+    }
+  }
+
+  // ============================================================
+  // Virtual scroll
+  // ============================================================
+  const feed = document.getElementById('feed-container');
+  const spacer = document.getElementById('virtual-spacer');
+  const emptyState = document.getElementById('empty-state');
+  const itemHeights = new Map();
+
+  // Currently displayed list (filtered/sorted by search)
+  let displayList = [];
+  let searchQuery = '';
+
+  function estimateHeight(post) {
+    if (itemHeights.has(post.id)) return itemHeights.get(post.id);
+    let h = 90;
+    h += 40;
+    if (post.content) {
+      const lines = Math.ceil(post.content.length / 40) + (post.content.match(/\n/g) || []).length + 1;
+      h += lines * 22 + 24;
+    }
+    if (post.attachment) {
+      h += post.attachment.type && post.attachment.type.startsWith('image/') ? 320 : 56;
+    }
+    return h;
+  }
+  function getOffsets() {
+    const offsets = [0];
+    for (let i = 0; i < displayList.length; i++) {
+      offsets.push(offsets[i] + estimateHeight(displayList[i]) + 14);
+    }
+    return offsets;
+  }
+
+  function renderVirtual() {
+    if (displayList.length === 0) {
+      emptyState.style.display = 'block';
+      emptyState.querySelector('h3').textContent = searchQuery ? '검색 결과가 없어요' : '아직 게시글이 없어요';
+      emptyState.querySelector('p').textContent = searchQuery
+        ? '다른 검색어를 시도해보세요.'
+        : '우측 하단 + 버튼을 눌러 첫 게시글을 작성해보세요.';
+      spacer.style.height = '0px';
+      Array.from(spacer.querySelectorAll('.post')).forEach(n => n.remove());
+      return;
+    }
+    emptyState.style.display = 'none';
+    const offsets = getOffsets();
+    spacer.style.height = offsets[offsets.length - 1] + 'px';
+
+    const scrollTop = feed.scrollTop;
+    const viewport = feed.clientHeight;
+
+    let start = 0;
+    while (start < displayList.length && offsets[start + 1] < scrollTop) start++;
+    let end = start;
+    while (end < displayList.length && offsets[end] < scrollTop + viewport) end++;
+
+    start = Math.max(0, start - BUFFER);
+    end = Math.min(displayList.length, end + BUFFER);
+
+    const existing = new Map();
+    Array.from(spacer.querySelectorAll('.post')).forEach(n => existing.set(n.dataset.id, n));
+
+    const needed = new Set();
+    for (let i = start; i < end; i++) {
+      const p = displayList[i];
+      needed.add(p.id);
+      let node = existing.get(p.id);
+      if (!node) {
+        node = renderPost(p);
+        spacer.appendChild(node);
+      } else {
+        // If admin state changed, re-render node
+        const wantsAdminBtn = isAdminLoggedIn() && p.userId !== currentUser;
+        const hasAdminBtn = !!node.querySelector('.admin-delete');
+        if (wantsAdminBtn !== hasAdminBtn) {
+          const fresh = renderPost(p);
+          node.replaceWith(fresh);
+          node = fresh;
+        }
+      }
+      node.style.top = offsets[i] + 'px';
+    }
+    existing.forEach((node, id) => { if (!needed.has(id)) node.remove(); });
+
+    // Measure real heights
+    let needsRerender = false;
+    for (let i = start; i < end; i++) {
+      const p = displayList[i];
+      const node = spacer.querySelector('.post[data-id="' + CSS.escape(p.id) + '"]');
+      if (node) {
+        const realH = node.offsetHeight;
+        const prev = itemHeights.get(p.id);
+        if (realH > 0 && (prev === undefined || Math.abs(realH - prev) > 4)) {
+          itemHeights.set(p.id, realH);
+          needsRerender = true;
+        }
+      }
+    }
+    if (needsRerender) {
+      const newOffsets = getOffsets();
+      spacer.style.height = newOffsets[newOffsets.length - 1] + 'px';
+      for (let i = start; i < end; i++) {
+        const p = displayList[i];
+        const node = spacer.querySelector('.post[data-id="' + CSS.escape(p.id) + '"]');
+        if (node) node.style.top = newOffsets[i] + 'px';
+      }
+    }
+  }
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, c => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    }[c]));
+  }
+  function highlight(text, query) {
+    const safe = escapeHtml(text);
+    if (!query) return safe;
+    const terms = query.trim().split(/\s+/).filter(Boolean);
+    if (!terms.length) return safe;
+    const pattern = terms.map(t => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|');
+    try {
+      return safe.replace(new RegExp('(' + pattern + ')', 'gi'), '<mark>$1</mark>');
+    } catch (e) { return safe; }
+  }
+  function timeAgo(ts) {
+    const diff = Date.now() - ts;
+    const s = Math.floor(diff / 1000);
+    if (s < 60) return s + '초 전';
+    const m = Math.floor(s / 60);
+    if (m < 60) return m + '분 전';
+    const h = Math.floor(m / 60);
+    if (h < 24) return h + '시간 전';
+    const d = Math.floor(h / 24);
+    if (d < 30) return d + '일 전';
+    return new Date(ts).toLocaleDateString('ko-KR');
+  }
+
+  function renderPost(p) {
+    const el = document.createElement('article');
+    el.className = 'post';
+    el.dataset.id = p.id;
+    const initial = p.nickname ? p.nickname.charAt(0) : '?';
+    const isOwn = p.userId === currentUser;
+    const admin = isAdminLoggedIn();
+
+    let attachmentHtml = '';
+    if (p.attachment) {
+      if (p.attachment.type && p.attachment.type.startsWith('image/')) {
+        attachmentHtml = '<img class="post-image" src="' + p.attachment.data + '" alt="첨부 이미지" loading="lazy" />';
+      } else {
+        attachmentHtml = '<a class="post-file" href="' + p.attachment.data + '" download="' + escapeHtml(p.attachment.name) + '">📎 ' + escapeHtml(p.attachment.name) + '</a>';
+      }
+    }
+
+    let actions = '';
+    if (isOwn) {
+      actions += '<button class="delete-btn" data-action="delete">삭제</button>';
+    } else if (admin) {
+      actions += '<button class="delete-btn admin-delete" data-action="admin-delete">🔐 삭제</button>';
+    }
+    let relevanceHtml = '';
+    if (searchQuery && p._score !== undefined) {
+      relevanceHtml = '<span class="relevance-badge">일치도 ' + p._score + '</span>';
+    }
+
+    el.innerHTML =
+      '<div class="post-header">' +
+        '<div class="post-author">' +
+          '<div class="avatar">' + escapeHtml(initial) + '</div>' +
+          '<div class="post-meta">' +
+            '<span class="post-nickname">' + escapeHtml(p.nickname) + '</span>' +
+            '<span class="post-time">' + timeAgo(p.createdAt) + '</span>' +
+          '</div>' +
+        '</div>' +
+        '<div class="post-actions">' + relevanceHtml + actions + '</div>' +
+      '</div>' +
+      '<div class="post-body">' +
+        '<h3 class="post-title">' + highlight(p.title, searchQuery) + '</h3>' +
+        (p.content ? '<p class="post-content">' + highlight(p.content, searchQuery) + '</p>' : '') +
+      '</div>' +
+      attachmentHtml;
+
+    const delBtn = el.querySelector('[data-action="delete"]');
+    if (delBtn) delBtn.addEventListener('click', () => openDeleteModal(p.id, false));
+    const adminDelBtn = el.querySelector('[data-action="admin-delete"]');
+    if (adminDelBtn) adminDelBtn.addEventListener('click', () => openDeleteModal(p.id, true));
+    return el;
+  }
+
+  feed.addEventListener('scroll', function() {
+    requestAnimationFrame(renderVirtual);
+  });
+  window.addEventListener('resize', renderVirtual);
+
+  // ============================================================
+  // Search: relevance scoring
+  // ============================================================
+  function scorePost(post, terms) {
+    // Weights: title exact = 100, title contains = 60/term, title word match = 40/term
+    //          content contains = 20/term, content word match = 15/term
+    let score = 0;
+    const title = (post.title || '').toLowerCase();
+    const content = (post.content || '').toLowerCase();
+    const fullQuery = terms.join(' ').toLowerCase();
+
+    if (title === fullQuery) score += 100;
+    if (title.includes(fullQuery)) score += 40;
+    if (content.includes(fullQuery)) score += 15;
+
+    for (const t of terms) {
+      if (!t) continue;
+      const lc = t.toLowerCase();
+      if (title.includes(lc)) score += 30;
+      if (content.includes(lc)) score += 12;
+      // word-boundary match extra
+      const wordRe = new RegExp('\\b' + lc.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b', 'i');
+      if (wordRe.test(title)) score += 15;
+      if (wordRe.test(content)) score += 6;
+    }
+    return score;
+  }
+
+  function applySearch() {
+    const q = searchQuery.trim();
+    if (!q) {
+      displayList = posts.slice();
+      return;
+    }
+    const terms = q.split(/\s+/).filter(Boolean);
+    const scored = posts.map(p => ({ ...p, _score: scorePost(p, terms) })).filter(p => p._score > 0);
+    scored.sort((a, b) => b._score - a._score || b.createdAt - a.createdAt);
+    displayList = scored;
+  }
+
+  const searchBox = document.getElementById('search-box');
+  let searchDebounce = null;
+  searchBox.addEventListener('input', function() {
+    clearTimeout(searchDebounce);
+    searchDebounce = setTimeout(() => {
+      searchQuery = searchBox.value;
+      itemHeights.clear();
+      applySearch();
+      feed.scrollTop = 0;
+      renderVirtual();
+    }, 120);
+  });
+
+  // ============================================================
+  // Write modal
+  // ============================================================
+  const writeModal = document.getElementById('write-modal');
+  const titleInput = document.getElementById('title-input');
+  const contentInput = document.getElementById('content-input');
+  const dropZone = document.getElementById('drop-zone');
+  const fileInput = document.getElementById('file-input');
+  const previewArea = document.getElementById('attachment-preview-area');
+  let pendingAttachment = null;
+
+  document.getElementById('fab').addEventListener('click', openWriteModal);
+  document.getElementById('close-write').addEventListener('click', closeWriteModal);
+
+  function openWriteModal() {
+    titleInput.value = '';
+    contentInput.value = '';
+    pendingAttachment = null;
+    previewArea.innerHTML = '';
+    writeModal.classList.add('active');
+    setTimeout(() => titleInput.focus(), 50);
+  }
+  function closeWriteModal() { writeModal.classList.remove('active'); }
+
+  dropZone.addEventListener('click', () => fileInput.click());
+  fileInput.addEventListener('change', function(e) {
+    if (e.target.files[0]) handleFile(e.target.files[0]);
+  });
+  dropZone.addEventListener('dragover', function(e) {
+    e.preventDefault();
+    dropZone.classList.add('dragover');
+  });
+  dropZone.addEventListener('dragleave', function() { dropZone.classList.remove('dragover'); });
+  dropZone.addEventListener('drop', function(e) {
+    e.preventDefault();
+    dropZone.classList.remove('dragover');
+    if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
+  });
+  function handleFile(file) {
+    const MAX = 5 * 1024 * 1024;
+    if (file.size > MAX) { alert('파일 크기가 5MB를 초과합니다.'); return; }
+    const reader = new FileReader();
+    reader.onload = function(ev) {
+      pendingAttachment = { name: file.name, type: file.type, size: file.size, data: ev.target.result };
+      showAttachmentPreview();
+    };
+    reader.readAsDataURL(file);
+  }
+  function showAttachmentPreview() {
+    if (!pendingAttachment) { previewArea.innerHTML = ''; return; }
+    const isImg = pendingAttachment.type && pendingAttachment.type.startsWith('image/');
+    previewArea.innerHTML =
+      '<div class="attachment-preview">' +
+        (isImg ? '<img src="' + pendingAttachment.data + '" alt="preview" />' : '<span style="font-size:24px;">📎</span>') +
+        '<span>' + escapeHtml(pendingAttachment.name) + '</span>' +
+        '<button class="attachment-remove" id="attachment-remove">제거</button>' +
+      '</div>';
+    document.getElementById('attachment-remove').addEventListener('click', function() {
+      pendingAttachment = null;
+      fileInput.value = '';
+      showAttachmentPreview();
+    });
+  }
+
+  // ============================================================
+  // Publish confirm
+  // ============================================================
+  const confirmModal = document.getElementById('confirm-modal');
+  document.getElementById('publish-btn').addEventListener('click', function() {
+    const title = titleInput.value.trim();
+    const content = contentInput.value.trim();
+    if (!title) { alert('제목을 입력해주세요.'); titleInput.focus(); return; }
+    if (!content && !pendingAttachment) { alert('내용 또는 첨부파일 중 하나는 있어야 합니다.'); contentInput.focus(); return; }
+    confirmModal.classList.add('active');
+  });
+  document.getElementById('confirm-cancel').addEventListener('click', () => confirmModal.classList.remove('active'));
+  document.getElementById('confirm-ok').addEventListener('click', function() {
+    publishPost();
+    confirmModal.classList.remove('active');
+    closeWriteModal();
+  });
+
+  function publishPost() {
+    const post = {
+      id: 'p_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8),
+      userId: currentUser,
+      nickname: currentNickname,
+      title: titleInput.value.trim(),
+      content: contentInput.value.trim(),
+      attachment: pendingAttachment,
+      createdAt: Date.now()
+    };
+    posts.unshift(post);
+    try { savePosts(posts); }
+    catch (e) {
+      alert('저장 공간이 부족합니다. 첨부파일 크기를 줄이거나 이전 게시글을 삭제해주세요.');
+      posts.shift();
+      return;
+    }
+    itemHeights.clear();
+    applySearch();
+    feed.scrollTop = 0;
+    renderVirtual();
+  }
+
+  // ============================================================
+  // Delete
+  // ============================================================
+  const deleteModal = document.getElementById('delete-modal');
+  const deleteMessage = document.getElementById('delete-message');
+  let pendingDelete = null;
+  function openDeleteModal(id, asAdmin) {
+    pendingDelete = { id, asAdmin };
+    deleteMessage.textContent = asAdmin
+      ? '⚠️ 관리자 권한으로 이 게시글을 삭제합니다. 계속하시겠습니까?'
+      : '이 게시글을 삭제하시겠습니까?';
+    deleteModal.classList.add('active');
+  }
+  document.getElementById('delete-cancel').addEventListener('click', function() {
+    pendingDelete = null;
+    deleteModal.classList.remove('active');
+  });
+  document.getElementById('delete-ok').addEventListener('click', function() {
+    if (!pendingDelete) { deleteModal.classList.remove('active'); return; }
+    const idx = posts.findIndex(p => p.id === pendingDelete.id);
+    if (idx !== -1) {
+      const target = posts[idx];
+      const allowed = (target.userId === currentUser) || (pendingDelete.asAdmin && isAdminLoggedIn());
+      if (allowed) {
+        posts.splice(idx, 1);
+        savePosts(posts);
+        itemHeights.clear();
+        applySearch();
+        renderVirtual();
+      } else {
+        alert('삭제 권한이 없습니다.');
+      }
+    }
+    pendingDelete = null;
+    deleteModal.classList.remove('active');
+  });
+
+  // ============================================================
+  // Admin modal
+  // ============================================================
+  const adminModal = document.getElementById('admin-modal');
+  const adminContent = document.getElementById('admin-content');
+  const adminTitleEl = document.getElementById('admin-title');
+  document.getElementById('close-admin').addEventListener('click', () => adminModal.classList.remove('active'));
+
+  document.getElementById('admin-btn').addEventListener('click', function() {
+    if (isAdminLoggedIn()) {
+      renderAdminPanel();
+    } else if (!localStorage.getItem(STORAGE_ADMIN_HASH)) {
+      renderAdminSetup();
+    } else {
+      renderAdminLogin();
+    }
+    adminModal.classList.add('active');
+  });
+
+  function renderAdminSetup() {
+    adminTitleEl.textContent = '관리자 비밀번호 설정';
+    adminContent.innerHTML =
+      '<p class="hint">최초 1회 관리자 비밀번호를 설정합니다. 이후 이 비밀번호로만 관리자 기능을 사용할 수 있습니다.</p>' +
+      '<input type="password" id="admin-pw1" placeholder="새 비밀번호 (최소 6자)" autocomplete="new-password" />' +
+      '<input type="password" id="admin-pw2" placeholder="비밀번호 확인" autocomplete="new-password" />' +
+      '<button class="submit-btn" id="admin-setup-btn" style="width:100%;padding:12px;">비밀번호 설정</button>';
+
+    document.getElementById('admin-setup-btn').addEventListener('click', async function() {
+      const pw1 = document.getElementById('admin-pw1').value;
+      const pw2 = document.getElementById('admin-pw2').value;
+      if (pw1.length < 6) { alert('비밀번호는 최소 6자 이상이어야 합니다.'); return; }
+      if (pw1 !== pw2) { alert('두 비밀번호가 일치하지 않습니다.'); return; }
+      const salt = randomSalt();
+      const hash = await hashPassword(pw1, salt);
+      localStorage.setItem(STORAGE_ADMIN_SALT, salt);
+      localStorage.setItem(STORAGE_ADMIN_HASH, hash);
+      setAttemptState({ count: 0, lockedUntil: 0 });
+      setAdminSession();
+      updateAdminBtn();
+      renderVirtual();
+      alert('관리자 비밀번호가 설정되었습니다. 관리자 세션이 시작됩니다.');
+      adminModal.classList.remove('active');
+    });
+  }
+
+  function renderAdminLogin() {
+    adminTitleEl.textContent = '관리자 로그인';
+    const st = getAttemptState();
+    const locked = st.lockedUntil > Date.now();
+    const remainMin = Math.ceil((st.lockedUntil - Date.now()) / 60000);
+
+    adminContent.innerHTML =
+      '<p class="hint">관리자 비밀번호를 입력하세요. ' + MAX_ATTEMPTS + '회 실패 시 ' + (LOCKOUT_MS / 60000) + '분간 잠금됩니다.</p>' +
+      (locked
+        ? '<p class="lockout-msg">🔒 잠금 상태 — 약 ' + remainMin + '분 후 다시 시도하세요.</p>'
+        : (st.count > 0 ? '<p class="lockout-msg">남은 시도: ' + (MAX_ATTEMPTS - st.count) + '회</p>' : '')
+      ) +
+      '<input type="password" id="admin-pw" placeholder="비밀번호" autocomplete="current-password" ' + (locked ? 'disabled' : '') + ' />' +
+      '<button class="submit-btn" id="admin-login-btn" style="width:100%;padding:12px;" ' + (locked ? 'disabled' : '') + '>로그인</button>' +
+      '<button class="icon-btn" id="admin-reset-btn" style="width:100%;padding:10px;margin-top:8px;justify-content:center;">비밀번호 재설정 (경고)</button>';
+
+    if (!locked) {
+      const doLogin = async function() {
+        const pw = document.getElementById('admin-pw').value;
+        if (!pw) return;
+        const salt = localStorage.getItem(STORAGE_ADMIN_SALT);
+        const stored = localStorage.getItem(STORAGE_ADMIN_HASH);
+        const hash = await hashPassword(pw, salt);
+        if (hash === stored) {
+          setAttemptState({ count: 0, lockedUntil: 0 });
+          setAdminSession();
+          updateAdminBtn();
+          renderVirtual();
+          alert('관리자 로그인 완료. 30분간 유지됩니다.');
+          adminModal.classList.remove('active');
+        } else {
+          const cur = getAttemptState();
+          const nextCount = cur.count + 1;
+          if (nextCount >= MAX_ATTEMPTS) {
+            setAttemptState({ count: nextCount, lockedUntil: Date.now() + LOCKOUT_MS });
+            alert('시도 횟수 초과. ' + (LOCKOUT_MS / 60000) + '분간 잠금됩니다.');
+          } else {
+            setAttemptState({ count: nextCount, lockedUntil: 0 });
+            alert('비밀번호가 일치하지 않습니다. (' + (MAX_ATTEMPTS - nextCount) + '회 남음)');
+          }
+          renderAdminLogin();
+        }
+      };
+      document.getElementById('admin-login-btn').addEventListener('click', doLogin);
+      document.getElementById('admin-pw').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') doLogin();
+      });
+    }
+
+    document.getElementById('admin-reset-btn').addEventListener('click', function() {
+      if (confirm('비밀번호를 재설정하면 관리자 권한이 초기화됩니다. 브라우저 로컬에서만 유효합니다.\n계속하시겠습니까?')) {
+        localStorage.removeItem(STORAGE_ADMIN_HASH);
+        localStorage.removeItem(STORAGE_ADMIN_SALT);
+        setAttemptState({ count: 0, lockedUntil: 0 });
+        clearAdminSession();
+        updateAdminBtn();
+        renderAdminSetup();
+      }
+    });
+  }
+
+  function renderAdminPanel() {
+    adminTitleEl.textContent = '관리자 패널';
+    const tok = JSON.parse(sessionStorage.getItem(SESSION_ADMIN_TOKEN) || 'null');
+    const remain = tok ? Math.max(0, Math.floor((tok.expiresAt - Date.now()) / 60000)) : 0;
+    adminContent.innerHTML =
+      '<div class="admin-status">' +
+        '<div><span class="status-dot"></span><strong>관리자 세션 활성</strong> · 남은 시간 ' + remain + '분</div>' +
+      '</div>' +
+      '<p class="hint">관리자로 로그인 중입니다. 모든 게시글에서 🔐 삭제 버튼이 표시됩니다.</p>' +
+      '<button class="icon-btn" id="admin-logout-btn" style="width:100%;padding:12px;justify-content:center;">로그아웃</button>' +
+      '<button class="icon-btn" id="admin-change-pw-btn" style="width:100%;padding:12px;justify-content:center;margin-top:8px;">비밀번호 변경</button>';
+
+    document.getElementById('admin-logout-btn').addEventListener('click', function() {
+      clearAdminSession();
+      updateAdminBtn();
+      renderVirtual();
+      adminModal.classList.remove('active');
+    });
+    document.getElementById('admin-change-pw-btn').addEventListener('click', function() {
+      adminTitleEl.textContent = '비밀번호 변경';
+      adminContent.innerHTML =
+        '<input type="password" id="cur-pw" placeholder="현재 비밀번호" />' +
+        '<input type="password" id="new-pw1" placeholder="새 비밀번호 (최소 6자)" />' +
+        '<input type="password" id="new-pw2" placeholder="새 비밀번호 확인" />' +
+        '<button class="submit-btn" id="change-pw-btn" style="width:100%;padding:12px;">변경</button>';
+      document.getElementById('change-pw-btn').addEventListener('click', async function() {
+        const cur = document.getElementById('cur-pw').value;
+        const n1 = document.getElementById('new-pw1').value;
+        const n2 = document.getElementById('new-pw2').value;
+        if (n1.length < 6) { alert('새 비밀번호는 최소 6자 이상이어야 합니다.'); return; }
+        if (n1 !== n2) { alert('새 비밀번호가 일치하지 않습니다.'); return; }
+        const salt = localStorage.getItem(STORAGE_ADMIN_SALT);
+        const stored = localStorage.getItem(STORAGE_ADMIN_HASH);
+        const curHash = await hashPassword(cur, salt);
+        if (curHash !== stored) { alert('현재 비밀번호가 일치하지 않습니다.'); return; }
+        const newSalt = randomSalt();
+        const newHash = await hashPassword(n1, newSalt);
+        localStorage.setItem(STORAGE_ADMIN_SALT, newSalt);
+        localStorage.setItem(STORAGE_ADMIN_HASH, newHash);
+        alert('비밀번호가 변경되었습니다.');
+        renderAdminPanel();
+      });
+    });
+  }
+
+  // Close modals on overlay click and Esc
+  [writeModal, confirmModal, deleteModal, adminModal].forEach(m => {
+    m.addEventListener('click', function(e) { if (e.target === m) m.classList.remove('active'); });
+  });
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      if (adminModal.classList.contains('active')) adminModal.classList.remove('active');
+      else if (deleteModal.classList.contains('active')) deleteModal.classList.remove('active');
+      else if (confirmModal.classList.contains('active')) confirmModal.classList.remove('active');
+      else if (writeModal.classList.contains('active')) writeModal.classList.remove('active');
+    }
+  });
+
+  // Auto-expire admin session periodically
+  setInterval(function() {
+    if (!isAdminLoggedIn()) {
+      const btn = document.getElementById('admin-btn');
+      if (btn.classList.contains('admin-active')) {
+        updateAdminBtn();
+        renderVirtual();
+      }
+    }
+  }, 15000);
+
+  // Refresh timestamps
+  setInterval(() => {
+    Array.from(spacer.querySelectorAll('.post')).forEach(node => {
+      const p = posts.find(x => x.id === node.dataset.id);
+      if (p) {
+        const t = node.querySelector('.post-time');
+        if (t) t.textContent = timeAgo(p.createdAt);
+      }
+    });
+  }, 60000);
+
+  // Initial paint
+  applySearch();
+  updateAdminBtn();
+  renderVirtual();
+})();
+</script>
+</body>
+</html>

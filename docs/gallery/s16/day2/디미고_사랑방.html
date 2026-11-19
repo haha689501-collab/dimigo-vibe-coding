@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>디미고 익명 사랑방</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Nanum+Brush+Script&family=Gowun+Dodum&display=swap" rel="stylesheet">
+<style>
+  /* ===== 단청 팔레트 ===== */
+  :root {
+    --hanji: #f4ecdc;
+    --hanji-dark: #e9ddc5;
+    --paper: #fbf6ea;
+    --ink: #2b241c;
+    --ink-soft: #6b5f4e;
+    --line: #d8ccb2;
+    --cheong: #2f5d8a;   /* 청 */
+    --jeok: #b5413b;     /* 적 */
+    --hwang: #d9a441;    /* 황 */
+    --nok: #4d7c5a;      /* 녹 */
+    --seal: #c0392b;
+    --radius: 6px;
+    --serif: "Gowun Batang", "Nanum Myeongjo", "Apple SD Gothic Neo", serif;
+    --sans: "Gowun Dodum", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+    --brush: "Nanum Brush Script", "Gowun Batang", cursive;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    font-family: var(--sans);
+    color: var(--ink);
+    line-height: 1.6;
+    background-color: var(--hanji);
+    background-image:
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='300' height='300'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.35 0 0 0 0 0.28 0 0 0 0 0.18 0 0 0 .07 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>"),
+      radial-gradient(circle at 20% 10%, #fff7e6 0, transparent 40%),
+      radial-gradient(circle at 80% 90%, #eadcc0 0, transparent 45%);
+  }
+
+  /* ===== 단청 띠 ===== */
+  .dancheong {
+    height: 10px;
+    background: repeating-linear-gradient(90deg,
+      var(--cheong) 0 24px, var(--hwang) 24px 32px,
+      var(--jeok) 32px 56px, var(--hwang) 56px 64px,
+      var(--nok) 64px 88px, var(--hwang) 88px 96px);
+    box-shadow: 0 2px 0 rgba(0,0,0,.08);
+  }
+  header { padding: 22px 0 8px; text-align: center; }
+  .wrap { max-width: 800px; margin: 0 auto; padding: 0 16px; }
+  .title {
+    font-family: var(--brush);
+    font-size: 54px; line-height: 1; margin: 0; cursor: pointer;
+    letter-spacing: 2px; color: var(--ink);
+    text-shadow: 2px 2px 0 rgba(181,65,59,.15);
+    display: inline-block; position: relative;
+    animation: inkIn .9s ease both;
+  }
+  .title::after {
+    content: "익명"; position: absolute; right: -44px; top: 6px;
+    font-family: var(--serif); font-size: 12px; font-weight: 700; letter-spacing: 1px;
+    color: var(--seal); border: 2px solid var(--seal); border-radius: 3px;
+    padding: 3px 5px; transform: rotate(8deg); opacity: .85;
+    writing-mode: vertical-rl;
+  }
+  .subtitle { margin: 6px 0 0; color: var(--ink-soft); font-size: 14px; font-family: var(--serif); }
+  @keyframes inkIn {
+    from { opacity: 0; filter: blur(6px); transform: translateY(8px); }
+    to   { opacity: 1; filter: blur(0); transform: none; }
+  }
+
+  main { padding: 16px 0 90px; }
+
+  /* ===== 교실 현판(방 선택) ===== */
+  .rooms {
+    display: flex; gap: 8px; overflow-x: auto; padding: 8px 2px 14px;
+    scrollbar-width: none;
+  }
+  .rooms::-webkit-scrollbar { display: none; }
+  .room {
+    flex: 0 0 auto; border: 2px solid var(--ink); border-radius: 4px;
+    background: linear-gradient(180deg, #8b5a2b, #6f4522);
+    color: #f7e8c7; font-family: var(--serif); font-weight: 700; font-size: 14px;
+    padding: 8px 14px; cursor: pointer; white-space: nowrap;
+    box-shadow: inset 0 0 0 1px rgba(255,220,160,.35), 0 3px 0 #3d2510;
+    transition: transform .15s, box-shadow .15s, background .2s;
+    position: relative;
+  }
+  .room:hover { transform: translateY(-2px); }
+  .room.on {
+    background: linear-gradient(180deg, var(--cheong), #22496f);
+    transform: translateY(1px); box-shadow: inset 0 0 0 1px rgba(255,255,255,.25), 0 1px 0 #142c44;
+  }
+  .room .em { margin-right: 4px; }
+
+  /* ===== 글쓰기 한지 ===== */
+  .sheet {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: 0 1px 0 #fff inset, 0 6px 18px rgba(60,40,10,.08);
+    position: relative;
+  }
+  .sheet::before {
+    content: ""; position: absolute; inset: 6px; border: 1px solid rgba(43,36,28,.12);
+    border-radius: 3px; pointer-events: none;
+  }
+  .write-box { padding: 22px 22px 18px; margin-bottom: 22px; }
+  .write-box h2 {
+    margin: 0 0 14px; font-family: var(--serif); font-size: 19px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .write-box h2 small { font-weight: 400; font-size: 13px; color: var(--ink-soft); }
+  .pick {
+    display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px;
+  }
+  .pick label {
+    border: 1.5px dashed var(--line); border-radius: 999px; padding: 5px 12px; font-size: 13px;
+    cursor: pointer; transition: all .15s; background: #fff9;
+    user-select: none;
+  }
+  .pick input { display: none; }
+  .pick input:checked + label {
+    border-style: solid; border-color: var(--jeok); background: var(--jeok); color: #fff;
+    transform: scale(1.04);
+  }
+  .write-box input[type=text], .write-box textarea, .search input, .comment-form input {
+    width: 100%; padding: 12px 14px; font-size: 15px; font-family: var(--sans);
+    border: 1px solid var(--line); border-radius: var(--radius); background: #fffdf7;
+    color: var(--ink); transition: border-color .15s, box-shadow .15s;
+  }
+  .write-box input[type=text], .write-box textarea { margin-bottom: 8px; }
+  .write-box textarea { min-height: 110px; resize: vertical; }
+  input:focus, textarea:focus {
+    outline: none; border-color: var(--cheong); box-shadow: 0 0 0 3px rgba(47,93,138,.15);
+  }
+  .foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+  .error { color: var(--jeok); font-size: 13px; min-height: 18px; }
+  .error.shake { animation: shake .35s; }
+  @keyframes shake {
+    20%{transform:translateX(-4px)} 40%{transform:translateX(4px)}
+    60%{transform:translateX(-3px)} 80%{transform:translateX(3px)}
+  }
+  .nick-preview {
+    font-size: 13px; color: var(--ink-soft);
+  }
+  .nick-preview b { color: var(--jeok); }
+
+  .btn {
+    border: none; border-radius: var(--radius); padding: 10px 18px;
+    font-size: 14px; font-weight: 700; cursor: pointer; font-family: var(--sans);
+    transition: transform .12s, box-shadow .15s, background .15s;
+  }
+  .btn:active { transform: scale(.95); }
+  .btn-ink { background: var(--ink); color: #fbf6ea; box-shadow: 0 3px 0 #000; }
+  .btn-ink:hover { background: #3d3327; transform: translateY(-1px); }
+  .btn-ghost { background: transparent; color: var(--ink-soft); }
+  .btn-ghost:hover { background: rgba(0,0,0,.05); }
+
+  .search { margin-bottom: 14px; }
+
+  /* ===== 게시글 카드 ===== */
+  .card {
+    padding: 18px 20px; margin-bottom: 14px; cursor: pointer;
+    transition: transform .2s, box-shadow .2s;
+    animation: riseIn .45s ease both;
+  }
+  .card:nth-child(1){animation-delay:.02s}.card:nth-child(2){animation-delay:.07s}
+  .card:nth-child(3){animation-delay:.12s}.card:nth-child(4){animation-delay:.17s}
+  .card:nth-child(5){animation-delay:.22s}.card:nth-child(n+6){animation-delay:.27s}
+  @keyframes riseIn { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+  .card:hover { transform: translateY(-3px) rotate(-.3deg); box-shadow: 0 12px 26px rgba(60,40,10,.14); }
+  .card h3 { margin: 0 0 6px; font-family: var(--serif); font-size: 18px; }
+  .card p {
+    margin: 0 0 12px; color: var(--ink-soft); font-size: 14px;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+  }
+  .meta { display: flex; gap: 10px; font-size: 13px; color: var(--ink-soft); align-items: center; flex-wrap: wrap; }
+  .badge {
+    font-size: 12px; padding: 2px 9px; border-radius: 999px;
+    background: var(--hanji-dark); color: var(--ink);
+  }
+  .badge.room-badge { background: var(--cheong); color: #fff; }
+  .seal {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-family: var(--serif); font-weight: 700; font-size: 13px;
+    color: var(--seal); border: 1.5px solid var(--seal); border-radius: 3px;
+    padding: 1px 7px; background: rgba(192,57,43,.06);
+    transform: rotate(-2deg);
+  }
+  .seal.stamp { animation: stamp .5s cubic-bezier(.2,1.4,.4,1) both; }
+  @keyframes stamp {
+    0% { transform: scale(2.2) rotate(-10deg); opacity: 0; }
+    60% { transform: scale(.92) rotate(-2deg); opacity: 1; }
+    100% { transform: scale(1) rotate(-2deg); }
+  }
+  .reacts-mini { display: flex; gap: 6px; margin-left: auto; }
+  .reacts-mini span { font-size: 12px; background: #fff8; padding: 1px 7px; border-radius: 999px; border: 1px solid var(--line); }
+  .empty { text-align: center; color: var(--ink-soft); padding: 50px 0; font-family: var(--serif); }
+  .empty .big { font-size: 40px; margin-bottom: 6px; }
+
+  /* ===== 화면 전환 ===== */
+  .view { animation: viewIn .35s ease both; }
+  @keyframes viewIn { from { opacity: 0; transform: translateX(18px); } to { opacity: 1; transform: none; } }
+  .view.back-anim { animation: viewBack .35s ease both; }
+  @keyframes viewBack { from { opacity: 0; transform: translateX(-18px); } to { opacity: 1; transform: none; } }
+
+  /* ===== 상세 ===== */
+  .detail { padding: 26px 26px 20px; }
+  .detail h2 { margin: 0 0 10px; font-family: var(--serif); font-size: 24px; }
+  .detail .body { white-space: pre-wrap; margin: 18px 0 22px; font-size: 16px; line-height: 1.8; }
+  .reactions {
+    display: flex; gap: 8px; flex-wrap: wrap; border-top: 1px dashed var(--line); padding-top: 16px;
+    align-items: center;
+  }
+  .react {
+    border: 1.5px solid var(--line); background: #fff9; border-radius: 999px;
+    padding: 6px 12px; font-size: 14px; cursor: pointer; font-family: var(--sans);
+    display: inline-flex; align-items: center; gap: 6px;
+    transition: transform .12s, background .15s, border-color .15s;
+  }
+  .react:hover { transform: translateY(-2px); }
+  .react.on { background: var(--hwang); border-color: #b8852d; font-weight: 700; }
+  .react .em { font-size: 17px; display: inline-block; }
+  .react.pop .em { animation: pop .4s cubic-bezier(.2,1.6,.4,1); }
+  @keyframes pop { 50% { transform: scale(1.7) rotate(-12deg); } }
+  .right-tools { margin-left: auto; display: flex; gap: 6px; }
+  .btn-report { background: transparent; color: var(--ink-soft); border: 1.5px solid var(--line); }
+  .btn-report.on { color: var(--jeok); border-color: var(--jeok); background: rgba(181,65,59,.06); }
+  .btn-delete { background: transparent; color: var(--jeok); border: 1.5px solid rgba(181,65,59,.4); }
+  .btn-delete:hover { background: rgba(181,65,59,.08); }
+
+  .comments { margin-top: 22px; }
+  .comments h4 { margin: 0 0 12px; font-family: var(--serif); font-size: 16px; }
+  .comment {
+    padding: 12px 16px; margin-bottom: 8px; animation: riseIn .35s ease both;
+    border-left: 3px solid var(--nok);
+  }
+  .comment .meta { margin-bottom: 4px; }
+  .comment-form { margin-top: 12px; }
+  .comment-form .row { display: flex; gap: 8px; }
+  .comment-form input { flex: 1; }
+
+  /* ===== 토스트 (족자) ===== */
+  .toast {
+    position: fixed; left: 50%; bottom: 28px; transform: translateX(-50%) translateY(20px);
+    background: var(--ink); color: #fbf6ea; padding: 10px 20px; border-radius: 4px;
+    font-size: 14px; font-family: var(--serif); opacity: 0; transition: all .25s;
+    pointer-events: none; z-index: 30; border: 1px solid var(--hwang);
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* 꽃잎 */
+  .petal {
+    position: fixed; top: -20px; font-size: 18px; pointer-events: none; z-index: 40;
+    animation: fall linear forwards;
+  }
+  @keyframes fall {
+    to { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+  }
+
+  @media (max-width: 520px) {
+    .title { font-size: 42px; }
+    .title::after { right: -34px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="dancheong"></div>
+<header>
+  <h1 class="title" id="home">디미고 사랑방</h1>
+  <p class="subtitle">이름은 감추고, 마음은 나누는 곳</p>
+</header>
+
+<main class="wrap">
+
+  <!-- ===== 목록 화면 ===== -->
+  <section id="listView" class="view">
+
+    <!-- 교실 현판 -->
+    <div class="rooms" id="roomTabs"></div>
+
+    <!-- 글쓰기 -->
+    <div class="sheet write-box">
+      <h2>붓을 들다 <small>어느 방에 걸어둘까요?</small></h2>
+      <form id="writeForm">
+        <div class="pick" id="roomPick"></div>
+        <input type="text" id="titleInput" placeholder="제목" maxlength="80">
+        <textarea id="contentInput" placeholder="고민, 질문, 정보, 뻘글… 이름은 절대 안 나와요."></textarea>
+        <div class="foot">
+          <div>
+            <div class="error" id="writeError"></div>
+            <div class="nick-preview">이번 닉네임: <b id="nickPreview"></b> <button type="button" class="btn btn-ghost" id="rerollNick" style="padding:2px 8px;font-size:12px">🎲 다시</button></div>
+          </div>
+          <button class="btn btn-ink" type="submit">붙이기</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="search">
+      <input id="searchInput" type="search" placeholder="🔍 제목이나 내용으로 찾기">
+    </div>
+    <div id="list"></div>
+  </section>
+
+  <!-- ===== 상세 화면 ===== -->
+  <section id="detailView" class="view" style="display:none">
+    <button class="btn btn-ghost" id="back">← 사랑방으로</button>
+    <div style="height:10px"></div>
+    <article class="sheet detail" id="detail"></article>
+    <div class="comments">
+      <h4 id="commentTitle">댓글</h4>
+      <div id="commentList"></div>
+      <form class="comment-form" id="commentForm">
+        <div class="row">
+          <input id="commentInput" placeholder="익명으로 한마디" maxlength="300">
+          <button class="btn btn-ink" type="submit">댓글 쓰기 💬</button>
+        </div>
+        <div class="error" id="commentError"></div>
+      </form>
+    </div>
+  </section>
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function () {
+  const STORAGE_KEY = 'dimigo-sarangbang-posts';
+  const DEVICE_KEY  = 'dimigo-sarangbang-device';
+  const MY_REACT_KEY = 'dimigo-sarangbang-myreacts';
+
+  // ===== 교실 목록 (디미고 맞춤) =====
+  const ROOMS = [
+    { id: 'all',     em: '🏫', name: '전체' },
+    { id: 'hack',    em: '🛡️', name: '해킹방어과' },
+    { id: 'dcon',    em: '🎨', name: '디지털콘텐츠과' },
+    { id: 'ebiz',    em: '📈', name: '이비즈니스과' },
+    { id: 'webp',    em: '💻', name: '웹프로그래밍과' },
+    { id: 'dorm',    em: '🛏️', name: '기숙사 라운지' },
+    { id: 'meal',    em: '🍱', name: '급식 평가단' },
+    { id: 'code',    em: '🐛', name: '코딩 질문방' },
+    { id: 'contest', em: '🏆', name: '대회·공모전 스터디' },
+    { id: 'exam',    em: '📚', name: '내신 스터디' },
+    { id: 'yaja',    em: '🌙', name: '야자 생존기' },
+    { id: 'club',    em: '🎪', name: '동아리 장터' },
+    { id: 'love',    em: '💌', name: '고민상담소' },
+    { id: 'meme',    em: '🤡', name: '뻘글·밈 창고' },
+  ];
+  const roomById = id => ROOMS.find(r => r.id === id) || ROOMS[0];
+
+  // ===== 이모지 반응 =====
+  const REACTIONS = [
+    { em: '❤️', label: '좋아요' },
+    { em: '😂', label: 'ㅋㅋㅋ' },
+    { em: '🔥', label: '개쩐다' },
+    { em: '😭', label: '눈물' },
+    { em: '👀', label: '봤다' },
+    { em: '💯', label: '인정' },
+    { em: '🫠', label: '녹는중' },
+  ];
+
+  // ===== 랜덤 닉네임 (GenZ 스타일) =====
+  const ADJ = [
+    '갓생사는', '야자째는', '존버하는', '새벽감성', '폼미친', '급식먹고온', '과제밀린',
+    '기숙사탈출한', '커피중독', '밈장인', '킹받은', '럭키비키', '수행평가무서운',
+    '디코켜둔', '깃허브잔디없는', '에러랑싸우는', '점심시간기다리는', '3반의', '얼죽아',
+    '자율학습중', 'T발C인', '진심인', '롤하다걸린', '잠못자는', '샤워하러가는',
+  ];
+  const NOUN = [
+    '디미고인', '코딩요정', '라면수호자', '해커', '감자', '고양이', '붕어빵', '츄러스',
+    '자판기', '야자탈출러', '깃허브', '노트북', '치킨', '민초단', '떡볶이', '컴퓨터실귀신',
+    '잼민이', '학생회', '기숙사장', '급식위원', '커피', '호랑이', '두더지', '펭귄', '오리',
+  ];
+  const TAILS = ['🐥', '🔥', '💀', '✨', '🫠', '🐸', '🍙', '🧃', '🎧', '🌙', '🐟', '🍞', '🫧', '💫', '🎮', '🥲', '👾', '🧋'];
+  const pick = arr => arr[Math.floor(Math.random() * arr.length)];
+  function makeNick() {
+    const r = Math.random();
+    if (r < 0.12) return `익명의 ${pick(NOUN)} ${pick(TAILS)}`;
+    if (r < 0.22) return `${pick(NOUN)}${Math.floor(Math.random() * 90 + 10)} ${pick(TAILS)}`;
+    return `${pick(ADJ)} ${pick(NOUN)} ${pick(TAILS)}`;
+  }
+  let nextNick = makeNick();
+
+  // ===== 저장 =====
+  function getDeviceId() {
+    let id = localStorage.getItem(DEVICE_KEY);
+    if (!id) { id = Date.now().toString(36) + Math.random().toString(36).slice(2, 10); localStorage.setItem(DEVICE_KEY, id); }
+    return id;
+  }
+  const deviceId = getDeviceId();
+  function loadJSON(k, d) { try { return JSON.parse(localStorage.getItem(k)) ?? d; } catch { return d; } }
+  let posts = loadJSON(STORAGE_KEY, []);
+  let myReacts = loadJSON(MY_REACT_KEY, {});   // { postId: [em, em] }
+  const savePosts = () => localStorage.setItem(STORAGE_KEY, JSON.stringify(posts));
+  const saveMyReacts = () => localStorage.setItem(MY_REACT_KEY, JSON.stringify(myReacts));
+
+  let currentRoom = 'all';
+  let currentId = null;
+  let justPostedId = null;
+
+  // ===== 유틸 =====
+  const $ = id => document.getElementById(id);
+  const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+  const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+  function fmtTime(ts) {
+    const d = new Date(ts), p = n => String(n).padStart(2, '0');
+    return `${d.getFullYear()}.${p(d.getMonth()+1)}.${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
+  }
+  let toastTimer;
+  function toast(msg) {
+    const t = $('toast'); t.textContent = msg; t.classList.add('show');
+    clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 1800);
+  }
+  function showError(id, msg) {
+    const el = $(id); el.textContent = msg; el.classList.remove('shake');
+    void el.offsetWidth; el.classList.add('shake');
+  }
+  function petals(n = 14) {
+    const kinds = ['🌸', '🍂', '🌸', '🍃', '🌸'];
+    for (let i = 0; i < n; i++) {
+      const p = document.createElement('span');
+      p.className = 'petal'; p.textContent = pick(kinds);
+      p.style.left = Math.random() * 100 + 'vw';
+      p.style.animationDuration = (2.2 + Math.random() * 2) + 's';
+      p.style.animationDelay = (Math.random() * .6) + 's';
+      p.style.fontSize = (12 + Math.random() * 14) + 'px';
+      document.body.appendChild(p);
+      setTimeout(() => p.remove(), 5000);
+    }
+  }
+
+  // ===== 교실 탭 / 선택 =====
+  function renderRooms() {
+    $('roomTabs').innerHTML = ROOMS.map(r => `
+      <button type="button" class="room ${r.id === currentRoom ? 'on' : ''}" data-room="${r.id}">
+        <span class="em">${r.em}</span>${r.name}
+      </button>`).join('');
+    $('roomPick').innerHTML = ROOMS.filter(r => r.id !== 'all').map(r => `
+      <input type="radio" name="room" id="pick-${r.id}" value="${r.id}" ${r.id === currentRoom ? 'checked' : ''}>
+      <label for="pick-${r.id}">${r.em} ${r.name}</label>`).join('');
+  }
+  $('roomTabs').addEventListener('click', e => {
+    const b = e.target.closest('.room'); if (!b) return;
+    currentRoom = b.dataset.room;
+    renderRooms(); renderList();
+  });
+
+  // ===== 목록 =====
+  function reactSummary(p) {
+    return Object.entries(p.reactions || {}).filter(([, c]) => c > 0)
+      .sort((a, b) => b[1] - a[1]).slice(0, 3)
+      .map(([em, c]) => `<span>${em} ${c}</span>`).join('');
+  }
+  function renderList() {
+    const q = $('searchInput').value.trim().toLowerCase();
+    const filtered = posts
+      .filter(p => currentRoom === 'all' || p.room === currentRoom)
+      .filter(p => !q || p.title.toLowerCase().includes(q) || p.content.toLowerCase().includes(q))
+      .sort((a, b) => b.createdAt - a.createdAt);
+
+    if (!filtered.length) {
+      $('list').innerHTML = `<div class="empty"><div class="big">📜</div>${q ? '찾는 글이 없어요.' : '아직 아무도 붓을 들지 않았어요.<br>첫 글을 붙여보세요!'}</div>`;
+      return;
+    }
+    $('list').innerHTML = filtered.map(p => {
+      const r = roomById(p.room);
+      return `
+      <div class="sheet card" data-id="${p.id}">
+        <div class="meta" style="margin-bottom:8px">
+          <span class="badge room-badge">${r.em} ${r.name}</span>
+          <span class="seal ${p.id === justPostedId ? 'stamp' : ''}">${esc(p.nick)}</span>
+        </div>
+        <h3>${esc(p.title)}</h3>
+        <p>${esc(p.content)}</p>
+        <div class="meta">
+          <span>${fmtTime(p.createdAt)}</span>
+          <span>💬 ${p.comments.length}</span>
+          <div class="reacts-mini">${reactSummary(p)}</div>
+        </div>
+      </div>`;
+    }).join('');
+    justPostedId = null;
+  }
+  $('list').addEventListener('click', e => {
+    const card = e.target.closest('.card'); if (card) openDetail(card.dataset.id);
+  });
+  $('searchInput').addEventListener('input', renderList);
+
+  // ===== 상세 =====
+  function openDetail(id) {
+    currentId = id;
+    $('listView').style.display = 'none';
+    const v = $('detailView'); v.style.display = 'block';
+    v.classList.remove('back-anim'); v.style.animation = 'none'; void v.offsetWidth; v.style.animation = '';
+    $('commentError').textContent = '';
+    renderDetail(); window.scrollTo({ top: 0 });
+  }
+  function closeDetail() {
+    currentId = null;
+    $('detailView').style.display = 'none';
+    const v = $('listView'); v.style.display = 'block';
+    v.classList.add('back-anim'); v.style.animation = 'none'; void v.offsetWidth; v.style.animation = '';
+    renderList();
+  }
+  function renderDetail(popEm) {
+    const p = posts.find(x => x.id === currentId);
+    if (!p) { closeDetail(); return; }
+    const r = roomById(p.room);
+    const mine = myReacts[p.id] || [];
+    const isOwner = p.author === deviceId;
+
+    $('detail').innerHTML = `
+      <div class="meta" style="margin-bottom:10px">
+        <span class="badge room-badge">${r.em} ${r.name}</span>
+        <span class="seal">${esc(p.nick)}</span>
+        <span>${fmtTime(p.createdAt)}</span>
+      </div>
+      <h2>${esc(p.title)}</h2>
+      <div class="body">${esc(p.content)}</div>
+      <div class="reactions">
+        ${REACTIONS.map(x => `
+          <button type="button" class="react ${mine.includes(x.em) ? 'on' : ''} ${popEm === x.em ? 'pop' : ''}" data-em="${x.em}" title="${x.label}">
+            <span class="em">${x.em}</span><span>${(p.reactions || {})[x.em] || 0}</span>
+          </button>`).join('')}
+        <div class="right-tools">
+          <button type="button" class="btn btn-report ${p.reported ? 'on' : ''}" id="reportBtn">${p.reported ? '🚩 신고됨' : '신고'}</button>
+          ${isOwner ? `<button type="button" class="btn btn-delete" id="deleteBtn">삭제</button>` : ''}
+        </div>
+      </div>`;
+
+    $('detail').querySelectorAll('.react').forEach(b => {
+      b.onclick = () => {
+        const em = b.dataset.em;
+        p.reactions = p.reactions || {};
+        const set = new Set(myReacts[p.id] || []);
+        if (set.has(em)) { set.delete(em); p.reactions[em] = Math.max(0, (p.reactions[em] || 1) - 1); }
+        else { set.add(em); p.reactions[em] = (p.reactions[em] || 0) + 1; }
+        myReacts[p.id] = [...set];
+        savePosts(); saveMyReacts(); renderDetail(set.has(em) ? em : null);
+      };
+    });
+    $('reportBtn').onclick = () => {
+      if (p.reported) { toast('이미 신고한 글이에요.'); return; }
+      if (confirm('이 글을 부적절한 글로 신고할까요?')) {
+        p.reported = true; p.reports = (p.reports || 0) + 1;
+        savePosts(); renderDetail(); toast('신고가 접수되었어요. 🚩');
+      }
+    };
+    if (isOwner) $('deleteBtn').onclick = () => {
+      if (confirm('이 글을 태워버릴까요? 되돌릴 수 없어요.')) {
+        posts = posts.filter(x => x.id !== p.id); delete myReacts[p.id];
+        savePosts(); saveMyReacts(); toast('글을 태웠어요. 🔥'); closeDetail();
+      }
+    };
+
+    $('commentTitle').textContent = `댓글 ${p.comments.length}개`;
+    $('commentList').innerHTML = p.comments.length
+      ? p.comments.map(c => `
+          <div class="sheet comment">
+            <div class="meta"><span class="seal">${esc(c.nick)}</span><span>${fmtTime(c.createdAt)}</span></div>
+            <div>${esc(c.content)}</div>
+          </div>`).join('')
+      : `<div class="empty" style="padding:22px 0">첫 댓글의 주인공이 되어보세요 🎤</div>`;
+  }
+  $('back').addEventListener('click', closeDetail);
+  $('home').addEventListener('click', () => { $('searchInput').value = ''; currentRoom = 'all'; renderRooms(); closeDetail(); });
+
+  $('commentForm').addEventListener('submit', e => {
+    e.preventDefault();
+    const text = $('commentInput').value.trim();
+    if (!text) { showError('commentError', '댓글 내용을 입력해주세요.'); return; }
+    const p = posts.find(x => x.id === currentId); if (!p) return;
+    p.comments.push({ id: uid(), content: text, nick: makeNick(), createdAt: Date.now() });
+    savePosts(); $('commentInput').value = ''; $('commentError').textContent = '';
+    renderDetail();
+  });
+
+  // ===== 글쓰기 =====
+  function refreshNick() { $('nickPreview').textContent = nextNick; }
+  $('rerollNick').addEventListener('click', () => { nextNick = makeNick(); refreshNick(); });
+
+  $('writeForm').addEventListener('submit', e => {
+    e.preventDefault();
+    const room = (document.querySelector('input[name=room]:checked') || {}).value;
+    const title = $('titleInput').value.trim();
+    const content = $('contentInput').value.trim();
+    if (!room) { showError('writeError', '먼저 글을 걸어둘 방을 골라주세요.'); return; }
+    if (!title || !content) { showError('writeError', '제목과 내용을 모두 써야 붙일 수 있어요.'); return; }
+    const id = uid();
+    posts.push({
+      id, room, title, content,
+      nick: nextNick, author: deviceId, createdAt: Date.now(),
+      reactions: {}, reported: false, reports: 0, comments: []
+    });
+    savePosts();
+    justPostedId = id;
+    $('titleInput').value = ''; $('contentInput').value = ''; $('writeError').textContent = '';
+    nextNick = makeNick(); refreshNick();
+    if (currentRoom !== 'all' && currentRoom !== room) { currentRoom = room; renderRooms(); }
+    renderList(); petals(); toast('한지에 글을 붙였어요 🖌️');
+  });
+
+  // ===== 시작 =====
+  renderRooms(); refreshNick(); renderList();
+})();
+</script>
+</body>
+</html>
