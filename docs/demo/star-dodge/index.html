@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<title>별똥별 피하기 · 기본판과 완성판 비교 시연</title>
+<meta name="description" content="AI × BUILD 3회기 시연용. 같은 게임을 기본판과 완성판으로 바꿔 가며 무엇이 '완성돼 보이게' 만드는지 비교합니다.">
+<style>
+  :root {
+    --bg: #0B0E1A;
+    --panel: #151A2E;
+    --line: #2A3150;
+    --ink: #EEF1FF;
+    --muted: #9AA3C7;
+    --accent: #FFB547;
+    --accent-2: #7CC4FF;
+    --danger: #FF6B6B;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink);
+    font-family: 'Pretendard', 'Malgun Gothic', 'Apple SD Gothic Neo', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased; overflow: hidden; touch-action: none; }
+  .app { display: flex; flex-direction: column; height: 100%; }
+
+  .bar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    padding: 10px 14px; background: var(--panel); border-bottom: 1px solid var(--line); }
+  .bar h1 { margin: 0; font-size: 16px; font-weight: 800; letter-spacing: -0.02em; white-space: nowrap; }
+  .bar h1 small { font-weight: 600; color: var(--muted); font-size: 12px; margin-left: 6px; }
+  .spacer { flex: 1; }
+
+  .seg { display: inline-flex; background: #0B0E1A; border: 1px solid var(--line); border-radius: 10px; padding: 3px; }
+  .seg button { border: 0; background: transparent; color: var(--muted); font: inherit; font-size: 14px; font-weight: 700;
+    padding: 8px 14px; border-radius: 7px; cursor: pointer; min-height: 38px; }
+  .seg button[aria-pressed="true"] { background: var(--accent); color: #1A1300; }
+  .seg button:focus-visible, .btn:focus-visible { outline: 3px solid var(--accent-2); outline-offset: 2px; }
+
+  .btn { border: 1px solid var(--line); background: #0B0E1A; color: var(--ink); font: inherit; font-size: 14px; font-weight: 700;
+    padding: 8px 12px; border-radius: 9px; cursor: pointer; min-height: 38px; }
+  .btn:hover { border-color: var(--muted); }
+  .btn[hidden] { display: none; }
+
+  .stage { position: relative; flex: 1; min-height: 0; }
+  canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+
+  .reveal { position: absolute; top: 12px; right: 12px; width: min(360px, calc(100% - 24px)); max-height: calc(100% - 24px);
+    overflow: auto; background: rgba(21, 26, 46, 0.96); border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px;
+    box-shadow: 0 20px 50px rgba(0,0,0,.45); }
+  .reveal[hidden] { display: none; }
+  .reveal h2 { margin: 0 0 4px; font-size: 16px; }
+  .reveal p { margin: 0 0 12px; color: var(--muted); font-size: 13px; }
+  .reveal h3 { margin: 12px 0 6px; font-size: 12px; letter-spacing: .08em; color: var(--accent); }
+  .reveal ul { margin: 0; padding-left: 18px; font-size: 14px; line-height: 1.6; }
+
+  .hint { padding: 7px 14px; font-size: 12.5px; color: var(--muted); background: var(--panel); border-top: 1px solid var(--line); text-align: center; }
+  @media (max-width: 560px) { .bar h1 small, .hint { display: none; } }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="bar">
+    <h1>별똥별 피하기 <small>AI × BUILD 3회기 시연</small></h1>
+    <div class="spacer"></div>
+    <div class="seg" role="group" aria-label="버전 선택">
+      <button type="button" id="modeBasic" aria-pressed="true">기본판</button>
+      <button type="button" id="modePolished" aria-pressed="false">완성판</button>
+    </div>
+    <button type="button" class="btn" id="btnSound" hidden aria-label="소리 끄기">🔊 소리</button>
+    <button type="button" class="btn" id="btnPause" hidden aria-label="일시정지">⏸ 멈춤</button>
+    <button type="button" class="btn" id="btnReveal" aria-expanded="false">달라진 점 보기</button>
+  </div>
+
+  <div class="stage" id="stage">
+    <canvas id="game" aria-label="게임 화면"></canvas>
+    <aside class="reveal" id="reveal" hidden>
+      <h2>완성판에서 달라진 12가지</h2>
+      <p>규칙은 똑같습니다. 달라진 건 전부 "완성돼 보이게" 만드는 것들입니다.</p>
+      <h3>시작과 끝맺음</h3>
+      <ul>
+        <li>타이틀 화면과 조작 안내</li>
+        <li>게임 오버 화면과 다시하기</li>
+        <li>최고 점수 저장</li>
+      </ul>
+      <h3>재미</h3>
+      <ul>
+        <li>시간이 갈수록 빨라지는 난이도</li>
+        <li>레벨 업 알림</li>
+      </ul>
+      <h3>반응 (손맛)</h3>
+      <ul>
+        <li>효과음 — 시작·획득·레벨업·충돌</li>
+        <li>별을 먹으면 반짝이는 파티클과 +10</li>
+        <li>부딪히면 폭발, 화면 흔들림, 느린 화면</li>
+        <li>부드러운 이동과 잔상</li>
+      </ul>
+      <h3>그림</h3>
+      <ul>
+        <li>움직이는 별 배경(원근감), 우주선·운석 모양</li>
+      </ul>
+      <h3>어디서나</h3>
+      <ul>
+        <li>휴대폰 터치·마우스 드래그 조작</li>
+        <li>일시정지와 소리 끄기</li>
+      </ul>
+    </aside>
+  </div>
+
+  <div class="hint" id="hint">← → 키로 이동</div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  // ------------------------------------------------------------------ 기본 설정
+  var canvas = document.getElementById('game');
+  var ctx = canvas.getContext('2d');
+  var stage = document.getElementById('stage');
+  var hint = document.getElementById('hint');
+  var btnBasic = document.getElementById('modeBasic');
+  var btnPolished = document.getElementById('modePolished');
+  var btnSound = document.getElementById('btnSound');
+  var btnPause = document.getElementById('btnPause');
+  var btnReveal = document.getElementById('btnReveal');
+  var reveal = document.getElementById('reveal');
+
+  var W = 0, H = 0, U = 1, DPR = 1;
+  var BEST_KEY = 'aixbuild-star-dodge-best';
+
+  function resize() {
+    DPR = Math.min(window.devicePixelRatio || 1, 2);
+    W = stage.clientWidth; H = stage.clientHeight;
+    canvas.width = Math.round(W * DPR); canvas.height = Math.round(H * DPR);
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    U = Math.max(10, Math.min(W, H) / 22);
+    if (game && game.player) game.player.y = H - U * 2.6;
+    makeStarfield();
+  }
+
+  function rand(a, b) { return a + Math.random() * (b - a); }
+  function clamp(v, a, b) { return v < a ? a : v > b ? b : v; }
+
+  function loadBest() { try { return parseInt(localStorage.getItem(BEST_KEY) || '0', 10) || 0; } catch (e) { return 0; } }
+  function saveBest(v) { try { localStorage.setItem(BEST_KEY, String(v)); } catch (e) {} }
+
+  // ------------------------------------------------------------------ 소리 (Web Audio 로 직접 만든 효과음)
+  var actx = null, muted = false;
+  function audio() {
+    if (!actx) {
+      try { actx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { actx = null; }
+    }
+    if (actx && actx.state === 'suspended') { try { actx.resume(); } catch (e) {} }
+    return actx;
+  }
+  function tone(freq, start, dur, type, vol, slideTo) {
+    var a = audio(); if (!a || muted) return;
+    var t = a.currentTime + start;
+    var o = a.createOscillator(), g = a.createGain();
+    o.type = type || 'square';
+    o.frequency.setValueAtTime(freq, t);
+    if (slideTo) o.frequency.exponentialRampToValueAtTime(slideTo, t + dur);
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(vol || 0.06, t + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(g); g.connect(a.destination);
+    o.start(t); o.stop(t + dur + 0.02);
+  }
+  function noise(start, dur, vol) {
+    var a = audio(); if (!a || muted) return;
+    var t = a.currentTime + start;
+    var len = Math.floor(a.sampleRate * dur);
+    var buf = a.createBuffer(1, len, a.sampleRate), d = buf.getChannelData(0);
+    for (var i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / len);
+    var src = a.createBufferSource(); src.buffer = buf;
+    var f = a.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 900;
+    var g = a.createGain(); g.gain.value = vol || 0.2;
+    src.connect(f); f.connect(g); g.connect(a.destination);
+    src.start(t);
+  }
+  var sfx = {
+    start: function () { tone(330, 0, .09, 'square', .05); tone(494, .08, .09, 'square', .05); tone(659, .16, .16, 'square', .05); },
+    collect: function () { tone(988, 0, .07, 'square', .045); tone(1480, .05, .09, 'square', .04); },
+    level: function () { [523, 659, 784, 1047].forEach(function (f, i) { tone(f, i * .07, .12, 'triangle', .06); }); },
+    hit: function () { noise(0, .45, .28); tone(180, 0, .4, 'sawtooth', .07, 40); }
+  };
+
+  // ------------------------------------------------------------------ 배경 별
+  var layers = [];
+  function makeStarfield() {
+    layers = [0.25, 0.55, 1].map(function (depth) {
+      var n = Math.round((W * H) / 9000 * (depth === 1 ? 0.35 : 0.8));
+      var arr = [];
+      for (var i = 0; i < n; i++) arr.push({ x: Math.random() * W, y: Math.random() * H, r: rand(.4, 1.4) * depth + .3 });
+      return { depth: depth, stars: arr };
+    });
+  }
+
+  // ------------------------------------------------------------------ 게임 상태
+  var mode = 'basic';        // 'basic' | 'polished'
+  var game = null;
+  var keys = {};
+  var pointerX = null;
+
+  function newGame() {
+    game = {
+      state: mode === 'basic' ? 'ready' : 'title',   // ready | title | play | dying | over | paused
+      t: 0, score: 0, best: loadBest(), level: 1, newBest: false,
+      spawnT: 0, starT: 0, dyingT: 0,
+      player: { x: W / 2, y: H - U * 2.6, vx: 0, trail: [] },
+      meteors: [], stars: [], particles: [], popups: [],
+      shake: 0, flash: 0, levelBanner: 0
+    };
+    pointerX = null;
+    updateChrome();
+  }
+
+  function startPlay() {
+    game.state = 'play'; game.t = 0; game.score = 0; game.level = 1; game.newBest = false;
+    game.meteors = []; game.stars = []; game.particles = []; game.popups = [];
+    game.spawnT = 0.6; game.starT = 1.2; game.player.x = W / 2; game.player.vx = 0; game.player.trail = [];
+    if (mode === 'polished') sfx.start();
+    updateChrome();
+  }
+
+  function setMode(m) {
+    mode = m;
+    btnBasic.setAttribute('aria-pressed', m === 'basic' ? 'true' : 'false');
+    btnPolished.setAttribute('aria-pressed', m === 'polished' ? 'true' : 'false');
+    newGame();
+  }
+
+  function updateChrome() {
+    var pol = mode === 'polished';
+    btnSound.hidden = !pol;
+    btnPause.hidden = !pol;
+    btnSound.textContent = muted ? '🔇 소리' : '🔊 소리';
+    btnSound.setAttribute('aria-label', muted ? '소리 켜기' : '소리 끄기');
+    btnPause.textContent = game && game.state === 'paused' ? '▶ 계속' : '⏸ 멈춤';
+    hint.textContent = pol
+      ? '← → 키 · 마우스 · 손가락으로 이동  |  SPACE 시작·다시하기  |  P 멈춤  |  M 소리'
+      : '← → 키로 이동  |  R 다시';
+  }
+
+  // ------------------------------------------------------------------ 난이도
+  function meteorInterval() {
+    if (mode === 'basic') return 0.62;
+    return Math.max(0.24, 0.72 - game.t * 0.011);
+  }
+  function meteorSpeed() {
+    if (mode === 'basic') return H * 0.42;
+    return H * Math.min(1.05, 0.38 + game.t * 0.011);
+  }
+
+  // ------------------------------------------------------------------ 갱신
+  function update(dt) {
+    if (!game) return;
+    var p = game.player, pol = mode === 'polished';
+
+    // 배경은 항상 흐른다 (완성판만)
+    if (pol) layers.forEach(function (L) {
+      var sp = (game.state === 'play' ? 60 + game.t * 1.5 : 30) * L.depth * (game.state === 'dying' ? 0.25 : 1);
+      L.stars.forEach(function (s) { s.y += sp * dt; if (s.y > H) { s.y -= H; s.x = Math.random() * W; } });
+    });
+
+    if (game.shake > 0) game.shake = Math.max(0, game.shake - dt * 2.8);
+    if (game.flash > 0) game.flash = Math.max(0, game.flash - dt * 3);
+    if (game.levelBanner > 0) game.levelBanner = Math.max(0, game.levelBanner - dt);
+
+    // 파티클·떠오르는 점수
+    game.particles.forEach(function (q) { q.x += q.vx * dt; q.y += q.vy * dt; q.vy += q.g * dt; q.life -= dt; });
+    game.particles = game.particles.filter(function (q) { return q.life > 0; });
+    game.popups.forEach(function (q) { q.y -= U * 1.6 * dt; q.life -= dt; });
+    game.popups = game.popups.filter(function (q) { return q.life > 0; });
+
+    if (game.state === 'dying') {
+      game.dyingT -= dt;
+      var slow = dt * 0.25;
+      game.meteors.forEach(function (m) { m.y += m.vy * slow; m.rot += m.vr * slow; });
+      if (game.dyingT <= 0) { game.state = 'over'; updateChrome(); }
+      return;
+    }
+    if (game.state !== 'play') return;
+
+    game.t += dt;
+
+    // 레벨
+    if (pol) {
+      var lv = 1 + Math.floor(game.t / 12);
+      if (lv > game.level) { game.level = lv; game.levelBanner = 1.6; sfx.level(); }
+    }
+
+    // 이동
+    var speed = W * (pol ? 0.95 : 0.6);
+    var dir = (keys.ArrowLeft || keys.a ? -1 : 0) + (keys.ArrowRight || keys.d ? 1 : 0);
+    if (pol) {
+      if (pointerX !== null && dir === 0) {
+        p.x += (pointerX - p.x) * Math.min(1, dt * 14);
+      } else {
+        p.vx += (dir * speed - p.vx) * Math.min(1, dt * 12);
+        p.x += p.vx * dt;
+      }
+      p.trail.push({ x: p.x, y: p.y }); if (p.trail.length > 10) p.trail.shift();
+    } else {
+      p.x += dir * speed * dt;
+    }
+    p.x = clamp(p.x, U, W - U);
+
+    // 생성
+    game.spawnT -= dt;
+    if (game.spawnT <= 0) {
+      game.spawnT = meteorInterval();
+      var r = pol ? rand(U * 0.55, U * 1.15) : U * 0.8;
+      var shape = [];
+      for (var i = 0; i < 9; i++) shape.push(rand(0.72, 1.05));
+      game.meteors.push({ x: rand(r, W - r), y: -r, r: r, vy: meteorSpeed() * rand(0.85, 1.15), rot: 0, vr: rand(-2, 2), shape: shape });
+    }
+    game.starT -= dt;
+    if (game.starT <= 0) {
+      game.starT = rand(1.1, 1.8);
+      game.stars.push({ x: rand(U, W - U), y: -U, r: U * 0.62, vy: H * 0.32, ph: Math.random() * 6 });
+    }
+
+    game.meteors.forEach(function (m) { m.y += m.vy * dt; m.rot += m.vr * dt; });
+    game.stars.forEach(function (s) { s.y += s.vy * dt; s.ph += dt * 6; });
+
+    // 점수: 버틴 시간
+    game.score += dt * (pol ? 10 + game.level * 2 : 10);
+
+    // 별 획득
+    var pr = U * 0.8;
+    game.stars = game.stars.filter(function (s) {
+      if (s.y - s.r > H) return false;
+      var dx = s.x - p.x, dy = s.y - p.y;
+      if (dx * dx + dy * dy < (s.r + pr) * (s.r + pr)) {
+        game.score += 50;
+        if (pol) {
+          sfx.collect();
+          burst(s.x, s.y, 16, ['#FFE08A', '#FFB547', '#FFFFFF'], U * 5, 0.5, 0);
+          game.popups.push({ x: s.x, y: s.y, text: '+50', life: 0.8 });
+        }
+        return false;
+      }
+      return true;
+    });
+
+    // 충돌
+    for (var j = 0; j < game.meteors.length; j++) {
+      var m = game.meteors[j];
+      var dx2 = m.x - p.x, dy2 = m.y - p.y, rr = m.r * 0.85 + pr * 0.7;
+      if (dx2 * dx2 + dy2 * dy2 < rr * rr) { die(); return; }
+    }
+    game.meteors = game.meteors.filter(function (m) { return m.y - m.r < H; });
+  }
+
+  function burst(x, y, n, colors, spd, life, grav) {
+    for (var i = 0; i < n; i++) {
+      var a = Math.random() * Math.PI * 2, v = rand(0.3, 1) * spd;
+      game.particles.push({ x: x, y: y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, g: grav, life: rand(life * .5, life), max: life,
+        c: colors[(Math.random() * colors.length) | 0], s: rand(U * .08, U * .22) });
+    }
+  }
+
+  function die() {
+    var s = Math.floor(game.score);
+    if (s > game.best) { game.best = s; game.newBest = true; saveBest(s); }
+    if (mode === 'polished') {
+      sfx.hit();
+      burst(game.player.x, game.player.y, 46, ['#FF6B6B', '#FFB547', '#FFE08A', '#FFFFFF'], U * 9, 0.9, U * 4);
+      game.shake = 1; game.flash = 1;
+      game.state = 'dying'; game.dyingT = 0.7;
+    } else {
+      game.state = 'over';
+    }
+    updateChrome();
+  }
+
+  // ------------------------------------------------------------------ 그리기
+  function draw() {
+    if (!game) return;
+    var pol = mode === 'polished';
+    ctx.save();
+    if (pol && game.shake > 0) {
+      var m = game.shake * U * 0.6;
+      ctx.translate(rand(-m, m), rand(-m, m));
+    }
+
+    // 배경
+    if (pol) {
+      var g = ctx.createLinearGradient(0, 0, 0, H);
+      g.addColorStop(0, '#0A0F2C'); g.addColorStop(1, '#1B1140');
+      ctx.fillStyle = g; ctx.fillRect(-U, -U, W + U * 2, H + U * 2);
+      layers.forEach(function (L) {
+        ctx.fillStyle = 'rgba(220,230,255,' + (0.35 + L.depth * 0.5) + ')';
+        L.stars.forEach(function (s) { ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, 6.283); ctx.fill(); });
+      });
+    } else {
+      ctx.fillStyle = '#000'; ctx.fillRect(0, 0, W, H);
+    }
+
+    if (pol && game.state === 'title') { drawTitle(); ctx.restore(); return; }
+
+    // 별(획득)
+    game.stars.forEach(function (s) {
+      if (pol) drawStar(s.x, s.y, s.r * (1 + Math.sin(s.ph) * 0.12), s.ph);
+      else { ctx.fillStyle = '#FFD400'; ctx.fillRect(s.x - s.r * .7, s.y - s.r * .7, s.r * 1.4, s.r * 1.4); }
+    });
+
+    // 운석
+    game.meteors.forEach(function (m) {
+      if (pol) drawMeteor(m);
+      else { ctx.fillStyle = '#E02020'; ctx.fillRect(m.x - m.r, m.y - m.r, m.r * 2, m.r * 2); }
+    });
+
+    // 플레이어
+    if (game.state !== 'dying' && !(game.state === 'over' && pol)) {
+      if (pol) drawShip(game.player);
+      else { ctx.fillStyle = '#FFFFFF'; ctx.fillRect(game.player.x - U * .8, game.player.y - U * .8, U * 1.6, U * 1.6); }
+    }
+
+    // 파티클·점수 팝업
+    game.particles.forEach(function (q) {
+      ctx.globalAlpha = clamp(q.life / q.max, 0, 1);
+      ctx.fillStyle = q.c; ctx.beginPath(); ctx.arc(q.x, q.y, q.s, 0, 6.283); ctx.fill();
+    });
+    ctx.globalAlpha = 1;
+    game.popups.forEach(function (q) {
+      ctx.globalAlpha = clamp(q.life / 0.8, 0, 1);
+      ctx.fillStyle = '#FFE08A'; ctx.font = '800 ' + Math.round(U * .9) + 'px sans-serif'; ctx.textAlign = 'center';
+      ctx.fillText(q.text, q.x, q.y);
+    });
+    ctx.globalAlpha = 1;
+    ctx.restore();
+
+    // HUD
+    if (pol) drawHudPolished(); else drawHudBasic();
+
+    if (pol && game.flash > 0) { ctx.fillStyle = 'rgba(255,120,120,' + game.flash * 0.35 + ')'; ctx.fillRect(0, 0, W, H); }
+    if (pol && game.levelBanner > 0) drawLevelBanner();
+    if (pol && game.state === 'over') drawOverPolished();
+    if (pol && game.state === 'paused') drawPaused();
+  }
+
+  function drawHudBasic() {
+    ctx.fillStyle = '#FFF'; ctx.font = '16px monospace'; ctx.textAlign = 'left';
+    ctx.fillText('SCORE: ' + Math.floor(game.score), 10, 24);
+    if (game.state === 'ready') ctx.fillText('아무 키나 누르면 시작', 10, 46);
+    if (game.state === 'over') ctx.fillText('GAME OVER', 10, 46);
+  }
+
+  function drawHudPolished() {
+    ctx.textAlign = 'left';
+    ctx.fillStyle = '#FFFFFF'; ctx.font = '800 ' + Math.round(U * 1.3) + 'px sans-serif';
+    ctx.fillText(Math.floor(game.score).toLocaleString(), U * .8, U * 1.8);
+    ctx.fillStyle = '#9AA3C7'; ctx.font = '700 ' + Math.round(U * .58) + 'px sans-serif';
+    ctx.fillText('BEST ' + game.best.toLocaleString(), U * .8, U * 2.6);
+    if (game.state === 'play' || game.state === 'paused') {
+      ctx.textAlign = 'right'; ctx.fillStyle = '#FFB547'; ctx.font = '800 ' + Math.round(U * .7) + 'px sans-serif';
+      ctx.fillText('LEVEL ' + game.level, W - U * .8, U * 1.6);
+    }
+  }
+
+  function glowText(text, x, y, size, color, glow) {
+    ctx.save(); ctx.textAlign = 'center'; ctx.font = '900 ' + Math.round(size) + 'px sans-serif';
+    ctx.shadowColor = glow; ctx.shadowBlur = size * 0.5; ctx.fillStyle = color; ctx.fillText(text, x, y); ctx.restore();
+  }
+
+  function drawTitle() {
+    var cy = H * 0.36;
+    glowText('별똥별 피하기', W / 2, cy, Math.min(W / 7, U * 2.6), '#FFFFFF', '#7CC4FF');
+    ctx.textAlign = 'center'; ctx.fillStyle = '#C9D2F5'; ctx.font = '600 ' + Math.round(U * .72) + 'px sans-serif';
+    ctx.fillText('★ 별은 모으고, 운석은 피하세요', W / 2, cy + U * 1.9);
+    ctx.fillStyle = '#9AA3C7'; ctx.font = '500 ' + Math.round(U * .6) + 'px sans-serif';
+    ctx.fillText('← → 키  ·  마우스  ·  손가락으로 좌우 이동', W / 2, cy + U * 2.9);
+    ctx.fillText('BEST ' + game.best.toLocaleString(), W / 2, cy + U * 3.8);
+    var blink = (Math.sin(performance.now() / 280) + 1) / 2;
+    ctx.globalAlpha = 0.45 + blink * 0.55;
+    glowText('탭하거나 SPACE로 시작', W / 2, H * 0.78, U * .95, '#FFB547', '#FFB547');
+    ctx.globalAlpha = 1;
+    drawShip({ x: W / 2, y: H * 0.64, trail: [] });
+  }
+
+  function drawOverPolished() {
+    ctx.fillStyle = 'rgba(6,8,20,.62)'; ctx.fillRect(0, 0, W, H);
+    var cy = H * 0.36;
+    glowText('GAME OVER', W / 2, cy, Math.min(W / 8, U * 2.2), '#FF8A8A', '#FF6B6B');
+    glowText(Math.floor(game.score).toLocaleString(), W / 2, cy + U * 2.6, U * 2.2, '#FFFFFF', '#7CC4FF');
+    if (game.newBest) glowText('NEW BEST!', W / 2, cy + U * 3.9, U * .9, '#FFE08A', '#FFB547');
+    else { ctx.textAlign = 'center'; ctx.fillStyle = '#9AA3C7'; ctx.font = '700 ' + Math.round(U * .65) + 'px sans-serif'; ctx.fillText('BEST ' + game.best.toLocaleString(), W / 2, cy + U * 3.9); }
+    // 다시하기 버튼 모양
+    var bw = U * 7, bh = U * 1.9, bx = W / 2 - bw / 2, by = H * 0.68;
+    ctx.fillStyle = '#FFB547'; roundRect(bx, by, bw, bh, U * .5); ctx.fill();
+    ctx.fillStyle = '#1A1300'; ctx.textAlign = 'center'; ctx.font = '800 ' + Math.round(U * .8) + 'px sans-serif';
+    ctx.fillText('다시하기', W / 2, by + bh * 0.64);
+    game.retryBox = { x: bx, y: by, w: bw, h: bh };
+  }
+
+  function drawPaused() {
+    ctx.fillStyle = 'rgba(6,8,20,.55)'; ctx.fillRect(0, 0, W, H);
+    glowText('일시정지', W / 2, H * 0.45, U * 1.8, '#FFFFFF', '#7CC4FF');
+    ctx.textAlign = 'center'; ctx.fillStyle = '#9AA3C7'; ctx.font = '600 ' + Math.round(U * .65) + 'px sans-serif';
+    ctx.fillText('P 또는 ▶ 계속 버튼', W / 2, H * 0.45 + U * 1.5);
+  }
+
+  function drawLevelBanner() {
+    var a = Math.min(1, game.levelBanner * 2) * Math.min(1, (1.6 - game.levelBanner) * 4);
+    ctx.globalAlpha = clamp(a, 0, 1);
+    glowText('LEVEL ' + game.level, W / 2, H * 0.3, U * 1.8, '#FFE08A', '#FFB547');
+    ctx.textAlign = 'center'; ctx.fillStyle = '#C9D2F5'; ctx.font = '700 ' + Math.round(U * .6) + 'px sans-serif';
+    ctx.fillText('더 빨라집니다!', W / 2, H * 0.3 + U * 1.2);
+    ctx.globalAlpha = 1;
+  }
+
+  function roundRect(x, y, w, h, r) {
+    ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath();
+  }
+
+  function drawShip(p) {
+    (p.trail || []).forEach(function (t, i) {
+      ctx.globalAlpha = (i / 10) * 0.35; ctx.fillStyle = '#7CC4FF';
+      ctx.beginPath(); ctx.arc(t.x, t.y + U * .3, U * .45 * (i / 10), 0, 6.283); ctx.fill();
+    });
+    ctx.globalAlpha = 1;
+    var s = U * 0.95, fl = rand(0.6, 1);
+    ctx.save(); ctx.translate(p.x, p.y);
+    // 불꽃
+    ctx.fillStyle = '#FFB547';
+    ctx.beginPath(); ctx.moveTo(-s * .35, s * .7); ctx.lineTo(0, s * (1.1 + fl * .6)); ctx.lineTo(s * .35, s * .7); ctx.closePath(); ctx.fill();
+    // 몸체
+    ctx.shadowColor = '#7CC4FF'; ctx.shadowBlur = U * .8;
+    var g = ctx.createLinearGradient(0, -s, 0, s);
+    g.addColorStop(0, '#FFFFFF'); g.addColorStop(1, '#7CC4FF');
+    ctx.fillStyle = g;
+    ctx.beginPath(); ctx.moveTo(0, -s * 1.1); ctx.lineTo(s * .85, s * .8); ctx.lineTo(0, s * .45); ctx.lineTo(-s * .85, s * .8); ctx.closePath(); ctx.fill();
+    ctx.shadowBlur = 0; ctx.fillStyle = '#1B2A5A';
+    ctx.beginPath(); ctx.arc(0, -s * .15, s * .22, 0, 6.283); ctx.fill();
+    ctx.restore();
+  }
+
+  function drawMeteor(m) {
+    ctx.save(); ctx.translate(m.x, m.y); ctx.rotate(m.rot);
+    ctx.shadowColor = 'rgba(255,120,80,.55)'; ctx.shadowBlur = m.r * .6;
+    var g = ctx.createRadialGradient(-m.r * .3, -m.r * .3, m.r * .1, 0, 0, m.r);
+    g.addColorStop(0, '#9A8C86'); g.addColorStop(1, '#3B302E');
+    ctx.fillStyle = g; ctx.beginPath();
+    for (var i = 0; i < m.shape.length; i++) {
+      var a = (i / m.shape.length) * 6.283, r = m.r * m.shape[i];
+      if (i === 0) ctx.moveTo(Math.cos(a) * r, Math.sin(a) * r); else ctx.lineTo(Math.cos(a) * r, Math.sin(a) * r);
+    }
+    ctx.closePath(); ctx.fill();
+    ctx.shadowBlur = 0; ctx.fillStyle = 'rgba(0,0,0,.25)';
+    ctx.beginPath(); ctx.arc(m.r * .25, m.r * .1, m.r * .22, 0, 6.283); ctx.fill();
+    ctx.restore();
+  }
+
+  function drawStar(x, y, r, ph) {
+    ctx.save(); ctx.translate(x, y); ctx.rotate(ph * 0.15);
+    ctx.shadowColor = '#FFD166'; ctx.shadowBlur = r * 1.2; ctx.fillStyle = '#FFE08A';
+    ctx.beginPath();
+    for (var i = 0; i < 10; i++) {
+      var a = -Math.PI / 2 + i * Math.PI / 5, rr = i % 2 === 0 ? r : r * 0.45;
+      if (i === 0) ctx.moveTo(Math.cos(a) * rr, Math.sin(a) * rr); else ctx.lineTo(Math.cos(a) * rr, Math.sin(a) * rr);
+    }
+    ctx.closePath(); ctx.fill(); ctx.restore();
+  }
+
+  // ------------------------------------------------------------------ 입력
+  function primaryAction() {
+    audio();
+    if (!game) return;
+    if (game.state === 'title' || game.state === 'ready') startPlay();
+    else if (game.state === 'over' && mode === 'polished') startPlay();
+  }
+  function togglePause() {
+    if (mode !== 'polished' || !game) return;
+    if (game.state === 'play') game.state = 'paused';
+    else if (game.state === 'paused') game.state = 'play';
+    updateChrome();
+  }
+
+  window.addEventListener('keydown', function (e) {
+    var k = e.key.length === 1 ? e.key.toLowerCase() : e.key;
+    if (['ArrowLeft', 'ArrowRight', ' ', 'Spacebar'].indexOf(e.key) !== -1) e.preventDefault();
+    keys[k] = true;
+    if (!game) return;
+    if (mode === 'basic') {
+      if (game.state === 'ready') startPlay();
+      else if (game.state === 'over' && k === 'r') startPlay();
+      return;
+    }
+    if (k === ' ' || k === 'Enter') primaryAction();
+    if (k === 'p') togglePause();
+    if (k === 'm') { muted = !muted; updateChrome(); }
+  });
+  window.addEventListener('keyup', function (e) {
+    var k = e.key.length === 1 ? e.key.toLowerCase() : e.key;
+    keys[k] = false;
+  });
+
+  function localX(e) { var r = canvas.getBoundingClientRect(); return e.clientX - r.left; }
+  function localY(e) { var r = canvas.getBoundingClientRect(); return e.clientY - r.top; }
+
+  canvas.addEventListener('pointerdown', function (e) {
+    if (mode === 'basic') { if (game.state === 'ready') startPlay(); return; }   // 기본판은 터치로 조작할 수 없음
+    audio();
+    if (game.state === 'over' && game.retryBox) {
+      var x = localX(e), y = localY(e), b = game.retryBox;
+      if (x >= b.x && x <= b.x + b.w && y >= b.y && y <= b.y + b.h) { startPlay(); return; }
+      return;
+    }
+    if (game.state === 'title') { startPlay(); return; }
+    pointerX = localX(e);
+  });
+  canvas.addEventListener('pointermove', function (e) {
+    if (mode !== 'polished' || !game || game.state !== 'play') return;
+    if (e.pointerType === 'mouse' || e.buttons || e.pointerType === 'touch') pointerX = localX(e);
+  });
+  canvas.addEventListener('pointerleave', function () { pointerX = null; });
+
+  btnBasic.addEventListener('click', function () { setMode('basic'); btnBasic.blur(); });
+  btnPolished.addEventListener('click', function () { setMode('polished'); btnPolished.blur(); });
+  btnSound.addEventListener('click', function () { muted = !muted; updateChrome(); btnSound.blur(); });
+  btnPause.addEventListener('click', function () { togglePause(); btnPause.blur(); });
+  btnReveal.addEventListener('click', function () {
+    var open = reveal.hidden;
+    reveal.hidden = !open;
+    btnReveal.setAttribute('aria-expanded', open ? 'true' : 'false');
+    btnReveal.textContent = open ? '닫기' : '달라진 점 보기';
+    btnReveal.blur();
+  });
+  document.addEventListener('visibilitychange', function () {
+    if (document.hidden && game && game.state === 'play' && mode === 'polished') { game.state = 'paused'; updateChrome(); }
+  });
+
+  // ------------------------------------------------------------------ 루프
+  var last = performance.now();
+  function frame(now) {
+    var dt = Math.min(0.05, (now - last) / 1000); last = now;
+    update(dt); draw();
+    requestAnimationFrame(frame);
+  }
+
+  window.addEventListener('resize', resize);
+  resize();
+  setMode('basic');
+  requestAnimationFrame(frame);
+
+  // 자동 점검용 (수업에는 영향 없음)
+  window.__demo = {
+    get mode() { return mode; },
+    get state() { return game && game.state; },
+    get score() { return game ? Math.floor(game.score) : 0; },
+    setMode: setMode, start: startPlay, die: function () { if (game && game.state === 'play') die(); }
+  };
+})();
+</script>
+</body>
+</html>
