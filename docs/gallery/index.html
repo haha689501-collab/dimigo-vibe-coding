@@ -48,7 +48,7 @@
 .show .by{margin-top:10px;font-size:13.5px;color:var(--ink-muted)}
 .show .by b{color:var(--ink)}
 .show .desc{margin-top:12px;font-size:14.5px;line-height:1.75;color:var(--ink-body);max-width:520px}
-.show .go{margin-top:18px}
+.show .go-row{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}.show .go{margin-top:0}
 .shot{display:block;width:100%;padding:0;border:1px solid var(--line-strong);border-radius:12px;overflow:hidden;background:var(--bg-tint);cursor:pointer;box-shadow:var(--shadow);transition:transform .2s}
 .shot:hover{transform:translateY(-2px)}
 .shot .bar{display:flex;gap:6px;padding:9px 11px;background:var(--bg-soft);border-bottom:1px solid var(--line)}
@@ -304,6 +304,9 @@
         '<i>' + dayCount(s) + '/' + ACTIVE.length + '</i></button>';
     }).join('') + '</div>';
   }
+  /* 팀 피드백 페이지 (공개판은 ../feedback/ 로, 한 파일 공유본은 '' 로 바뀌어 버튼이 숨겨집니다) */
+  var FB_PAGE = '../feedback/';
+  var FB_TEAM = { '별담 유리병': 'byeoldam', '쓸모없는 사이트 A–Z': 'useless', '털실 타자기': 'knit', 'Aro': 'aro', 'MOVE': 'move' };
   /* 팀 프로젝트 소개 카드: 팀원 중 05 칸(팀 프로젝트)에 작품이 있는 첫 사람의 첫 작품을 엽니다 */
   function showcase(name, ti, members) {
     var TEAM_DAY = 5, owner = DATA.students.filter(function (s) {
@@ -317,8 +320,10 @@
       (ti.tagline ? '<p class="tag">' + esc(ti.tagline) + '</p>' : '') +
       '<p class="by">만든 학생 · <b>' + members.length + '명</b></p>' + chips(members) +
       (ti.desc ? '<p class="desc">' + esc(ti.desc) + '</p>' : '') +
+      '<div class="go-row">' +
       (owner ? '<button type="button" class="btn btn-primary go"' + open + '>작품 열기 ' + (link ? '↗' : '→') + '</button>' : '') +
-      '</div>' +
+      (FB_PAGE && FB_TEAM[name] ? '<a class="btn btn-ghost go" href="' + FB_PAGE + '#team=' + FB_TEAM[name] + '&amp;p=1">팀 피드백 보기</a>' : '') +
+      '</div></div>' +
       (ti.preview ? '<button type="button" class="shot"' + open + ' aria-label="' + esc(name) + ' 작품 열기"><span class="bar" aria-hidden="true"><i></i><i></i><i></i></span>' +
         '<img src="' + enc(ti.preview) + '" alt="' + esc(name) + ' 화면" loading="lazy"></button>' : '') +
       '</div>';

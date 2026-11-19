@@ -48,6 +48,7 @@
             '<div class="hero-actions">' +
               '<a class="btn btn-primary" href="#lessons">강의자료 보기</a>' +
               '<a class="btn btn-ghost" href="#curriculum">전체 커리큘럼</a>' +
+              '<a class="btn btn-ghost" id="heroStudents" href="' + (location.protocol === 'file:' ? 'students/index.html' : 'gallery/') + '">학생 작품 보기</a>' +
             '</div>' +
           '</div>' +
           '<div class="progress-card">' +
@@ -626,6 +627,17 @@
       studentsLink.setAttribute('href', 'gallery/');
       fetch('gallery/index.html', { method: 'HEAD' })
         .then(function (r) { if (r.ok) studentsLink.hidden = false; })
+        .catch(function () {});
+    }
+  }
+  // 팀 피드백: 이 컴퓨터에서는 원본, 인터넷에서는 이름을 가린 공개판(feedback/)
+  var feedbackLink = document.getElementById('feedbackLink');
+  if (feedbackLink) {
+    if (location.protocol === 'file:') feedbackLink.hidden = false;
+    else {
+      feedbackLink.setAttribute('href', 'feedback/');
+      fetch('feedback/index.html', { method: 'HEAD' })
+        .then(function (r) { if (r.ok) feedbackLink.hidden = false; })
         .catch(function () {});
     }
   }
