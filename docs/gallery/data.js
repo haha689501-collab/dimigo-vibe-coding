@@ -1,6 +1,6 @@
 /* tools/build-gallery.py 가 만든 공개용 파일입니다. 직접 고치지 마세요. */
 window.STUDENT_WORKS = {
- "updated": "2026-11-20 01:06",
+ "updated": "2026-11-20 08:53",
  "days": 5,
  "labels": {
   "1": "기획서",

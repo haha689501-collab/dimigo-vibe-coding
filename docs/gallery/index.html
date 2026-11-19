@@ -404,7 +404,7 @@
     $('view').innerHTML = state.student ? renderPerson(state.student) : (state.view === 'days' ? renderDays() : state.view === 'students' ? renderStudents() : renderTeamsView());
     var total = DATA.students.reduce(function (a, s) { return a + Object.keys(s.days || {}).reduce(function (b, d) { return b + s.days[d].length; }, 0); }, 0);
     $('note').textContent = DATA.students.length
-      ? '학생 ' + DATA.students.length + '명 · 파일 ' + total + '개' + (DATA.updated ? ' · 마지막 정리 ' + DATA.updated : '')
+      ? '학생 ' + DATA.students.length + '명 · 파일 ' + total + '개'
       : '';
   }
 
